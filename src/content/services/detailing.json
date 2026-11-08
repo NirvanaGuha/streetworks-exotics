@@ -1,0 +1,24 @@
+{
+  "title": "Detailing Service",
+  "heroTagline": "Uncompromising Preservation",
+  "description": "Museum-grade paint correction, preservation, and deep cleaning to elevate your vehicle's presentation.",
+  "heroImage": "../../assets/images/detailing/Automotive-Detailing-in-Pewaukee.jpg",
+  "tintColor": "#800000",
+  "deepTextTitle": "The Final Polish",
+  "deepTextParagraphs": [
+    "Detailing a classic car is an exercise in preservation. We employ museum-grade paint correction techniques, carefully measuring clear coat depth and safely removing years of swirl marks and imperfections without jeopardizing original paintwork.",
+    "We utilize premium ceramic coatings and traditional carnauba waxes to seal and protect the finish. From deep engine bay cleaning to delicate leather conditioning, our detailing service elevates the presentation of your vehicle to concours standards."
+  ],
+  "midText": "Museum-grade preservation for the most demanding collectors.",
+  "finalText": "Experience the ultimate expression of automotive beauty.",
+  "galleryImages": [
+    "../../assets/images/body-paint/body-and-paint-scaled.jpg",
+    "../../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg",
+    "../../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
+    "../../assets/images/body-paint/Isetta-Delivery.jpg",
+    "../../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose.jpg",
+    "../../assets/images/coachwork/Lamborghini-Islero-out-of-metal-shop.jpg",
+    "../../assets/images/coachwork/A3C Coachwork.jpg",
+    "../../assets/images/coachwork/Lancia-Fulvia-Series-II-Coupe-coachwork-scaled-1.jpg"
+  ]
+}

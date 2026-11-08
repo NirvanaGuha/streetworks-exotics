@@ -1,12 +1,15 @@
 ---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
 interface Props {
   title: string;
   description: string;
-  bgImgUrl: string;
+  bgImgUrl: string | ImageMetadata;
   serviceUrl: string;
   bookingUrl?: string;
-  galleryRow1: string[];
-  galleryRow2: string[];
+  galleryRow1: (string | ImageMetadata)[];
+  galleryRow2: (string | ImageMetadata)[];
   tintColor?: string;
 }
 
@@ -24,8 +27,18 @@ const {
 
 <section class="service-slide absolute inset-0 w-full h-full opacity-0 invisible bg-black flex flex-col justify-center pointer-events-none">
   
-  <div class="service-bg-layer absolute inset-0 z-0 overflow-hidden">
-    <img src={bgImgUrl} alt={title} class="service-bg absolute inset-0 w-full h-full object-cover opacity-60" />
+  <div 
+    class="service-bg-layer absolute inset-0 z-0 overflow-hidden"
+    transition:name={`hero-image-${title}`}
+  >
+    <Image 
+      src={bgImgUrl as any} 
+      alt={title} 
+      width={1920}
+      height={1080}
+      inferSize={true}
+      class="service-bg absolute inset-0 w-full h-full object-cover opacity-60" 
+    />
     <div class="absolute inset-0 mix-blend-color opacity-50" style={`background-color: ${tintColor};`}></div>
     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/90"></div>
   </div>
@@ -37,7 +50,7 @@ const {
         <p class="text-lg md:text-2xl text-white/70 font-light mt-4 leading-relaxed">{description}</p>
       </div>
       <div class="flex items-center gap-4 shrink-0 pointer-events-auto">
-        <a href={serviceUrl} class="px-6 py-3 border border-white/30 rounded-full hover:bg-white hover:text-black transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">See Service</a>
+        <a href={serviceUrl} data-astro-prefetch class="px-6 py-3 border border-white/30 rounded-full hover:bg-white hover:text-black transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">See Service</a>
         <a href={bookingUrl} class="px-6 py-3 bg-white text-black rounded-full hover:bg-yellow-500 transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">Get in touch</a>
       </div>
     </div>
@@ -47,14 +60,28 @@ const {
         <div class="flex gap-4 md:gap-6 w-max animate-marquee hover:[animation-play-state:paused]">
           {[...galleryRow1, ...galleryRow1].map((img) => (
             <div class="h-32 md:h-48 lg:h-56 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
-              <img src={img} alt="Service Detail" class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" />
+              <Image 
+                src={img as any} 
+                alt="Service Detail" 
+                width={800}
+                height={600}
+                inferSize={true}
+                class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" 
+              />
             </div>
           ))}
         </div>
         <div class="flex gap-4 md:gap-6 w-max animate-marquee-reverse hover:[animation-play-state:paused]">
           {[...galleryRow2, ...galleryRow2].map((img) => (
             <div class="h-32 md:h-48 lg:h-56 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
-              <img src={img} alt="Service Detail" class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" />
+              <Image 
+                src={img as any} 
+                alt="Service Detail" 
+                width={800}
+                height={600}
+                inferSize={true}
+                class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" 
+              />
             </div>
           ))}
         </div>

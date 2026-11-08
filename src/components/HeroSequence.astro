@@ -1,14 +1,29 @@
 ---
+import { Image } from 'astro:assets';
 import brand from '../data/brand.json';
-const heroBgUrl = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=3000&auto=format&fit=crop"; 
+
+interface Props {
+  bgImgUrl?: string;
+  headline?: string;
+  tagline?: string;
+}
+
+const { 
+  bgImgUrl = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=3000&auto=format&fit=crop",
+  headline = brand.client,
+  tagline = brand.tagline
+} = Astro.props;
 ---
 
 <div class="absolute inset-0 w-full h-full bg-black z-0"></div>
 
 <div id="hero-bg-wrapper" class="absolute inset-0 w-full h-full z-10 will-change-opacity">
-  <img 
-    src={heroBgUrl} 
+  <Image 
+    src={bgImgUrl as any} 
     alt="Cinematic Background" 
+    width={1920}
+    height={1080}
+    inferSize={true}
     class="w-full h-full object-cover object-center opacity-100"
   />
   <div class="absolute inset-0 bg-black/40 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
@@ -32,16 +47,16 @@ const heroBgUrl = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?
         <text x="0" y="160" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="260" letter-spacing="-0.02em" fill="black">EXOTICS</text>
       </mask>
     </defs>
-    <rect x="-10000" y="-10000" width="20000" height="20000" fill="#050505" mask="url(#text-mask)" />
+    <rect x="-100%" y="-100%" width="200%" height="200%" fill="#050505" mask="url(#text-mask)" />
   </svg>
 </div>
 
 <div id="hero-ui" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 pointer-events-none">
   <h1 class="hero-stagger text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-center uppercase drop-shadow-2xl mb-4">
-    {brand.client}
+    {headline}
   </h1>
   <p class="hero-stagger text-xs md:text-sm font-light tracking-[0.4em] text-white/80 uppercase text-center mb-10">
-    {brand.tagline}
+    {tagline}
   </p>
   
   <div class="hero-stagger pointer-events-auto">

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import brand from '../data/brand.json';
 
 interface Props {
@@ -17,8 +18,49 @@ const { title = brand.client } = Astro.props;
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>{title}</title>
+		<ClientRouter />
 	</head>
 	<body class="overflow-x-hidden">
 		<slot />
+
+		<!-- Global Image Lightbox -->
+		<div id="image-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-md">
+			<button id="close-image-modal" class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-4 z-[110]">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+			</button>
+			<img id="modal-img-target" src="" class="max-w-[90vw] max-h-[95vh] w-auto h-auto object-contain rounded-lg shadow-2xl" />
+		</div>
+
+		<script>
+			const modal = document.getElementById('image-modal');
+			const modalImg = document.getElementById('modal-img-target') as HTMLImageElement;
+			const closeModalBtn = document.getElementById('close-image-modal');
+			const navbar = document.getElementById('main-navbar');
+
+			if (modal && modalImg && closeModalBtn) {
+				window.addEventListener('open-lightbox', ((e: CustomEvent) => {
+					const { src, alt } = e.detail;
+					modalImg.src = src;
+					modalImg.alt = alt;
+					modal.classList.remove('opacity-0', 'pointer-events-none');
+					document.body.style.overflow = 'hidden'; 
+					
+					if (navbar) {
+						navbar.classList.add('opacity-0');
+						navbar.classList.replace('z-[100]', 'z-[-10]');
+					}
+				}) as EventListener);
+
+				closeModalBtn.addEventListener('click', () => {
+					modal.classList.add('opacity-0', 'pointer-events-none');
+					document.body.style.overflow = ''; 
+					
+					if (navbar) {
+						navbar.classList.remove('opacity-0');
+						navbar.classList.replace('z-[-10]', 'z-[100]');
+					}
+				});
+			}
+		</script>
 	</body>
 </html>

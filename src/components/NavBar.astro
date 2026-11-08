@@ -1,33 +1,161 @@
 ---
+import { fetchAPI } from "../lib/wp";
+
+const data = await fetchAPI(`
+  query GetServices {
+    services {
+      nodes {
+        title
+        slug
+      }
+    }
+  }
+`);
+
+const services = data?.services?.nodes || [];
 ---
 
-<header id="main-navbar" class="fixed top-0 left-0 w-full z-[100] px-6 md:px-12 py-6 flex justify-between items-center pointer-events-none">
-  
-  <div id="nav-bg" class="absolute inset-0 bg-[#050505]/70 backdrop-blur-md border-b border-white/10 opacity-0 transition-opacity duration-500 pointer-events-auto -z-10"></div>
+<header
+  id="main-navbar"
+  class="fixed top-0 left-0 w-full z-[100] px-6 md:px-12 py-6 flex justify-between items-center pointer-events-none"
+>
+  <div
+    id="nav-bg"
+    class="absolute inset-0 bg-[#050505]/70 backdrop-blur-md border-b border-white/10 opacity-0 transition-opacity duration-500 pointer-events-auto -z-10"
+  >
+  </div>
 
-  <a href="#" class="text-xl md:text-2xl font-black tracking-tighter uppercase text-white drop-shadow-md pointer-events-auto hover:text-yellow-500 transition-colors">
-    StreetWorks
-  </a>
+  <div class="flex items-center gap-8 md:gap-12 pointer-events-auto">
+    <a
+      href="/"
+      class="text-xl md:text-2xl font-black tracking-tighter uppercase text-white drop-shadow-md hover:text-yellow-500 transition-colors"
+    >
+      StreetWorks
+    </a>
 
-  <a href="#contact-section" class="px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-yellow-500 transition-colors duration-300 pointer-events-auto rounded-sm shadow-2xl">
+    <button
+      id="services-open-btn"
+      class="hidden md:block font-bold uppercase tracking-widest text-xs text-white/90 hover:text-yellow-500 transition-colors py-2"
+    >
+      Services
+    </button>
+  </div>
+
+  <a
+    href="#contact-section"
+    class="px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-yellow-500 hover:text-black transition-colors duration-300 pointer-events-auto rounded-sm shadow-2xl z-50"
+  >
     Get in touch
   </a>
 
+  <div
+    id="services-modal"
+    class="fixed inset-0 w-screen h-[100dvh] bg-[#050505]/95 backdrop-blur-3xl z-[200] opacity-0 invisible pointer-events-auto flex flex-col justify-center items-center"
+  >
+    <button
+      id="services-close-btn"
+      class="absolute top-6 md:top-8 right-6 md:right-12 text-white/50 hover:text-white transition-colors p-2 md:p-4 group flex items-center gap-3"
+    >
+      <span
+        class="font-bold uppercase tracking-widest text-xs group-hover:text-yellow-500 transition-colors"
+        >Close</span
+      >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="group-hover:text-yellow-500 transition-colors"
+        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"></line></svg
+      >
+    </button>
+
+    <nav class="flex flex-col items-start gap-4 md:gap-6 w-full px-6 md:px-12 max-w-7xl mx-auto">
+      {
+        services.map((service: any) => (
+          <a
+            href={`/services/${service.slug}`}
+            class="modal-link opacity-0 text-3xl md:text-5xl lg:text-7xl font-black uppercase tracking-tighter text-white hover:text-yellow-500 transition-colors text-left"
+          >
+            {service.title}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
 </header>
 
 <script>
-  // Simple scroll watcher to trigger the frosted glass
-  const navBg = document.getElementById('nav-bg');
-  
-  if (navBg) {
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        navBg.classList.remove('opacity-0');
-        navBg.classList.add('opacity-100');
-      } else {
-        navBg.classList.add('opacity-0');
-        navBg.classList.remove('opacity-100');
-      }
-    });
-  }
+  import { gsap } from "gsap";
+
+  let modalTl: gsap.core.Timeline | null = null;
+
+  const initNav = () => {
+    // 1. Frosted Glass Scroll Effect
+    const navBg = document.getElementById("nav-bg");
+    if (navBg) {
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+          navBg.classList.remove("opacity-0");
+          navBg.classList.add("opacity-100");
+        } else {
+          navBg.classList.add("opacity-0");
+          navBg.classList.remove("opacity-100");
+        }
+      });
+    }
+
+    // 2. Full Screen Modal GSAP Animation
+    const openBtn = document.getElementById("services-open-btn");
+    const closeBtn = document.getElementById("services-close-btn");
+    const modal = document.getElementById("services-modal");
+    const modalLinks = document.querySelectorAll(".modal-link");
+
+    if (openBtn && closeBtn && modal) {
+      // Kill previous timeline if it exists to avoid memory leaks/conflicts
+      if (modalTl) modalTl.kill();
+
+      modalTl = gsap.timeline({ paused: true });
+
+      modalTl.to(modal, { autoAlpha: 1, duration: 0.4, ease: "power2.inOut" });
+
+      modalTl.fromTo(
+        modalLinks,
+        { y: 50, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.05, ease: "power3.out" },
+        "-=0.2",
+      );
+
+      // We use onclick to overwrite previous listeners and avoid stacking
+      openBtn.onclick = () => {
+        document.body.style.overflow = "hidden";
+        modalTl?.play();
+      };
+
+      closeBtn.onclick = () => {
+        document.body.style.overflow = "";
+        modalTl?.reverse();
+      };
+
+      // Close modal on link click (important for View Transitions)
+      modalLinks.forEach(link => {
+        (link as HTMLElement).onclick = () => {
+          document.body.style.overflow = "";
+          modalTl?.reverse();
+        };
+      });
+    }
+  };
+
+  // Listen for both initial load and view transitions
+  document.addEventListener('astro:page-load', initNav);
 </script>

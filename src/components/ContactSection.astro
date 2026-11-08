@@ -73,20 +73,37 @@ const directGoogleMapsLink = "https://www.google.com/maps/search/?api=1&query=St
         </div>
       </div>
 
-      <div class="bg-[#111] border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl">
-        <h3 class="text-3xl font-serif italic mb-2">Can't make it in?</h3>
-        <p class="text-white/50 font-light mb-8">Drop us a line and we'll reach out.</p>
-        
-        <form class="flex flex-col gap-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input type="text" placeholder="Name" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors" />
-            <input type="email" placeholder="Email" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors" />
+      <div class="bg-[#111] border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl relative perspective-1000">
+        <div id="form-flipper" class="w-full h-full transition-all duration-700 transform-style-3d">
+          
+          <!-- Front: The Form -->
+          <div class="backface-hidden w-full h-full">
+            <h3 class="text-3xl font-serif italic mb-2">Can't make it in?</h3>
+            <p class="text-white/50 font-light mb-8">Drop us a line and we'll reach out.</p>
+            
+            <form id="contact-form" class="flex flex-col gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input name="name" type="text" placeholder="Name" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors" />
+                <input name="email" type="email" placeholder="Email" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors" />
+              </div>
+              <textarea name="message" placeholder="Tell us about your project..." required rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors resize-none"></textarea>
+              <button id="submit-btn" type="submit" class="w-full px-8 py-4 bg-white text-black rounded-lg hover:bg-yellow-500 transition-colors font-bold uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2">
+                <span>Send Message</span>
+              </button>
+            </form>
           </div>
-          <textarea placeholder="Tell us about your project..." rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors resize-none"></textarea>
-          <button type="submit" class="w-full px-8 py-4 bg-white text-black rounded-lg hover:bg-yellow-500 transition-colors font-bold uppercase tracking-widest text-sm mt-2">
-            Send Message
-          </button>
-        </form>
+
+          <!-- Back: Success Message -->
+          <div class="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center text-center p-8 bg-zinc-900 rounded-2xl border border-yellow-500/30">
+            <div class="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mb-6 text-yellow-500">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-3xl font-serif italic mb-4">Message Sent!</h3>
+            <p class="text-white/70 font-light mb-8 max-w-xs mx-auto">Thanks for reaching out. We've received your inquiry and one of our specialists will get back to you shortly.</p>
+            <button id="reset-form" class="text-yellow-500 font-bold uppercase tracking-widest text-xs hover:text-white transition-colors">Send another message</button>
+          </div>
+
+        </div>
       </div>
 
     </div>
@@ -114,23 +131,43 @@ const directGoogleMapsLink = "https://www.google.com/maps/search/?api=1&query=St
 </style>
 
 <script>
+  import { actions } from 'astro:actions';
+
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const flipper = document.getElementById('form-flipper');
   const resetBtn = document.getElementById('reset-form');
+  const submitBtn = document.getElementById('submit-btn');
 
-  if (form && flipper) {
-    form.addEventListener('submit', (e) => {
+  if (form && flipper && submitBtn) {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault(); 
-      // NOTE: Insert your fetch() or backend API call here. 
-      // For now, it instantly triggers the UI flip.
-      flipper.classList.add('is-flipped');
+      
+      const formData = new FormData(form);
+      const btnSpan = submitBtn.querySelector('span');
+      if (btnSpan) btnSpan.innerText = 'Sending...';
+      submitBtn.setAttribute('disabled', 'true');
+
+      try {
+        const { data, error } = await actions.submitContactForm(formData);
+        
+        if (!error && data?.success) {
+          flipper.classList.add('is-flipped');
+        } else {
+          alert('Submission failed: ' + (error?.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('An unexpected error occurred.');
+      } finally {
+        if (btnSpan) btnSpan.innerText = 'Send Message';
+        submitBtn.removeAttribute('disabled');
+      }
     });
   }
 
   if (resetBtn && flipper && form) {
     resetBtn.addEventListener('click', () => {
       flipper.classList.remove('is-flipped');
-      setTimeout(() => form.reset(), 500); // Clears the form while it's hidden on the back
+      setTimeout(() => form.reset(), 500); 
     });
   }
 </script>

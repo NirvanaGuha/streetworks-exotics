@@ -1,0 +1,24 @@
+{
+  "title": "Mechanical & Electrical",
+  "heroTagline": "The Heartbeat of the Machine",
+  "description": "Precision engine rebuilds and modern wiring solutions hidden gracefully beneath vintage aesthetics.",
+  "heroImage": "../../assets/images/mechanical/Lamborghini-V12-Sidedraft-Weber-Carburetors.jpg",
+  "tintColor": "#14532d",
+  "deepTextTitle": "Symphony of Engineering",
+  "deepTextParagraphs": [
+    "A restoration is only as good as its heart. Our mechanical department specializes in the complete teardown and rebuilding of complex powerplants, from flat-sixes to quad-cam V12s. We meticulously balance rotating assemblies, tune sidedraft Weber carburetors, and optimize drivability.",
+    "Simultaneously, we address the notorious gremlins of vintage electrical systems. We build bespoke wiring harnesses utilizing modern, reliable core materials, all while wrapping them in period-correct loom tape so the engine bay remains visually authentic."
+  ],
+  "midText": "Where raw vintage power meets modern, uncompromising reliability.",
+  "finalText": "Let us rebuild the heartbeat of your exotic.",
+  "galleryImages": [
+    "../../assets/images/mechanical/Weber-II-2-scaled-1.jpg",
+    "../../assets/images/mechanical/Electrical-components-restored-to-the-highest-level-of-detail.jpg",
+    "../../assets/images/mechanical/Lamborghini-Countach-AC-Condenser.jpg",
+    "../../assets/images/mechanical/Lamborghini-V12-engine-on-test-stand.jpg",
+    "../../assets/images/mechanical/Bosch-Alt-I-scaled-1.jpg",
+    "../../assets/images/mechanical/Engine-Work.jpg",
+    "../../assets/images/mechanical/Ford-Engine.jpg",
+    "../../assets/images/mechanical/QV5000-Downdraft-Countach.jpg"
+  ]
+}

@@ -1,0 +1,187 @@
+[
+  {
+    "key": "group_homepage_settings",
+    "title": "Homepage Settings (Robust Version)",
+    "fields": [
+      {
+        "key": "field_hero_headline",
+        "label": "Hero Headline",
+        "name": "hero_headline",
+        "type": "text"
+      },
+      {
+        "key": "field_hero_tagline",
+        "label": "Hero Tagline",
+        "name": "hero_tagline",
+        "type": "text"
+      },
+      {
+        "key": "field_hero_image",
+        "label": "Hero Background Image",
+        "name": "hero_image",
+        "type": "image",
+        "return_format": "array"
+      },
+      {
+        "key": "field_intro_text_1",
+        "label": "Intro Text 1 (Red Reveal)",
+        "name": "intro_text_1",
+        "type": "textarea"
+      },
+      {
+        "key": "field_showcases",
+        "label": "Restoration Showcases",
+        "name": "showcases",
+        "type": "repeater",
+        "layout": "block",
+        "button_label": "Add Showcase",
+        "sub_fields": [
+          {
+            "key": "field_sc_year",
+            "label": "Year",
+            "name": "year",
+            "type": "text"
+          },
+          {
+            "key": "field_sc_title",
+            "label": "Title",
+            "name": "title",
+            "type": "text"
+          },
+          {
+            "key": "field_sc_desc",
+            "label": "Description",
+            "name": "description",
+            "type": "textarea"
+          },
+          {
+            "key": "field_sc_main",
+            "label": "Main Image",
+            "name": "main_image",
+            "type": "image",
+            "return_format": "array"
+          },
+          {
+            "key": "field_sc_gal",
+            "label": "Gallery Images",
+            "name": "gallery",
+            "type": "gallery",
+            "return_format": "array"
+          },
+          {
+            "key": "field_sc_link",
+            "label": "Link URL",
+            "name": "cta_link",
+            "type": "url"
+          },
+          {
+            "key": "field_sc_accent",
+            "label": "Accent Color",
+            "name": "accent_color",
+            "type": "color_picker"
+          }
+        ]
+      },
+      {
+        "key": "field_intro_text_2",
+        "label": "Intro Text 2 (Gold Reveal)",
+        "name": "intro_text_2",
+        "type": "textarea"
+      },
+      {
+        "key": "field_intro_text_3",
+        "label": "Intro Text 3 (Grey Reveal)",
+        "name": "intro_text_3",
+        "type": "textarea"
+      },
+      {
+        "key": "field_testimonials",
+        "label": "Customer Reviews",
+        "name": "testimonials",
+        "type": "repeater",
+        "layout": "block",
+        "sub_fields": [
+          {
+            "key": "field_t_name",
+            "label": "Client Name",
+            "name": "client_name",
+            "type": "text"
+          },
+          {
+            "key": "field_t_quote",
+            "label": "Quote",
+            "name": "quote",
+            "type": "textarea"
+          },
+          {
+            "key": "field_t_photo",
+            "label": "Photo",
+            "name": "photo",
+            "type": "image",
+            "return_format": "array"
+          }
+        ]
+      },
+      {
+        "key": "field_homepage_services",
+        "label": "Services Master List",
+        "name": "homepage_services",
+        "type": "repeater",
+        "layout": "block",
+        "button_label": "Add Service",
+        "sub_fields": [
+          {
+            "key": "field_s_title",
+            "label": "Title",
+            "name": "title",
+            "type": "text"
+          },
+          {
+            "key": "field_s_tint",
+            "label": "Tint Color",
+            "name": "tint_color",
+            "type": "color_picker"
+          },
+          {
+            "key": "field_s_desc",
+            "label": "Description",
+            "name": "description",
+            "type": "textarea"
+          },
+          {
+            "key": "field_s_bg",
+            "label": "Background Image",
+            "name": "background_image",
+            "type": "image",
+            "return_format": "array"
+          },
+          {
+            "key": "field_s_link",
+            "label": "Page Link",
+            "name": "link",
+            "type": "url"
+          },
+          {
+            "key": "field_s_gal",
+            "label": "Gallery row 2",
+            "name": "gallery",
+            "type": "gallery",
+            "return_format": "array"
+          }
+        ]
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "page_type",
+          "operator": "==",
+          "value": "front_page"
+        }
+      ]
+    ],
+    "active": true,
+    "show_in_graphql": 1,
+    "graphql_field_name": "homepageSettings"
+  }
+]

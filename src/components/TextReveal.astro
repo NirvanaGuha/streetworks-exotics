@@ -7,26 +7,40 @@ interface Props {
 }
 
 const { id, gradientFrom, gradientTo, text } = Astro.props;
-const words = text.split(" ");
+
+// Split text by double newlines into distinct paragraphs/blocks
+const blocks = text.split("\n\n").filter(block => block.trim().length > 0);
+
+// Dynamically adjust overall container text size based on total character length
+const textLength = text.length;
+let sizeClasses = "text-3xl md:text-5xl lg:text-[3.5rem]"; // Default (Short text)
+
+if (textLength > 600) {
+  sizeClasses = "text-xl md:text-2xl lg:text-3xl"; // Very long structured text
+} else if (textLength > 400) {
+  sizeClasses = "text-2xl md:text-3xl lg:text-4xl"; // Medium-long structured text
+}
 ---
 
-<section
-  class="w-full py-24 md:py-40 px-6 md:px-12 flex items-center justify-center relative z-20"
->
-  <div class="max-w-5xl mx-auto text-center">
-    <p
-      id={id}
-      class="text-3xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-snug md:leading-[1.1]"
-      style={`
-        /* Creates a tight, looping gradient */
-        background: linear-gradient(to right, ${gradientFrom} 0%, ${gradientTo} 50%, ${gradientFrom} 100%); 
-        background-size: 200% 100%;
-        -webkit-background-clip: text; 
-        -webkit-text-fill-color: transparent;
-        color: transparent;
-      `}
-    >
-      {words.map((word) => <span class="reveal-word opacity-20">{word} </span>)}
-    </p>
+<div class="max-w-5xl mx-auto w-full text-left">
+  <div
+    id={id}
+    class={`text-reveal-gradient ${sizeClasses} font-bold tracking-tight leading-snug md:leading-[1.1] flex flex-col gap-6 md:gap-10`}
+    style={`
+      background-image: linear-gradient(to right, ${gradientFrom} 0%, ${gradientTo} 50%, ${gradientFrom} 100%); 
+    `}
+  >
+    {blocks.map((block) => {
+      const isBullet = block.startsWith("•");
+      const words = block.split(" ");
+      
+      return (
+        <p class={isBullet ? "pl-4 md:pl-8 -indent-4 md:-indent-8" : ""}>
+          {words.map((word) => (
+            <span class="reveal-word opacity-20">{word} </span>
+          ))}
+        </p>
+      );
+    })}
   </div>
-</section>
+</div>

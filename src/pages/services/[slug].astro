@@ -1,100 +1,190 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import servicesData from "../../data/services.json";
 import Navbar from "../../components/NavBar.astro";
 import ServiceHero from "../../components/ServiceHero.astro";
 import ServiceGallery from "../../components/ServiceGallery.astro";
-import ReviewsSection from "../../components/ReviewsSection.astro";
 import ContactSection from "../../components/ContactSection.astro";
 import TextReveal from "../../components/TextReveal.astro";
 import Footer from "../../components/Footer.astro";
+import { fetchAPI, parseWPBlocks } from "../../lib/wp";
+import { Image } from 'astro:assets';
+
+// Reviews Images
+import corvetteImg from '../../assets/images/reviews/Corvette-Testimonial.jpg';
+import mattImg from '../../assets/images/reviews/Testimonial-Matt.jpg';
+import fordImg from '../../assets/images/reviews/Ford-Coupe-60.jpg';
+
+// Local fallback if WordPress has no testimonials
+const defaultReviews = [
+  { name: "Brian Roell", text: "On my Corvette, their team repaired the leather on my dash, A-pillar, and center console...", imgUrl: corvetteImg },
+  { name: "Matt Protz", text: "This shop is amazing! The owner and all the staff are exceptional!", imgUrl: mattImg },
+  { name: "John Zick", text: "They built my 30 Ford Coupe, and did an excellent job.", imgUrl: fordImg }
+];
 
 export async function getStaticPaths() {
-    return servicesData.map((service: any) => {
-        return {
-            params: { slug: service.slug },
-            props: { service },
-        };
-    });
+    const data = await fetchAPI(`query GetServiceSlugs { services { nodes { slug } } }`);
+    return (data?.services?.nodes || []).map((entry: any) => ({ params: { slug: entry.slug } }));
 }
 
-const { service } = Astro.props;
+const { slug } = Astro.params;
+
+const data = await fetchAPI(`
+  query GetServiceBySlug($id: ID!) {
+    service(id: $id, idType: SLUG) {
+      title
+      content
+      featuredImage {
+        node {
+          sourceUrl
+          mediaDetails { width height }
+        }
+      }
+      serviceDetails {
+        description
+        tintColor
+      }
+    }
+    testimonials(first: 3, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
+      nodes {
+        title
+        featuredImage { node { sourceUrl } }
+        testimonialDetails { quote }
+      }
+    }
+  }
+`, { variables: { id: slug } });
+
+const entry = data?.service;
+if (!entry) return Astro.redirect('/404');
+
+// The reviews track below is sized for three slides.
+const wpReviews = (data?.testimonials?.nodes || []).map((t: any) => ({
+  name: t.title,
+  text: t.testimonialDetails?.quote || "",
+  imgUrl: t.featuredImage?.node?.sourceUrl,
+}));
+const reviews = wpReviews.length > 0 ? wpReviews : defaultReviews;
+
+const wpBlocks = parseWPBlocks(entry.content);
+const texts = wpBlocks.filter((b: any) => b.type === 'text');
+const galleries = wpBlocks.filter((b: any) => b.type === 'gallery');
+
+const service = {
+    title: entry.title,
+    heroTagline: entry.serviceDetails?.description || "",
+    heroImage: entry.featuredImage?.node?.sourceUrl || "",
+    heroImageWidth: entry.featuredImage?.node?.mediaDetails?.width || 1920,
+    heroImageHeight: entry.featuredImage?.node?.mediaDetails?.height || 1080,
+    tintColor: entry.serviceDetails?.tintColor || "#ffffff",
+    deepTextTitle: entry.title || "",
+    deepTextParagraphs: [], 
+    
+    // Ordered Slots
+    text1: texts[0]?.text || "",
+    gallery1: galleries[0]?.images || [],
+    text2: texts[1]?.text || "",
+    gallery2: galleries[1]?.images || [],
+    textCta: texts[2]?.text || "Ready to get in touch?",
+};
 ---
 
 <Layout title={`${service.title} | StreetWorks Exotics`}>
     <Navbar />
 
     <main class="relative w-full bg-black text-white">
-        <div class="service-hero-wrapper relative z-10">
-            <ServiceHero
-                title={service.title}
-                tagline={service.heroTagline}
-                bgImgUrl={service.heroImage}
-                tintColor={service.tintColor}
-                deepTextTitle={service.deepTextTitle}
-                deepTextParagraphs={service.deepTextParagraphs}
-            />
-        </div>
+        
+        {/* The Master Container - This will be Pinned by GSAP */}
+        <div id="master-pin-container" class="relative w-full h-[100dvh] overflow-hidden bg-black">
+            
+            {/* Layer 1: Hero */}
+            <div id="layer-hero" class="absolute inset-0 z-10 w-full h-full bg-[#050505]">
+                <ServiceHero
+                    title={service.title}
+                    tagline={service.heroTagline}
+                    bgImgUrl={service.heroImage}
+                    bgImgWidth={service.heroImageWidth}
+                    bgImgHeight={service.heroImageHeight}
+                    tintColor={service.tintColor}
+                    deepTextTitle={service.deepTextTitle}
+                    deepTextParagraphs={service.deepTextParagraphs}
+                />
+            </div>
 
-        <div class="relative z-20 bg-[#050505]">
-            <ServiceGallery images={service.galleryImages} />
-        </div>
+            {/* Layer 2: Text 1 */}
+            {service.text1 && (
+                <div id="layer-text1" class="absolute inset-0 z-20 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
+                    <TextReveal id="text1-reveal" text={service.text1} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
+                </div>
+            )}
 
-        {
-            service.midText && (
-                <div
-                    id="mid-text-container"
-                    class="relative w-full h-[350dvh] bg-[#050505] z-10 -mt-[100dvh]"
-                >
-                    <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
-                        <div
-                            id="mid-text-layer"
-                            class="absolute inset-0 z-30 opacity-0 invisible flex flex-col items-center justify-center pointer-events-none"
-                        >
-                            <TextReveal
-                                id="mid-text-reveal"
-                                text={service.midText}
-                                gradientFrom="#ffffff"
-                                gradientTo="#94a3b8"
-                            />
-                        </div>
+            {/* Layer 3: Gallery 1 */}
+            {service.gallery1.length > 0 && (
+                <div id="layer-gallery1" class="absolute inset-0 z-30 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden">
+                    <div class="w-full">
+                        <ServiceGallery images={service.gallery1} accentColor={service.tintColor} />
                     </div>
                 </div>
-            )
-        }
+            )}
 
-        <div class="relative z-20 bg-black -mt-[100dvh]">
-            <ReviewsSection />
-        </div>
+            {/* Layer 4: Text 2 */}
+            {service.text2 && (
+                <div id="layer-text2" class="absolute inset-0 z-40 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
+                    <TextReveal id="text2-reveal" text={service.text2} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
+                </div>
+            )}
 
-        {
-            service.finalText && (
-                <div
-                    id="final-text-container"
-                    class="relative w-full h-[350dvh] bg-black z-10 -mt-[100dvh]"
-                >
-                    <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
-                        <div
-                            id="final-text-layer"
-                            class="absolute inset-0 z-30 opacity-0 invisible flex flex-col items-center justify-center pointer-events-none"
-                        >
-                            <TextReveal
-                                id="final-text-reveal"
-                                text={service.finalText}
-                                gradientFrom="#ffffff"
-                                gradientTo={service.tintColor}
-                            />
-                        </div>
+            {/* Layer 5: Gallery 2 */}
+            {service.gallery2.length > 0 && (
+                <div id="layer-gallery2" class="absolute inset-0 z-50 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden">
+                    <div class="w-full">
+                        <ServiceGallery images={service.gallery2} accentColor={service.tintColor} />
                     </div>
                 </div>
-            )
-        }
+            )}
 
-        <div class="relative z-20 bg-black -mt-[100dvh]">
+            {/* Layer 6: Reviews */}
+            <div id="layer-reviews" class="absolute inset-0 z-60 w-full h-full opacity-0 invisible bg-black flex items-center">
+                <div class="absolute inset-0 w-full h-full pointer-events-none z-20">
+                    <div class="absolute top-0 left-0 w-full h-24 md:h-32 bg-gradient-to-b from-black to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 w-full h-24 md:h-32 bg-gradient-to-t from-black to-transparent"></div>
+                </div>
+                <div id="reviews-track-master" class="flex w-[300vw] h-full items-center relative z-10">
+                    {reviews.map((review) => (
+                    <div class="w-[100vw] h-full flex flex-col md:flex-row items-center justify-center px-6 md:px-12 lg:px-24 gap-4 md:gap-16 shrink-0">
+                        <div class="w-full md:w-1/2 max-w-2xl flex flex-col items-start text-left">
+                        <div class="flex gap-1 md:gap-2 text-yellow-500 mb-4 md:mb-8">
+                            {[1, 2, 3, 4, 5].map(() => (
+                            <svg class="w-4 h-4 md:w-6 md:h-6 drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            ))}
+                        </div>
+                        <p class="text-base sm:text-lg md:text-2xl lg:text-3xl font-serif italic text-white/90 leading-relaxed mb-4 md:mb-8">"{review.text}"</p>
+                        <span class="text-white font-bold uppercase tracking-[0.2em] text-xs md:text-base">— {review.name}</span>
+                        </div>
+                        <div class="w-full md:w-1/2 h-[25dvh] sm:h-[30dvh] md:h-[50dvh] max-w-xl rounded-xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 shrink-0">
+                        <Image src={review.imgUrl} alt="Customer Review Image" inferSize={true} class="w-full h-full object-cover" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        </div>
+                    </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Layer 7: Text CTA */}
+            {service.textCta && (
+                <div id="layer-cta" class="absolute inset-0 z-70 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
+                    <TextReveal id="cta-reveal" text={service.textCta} gradientFrom="#ffffff" gradientTo={service.tintColor} />
+                </div>
+            )}
+
+        </div>
+
+        {/* Natural scrolling resumes */}
+        <div id="contact-footer-wrapper" class="relative z-[100] bg-black">
             <ContactSection />
+            <Footer />
         </div>
-
-        <Footer />
     </main>
 
     <script>
@@ -103,187 +193,94 @@ const { service } = Astro.props;
 
         gsap.registerPlugin(ScrollTrigger);
 
-        // 1. HERO IMAGE PARALLAX
-        gsap.to(".service-hero-wrapper img", {
-            yPercent: 15,
-            ease: "none",
-            scrollTrigger: {
-                trigger: ".service-hero-wrapper",
-                start: "top top",
-                end: "bottom top",
-                scrub: true,
-            },
-        });
+        const initAnimations = () => {
+            ScrollTrigger.getAll().forEach(t => t.kill());
 
-        // 2. MASONRY GALLERY PARALLAX
-        let mm = gsap.matchMedia();
-        mm.add("(min-width: 768px)", () => {
-            gsap.to(".gallery-col-left", {
-                y: 100,
-                ease: "none",
+            // 1. MASTER TIMELINE WITH PINNING
+            const masterTl = gsap.timeline({
                 scrollTrigger: {
-                    trigger: ".service-gallery-wrapper",
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: 1,
-                },
-            });
-            gsap.to(".gallery-col-right", {
-                y: -100,
-                ease: "none",
-                scrollTrigger: {
-                    trigger: ".service-gallery-wrapper",
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: 1,
-                },
-            });
-        });
-
-        // 3. DEEP TEXT (HERO) REVEAL
-        const deepText = document.getElementById("deep-text-reveal");
-        if (deepText) {
-            const words = deepText.querySelectorAll(".reveal-word");
-            gsap.to(words, {
-                opacity: 1,
-                stagger: 0.05,
-                ease: "none",
-                scrollTrigger: {
-                    trigger: deepText,
-                    start: "top 85%",
-                    end: "bottom 50%",
-                    scrub: true,
-                },
-            });
-            gsap.to(deepText, {
-                backgroundPosition: "-200% 0%",
-                ease: "none",
-                scrollTrigger: {
-                    trigger: deepText,
-                    start: "top 85%",
-                    end: "bottom 50%",
-                    scrub: true,
-                },
-            });
-        }
-
-        // 4. MID TEXT TIMELINE (Perfected Fade from Black)
-        const midContainer = document.getElementById("mid-text-container");
-        if (midContainer) {
-            const midTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: midContainer,
-                    // Waits exactly 100vh for the Gallery (z-20) to slide off the screen before triggering
-                    start: "100vh top",
-                    end: "bottom bottom",
-                    scrub: 1,
-                },
-            });
-
-            midTl.to("#mid-text-layer", { autoAlpha: 1, duration: 0.1 }, 0);
-            midTl.to(
-                "#mid-text-reveal .reveal-word",
-                {
-                    opacity: 1,
-                    duration: 0.6,
-                    stagger: { amount: 0.6 },
-                    ease: "power2.out",
-                },
-                0.1,
-            );
-            midTl.to(
-                "#mid-text-reveal",
-                { backgroundPosition: "-200% 0%", duration: 1.0, ease: "none" },
-                0.1,
-            );
-
-            // Hold the fully lit text on the black screen
-            midTl.to({}, { duration: 1.5 });
-
-            // Fade the text cleanly out to black
-            midTl.to("#mid-text-reveal", {
-                autoAlpha: 0,
-                scale: 0.95,
-                duration: 0.6,
-            });
-            midTl.to("#mid-text-layer", { autoAlpha: 0, duration: 0.1 });
-
-            // Crucial: A brief dead zone so the screen remains perfectly black as the Reviews section (z-20) starts sliding up
-            midTl.to({}, { duration: 0.8 });
-        }
-
-        // 5. HORIZONTAL REVIEWS MATH
-        const reviewsContainer = document.getElementById("reviews-container");
-        const reviewsFadeLayer = document.getElementById("reviews-fade-layer");
-        const reviewsTrack = document.getElementById("reviews-track");
-
-        if (reviewsContainer && reviewsTrack && reviewsFadeLayer) {
-            const reviewsTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: reviewsContainer,
+                    trigger: "#master-pin-container",
                     start: "top top",
-                    end: "bottom bottom",
+                    end: "+=1500%", // Increased scroll depth to account for longer gallery holds
+                    pin: true,
                     scrub: 1,
+                    anticipatePin: 1,
                     invalidateOnRefresh: true,
                 },
             });
 
-            reviewsTl.to(reviewsFadeLayer, { autoAlpha: 1, duration: 0.5 });
-            reviewsTl.to({}, { duration: 1.0 });
-            reviewsTl.to(reviewsTrack, {
-                x: () => "-100vw",
-                duration: 2.0,
-                ease: "none",
-            });
-            reviewsTl.to({}, { duration: 1.0 });
-            reviewsTl.to(reviewsTrack, {
-                x: () => "-200vw",
-                duration: 2.0,
-                ease: "none",
-            });
-            reviewsTl.to({}, { duration: 2.0 });
-            reviewsTl.to(reviewsFadeLayer, { autoAlpha: 0, duration: 0.5 });
-        }
+            // A. Hero Animation
+            masterTl.to({}, { duration: 1 }); // hold hero
+            masterTl.to("#layer-hero img", { scale: 1.1, duration: 2 }, 0);
+            masterTl.to("#layer-hero", { autoAlpha: 0, duration: 1 }); // fade out to black
 
-        // 6. FINAL TEXT TIMELINE
-        const finalContainer = document.getElementById("final-text-container");
-        if (finalContainer) {
-            const finalTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: finalContainer,
-                    start: "100vh top",
-                    end: "bottom bottom",
-                    scrub: 1,
-                },
-            });
+            // B. Text 1
+            if (document.getElementById("layer-text1")) {
+                masterTl.to("#layer-text1", { autoAlpha: 1, duration: 1 });
+                masterTl.to("#text1-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
+                masterTl.to("#text1-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
+                masterTl.to({}, { duration: 2 }); // hold text
+                masterTl.to("#layer-text1", { autoAlpha: 0, duration: 1 }); // fade to black
+            }
 
-            finalTl.to("#final-text-layer", { autoAlpha: 1, duration: 0.1 }, 0);
-            finalTl.to(
-                "#final-text-reveal .reveal-word",
-                {
-                    opacity: 1,
-                    duration: 0.6,
-                    stagger: { amount: 0.6 },
-                    ease: "power2.out",
-                },
-                0.1,
-            );
-            finalTl.to(
-                "#final-text-reveal",
-                { backgroundPosition: "-200% 0%", duration: 1.0, ease: "none" },
-                0.1,
-            );
+            // C. Gallery 1 - Scroll-linked movement
+            const gal1 = document.getElementById("layer-gallery1");
+            if (gal1) {
+                const left = gal1.querySelector(".gallery-col-left");
+                const right = gal1.querySelector(".gallery-col-right");
+                
+                masterTl.to(gal1, { autoAlpha: 1, duration: 1 });
+                
+                // Animate columns to "scroll through" the gallery during an extended hold
+                masterTl.to(left, { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
+                masterTl.to(right, { yPercent: 40, duration: 6, ease: "none" }, "<");
+                
+                masterTl.to(gal1, { autoAlpha: 0, duration: 1 });
+            }
 
-            finalTl.to({}, { duration: 1.5 });
+            // D. Text 2
+            if (document.getElementById("layer-text2")) {
+                masterTl.to("#layer-text2", { autoAlpha: 1, duration: 1 });
+                masterTl.to("#text2-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
+                masterTl.to("#text2-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
+                masterTl.to({}, { duration: 2 }); // hold text
+                masterTl.to("#layer-text2", { autoAlpha: 0, duration: 1 }); // fade to black
+            }
 
-            finalTl.to("#final-text-reveal", {
-                autoAlpha: 0,
-                scale: 0.95,
-                duration: 0.6,
-            });
-            finalTl.to("#final-text-layer", { autoAlpha: 0, duration: 0.1 });
+            // E. Gallery 2 - Scroll-linked movement
+            const gal2 = document.getElementById("layer-gallery2");
+            if (gal2) {
+                const left = gal2.querySelector(".gallery-col-left");
+                const right = gal2.querySelector(".gallery-col-right");
+                
+                masterTl.to(gal2, { autoAlpha: 1, duration: 1 });
+                
+                // Animate columns to "scroll through" the gallery during an extended hold
+                masterTl.to(left, { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
+                masterTl.to(right, { yPercent: 40, duration: 6, ease: "none" }, "<");
+                
+                masterTl.to(gal2, { autoAlpha: 0, duration: 1 });
+            }
 
-            finalTl.to({}, { duration: 0.8 });
-        }
+            // F. Reviews
+            if (document.getElementById("layer-reviews")) {
+                masterTl.to("#layer-reviews", { autoAlpha: 1, duration: 1 });
+                masterTl.to("#reviews-track-master", { x: () => "-200vw", duration: 10, ease: "none" }); // Slower review scroll
+                masterTl.to({}, { duration: 2 }); // hold end
+                masterTl.to("#layer-reviews", { autoAlpha: 0, duration: 1 }); // fade to black
+            }
+
+            // G. Text CTA
+            if (document.getElementById("layer-cta")) {
+                masterTl.to("#layer-cta", { autoAlpha: 1, duration: 1 });
+                masterTl.to("#cta-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
+                masterTl.to("#cta-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
+                masterTl.to({}, { duration: 3 }); // hold text
+            }
+
+            ScrollTrigger.refresh();
+        };
+
+        document.addEventListener('astro:page-load', initAnimations);
     </script>
 </Layout>

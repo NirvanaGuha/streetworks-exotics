@@ -1,0 +1,24 @@
+{
+  "title": "Custom Welding & Fabrication",
+  "heroTagline": "Engineering Without Limits",
+  "description": "Bespoke metalwork and expert TIG/MIG welding for chassis repair, strengthening, and custom modifications.",
+  "heroImage": "../../assets/images/fabrication/weld-promo-photo2.jpg",
+  "tintColor": "#52525b",
+  "deepTextTitle": "Forged in Fire",
+  "deepTextParagraphs": [
+    "When replacement parts no longer exist, we build them. Our fabrication bay is equipped to reverse-engineer and manufacture obsolete components, utilizing advanced TIG and MIG welding techniques to ensure welds are structurally superior and aesthetically invisible.",
+    "From custom stainless steel header fabrication that breathes life into tuned engines to chassis strengthening for restomods, our bespoke metalwork bridges the gap between classic design and modern performance."
+  ],
+  "midText": "If a replacement part cannot be found, it must be forged.",
+  "finalText": "Engineering without limits. Let's build something bespoke.",
+  "galleryImages": [
+    "../../assets/images/fabrication/Custom-Welding-I.jpg",
+    "../../assets/images/fabrication/Custom-stainless-header-fabrication.compressed-scaled.jpg",
+    "../../assets/images/fabrication/Custom-Tooling.jpg",
+    "../../assets/images/fabrication/Welding-Tool.jpg",
+    "../../assets/images/fabrication/Custom-Welding-I.jpg",
+    "../../assets/images/fabrication/Custom-stainless-header-fabrication.compressed-scaled.jpg",
+    "../../assets/images/fabrication/Custom-Tooling.jpg",
+    "../../assets/images/fabrication/Welding-Tool.jpg"
+  ]
+}

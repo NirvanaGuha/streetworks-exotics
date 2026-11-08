@@ -1,0 +1,24 @@
+{
+  "title": "Coachwork",
+  "heroTagline": "Resurrecting the Original Lines",
+  "description": "Expert metal shaping and panel restoration to revive the original structural integrity and sweeping lines.",
+  "heroImage": "../../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose-1.jpg",
+  "tintColor": "#b45309",
+  "deepTextTitle": "Mastering the Metal",
+  "deepTextParagraphs": [
+    "Coachwork is the foundational soul of any vintage exotic. Whether we are repairing decades of hidden corrosion or fabricating entirely new aluminum body panels from scratch using English wheels and traditional bucks, our metal shop operates with zero compromises.",
+    "We believe in traditional metalworking techniques. We lead-load seams rather than relying on modern fillers, ensuring the structural integrity, weight distribution, and tactile resonance of the chassis remain absolutely authentic."
+  ],
+  "midText": "We don't just shape metal. We resurrect the soul of the machine.",
+  "finalText": "Bring us your bare chassis. We will bring back the legend.",
+  "galleryImages": [
+    "../../assets/images/coachwork/DeTomaso-Mangusta-Rebody.jpg",
+    "../../assets/images/coachwork/Fabrication-of-aluminum-hood-skin-over-frame.jpg",
+    "../../assets/images/coachwork/Ferrari-Cal-Spyder.jpg",
+    "../../assets/images/coachwork/Iso-Grifo-after-stripping-and-ready-for-metal-shop.jpg",
+    "../../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose.jpg",
+    "../../assets/images/coachwork/Lamborghini-Islero-out-of-metal-shop.jpg",
+    "../../assets/images/coachwork/A3C Coachwork.jpg",
+    "../../assets/images/coachwork/Lancia-Fulvia-Series-II-Coupe-coachwork-scaled-1.jpg"
+  ]
+}

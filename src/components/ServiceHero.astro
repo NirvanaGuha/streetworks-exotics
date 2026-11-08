@@ -1,8 +1,13 @@
 ---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
 interface Props {
     title: string;
     tagline: string;
-    bgImgUrl: string;
+    bgImgUrl: string | ImageMetadata;
+    bgImgWidth?: number;
+    bgImgHeight?: number;
     tintColor: string;
     deepTextTitle: string;
     deepTextParagraphs: string[];
@@ -12,86 +17,95 @@ const {
     title,
     tagline,
     bgImgUrl,
+    bgImgWidth,
+    bgImgHeight,
     tintColor,
     deepTextTitle,
     deepTextParagraphs,
 } = Astro.props;
 
-// 1. Split the title into words
 const titleWords = deepTextTitle.split(" ");
-// 2. Split EVERY paragraph into an array of words
 const paraWordsArray = deepTextParagraphs.map((para) => para.split(" "));
 ---
 
-<section class="relative w-full flex flex-col bg-[#050505]">
-    <div class="relative w-full h-[100dvh] overflow-hidden">
-        <img
-            src={bgImgUrl}
-            alt={title}
-            class="absolute inset-0 w-full h-full object-cover opacity-80"
-        />
+<div id="hero-scroll-container" class="hero-scroll-container relative w-full h-[250dvh] bg-[#050505]">
+    <div class="sticky top-0 w-full h-[100dvh] overflow-hidden">
         <div
-            class="absolute inset-0 mix-blend-color opacity-50"
-            style={`background-color: ${tintColor};`}
+            id="hero-image-layer"
+            class="absolute inset-0 z-10 w-full h-full flex flex-col"
+            transition:name={`hero-image-${title}`}
         >
-        </div>
-        <div
-            class="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/40 to-black/80"
-        >
-        </div>
-
-        <div
-            class="absolute inset-0 flex flex-col justify-end pb-16 md:pb-24 px-6 md:px-12 max-w-7xl mx-auto z-10 w-full"
-        >
-            <span
-                class="text-yellow-500 font-mono text-xs md:text-sm tracking-[0.5em] uppercase drop-shadow-lg"
-                >{tagline}</span
+            <Image
+                src={bgImgUrl as any}
+                alt={title}
+                width={bgImgWidth}
+                height={bgImgHeight}
+                inferSize={!bgImgWidth || !bgImgHeight}
+                class="absolute inset-0 w-full h-full object-cover opacity-80"
+            />
+            <div
+                class="absolute inset-0 mix-blend-color opacity-50"
+                style={`background-color: ${tintColor};`}
             >
-            <h1
-                class="text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl mt-4"
+            </div>
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/40 to-black/80"
             >
-                {title}
-            </h1>
-        </div>
-    </div>
-
-    <div class="relative w-full bg-[#050505] py-32 md:py-48 px-6 md:px-12 z-20">
-        <div
-            id="deep-text-reveal"
-            class="max-w-4xl mx-auto flex flex-col items-start"
-            style={`
-                background: linear-gradient(to right, #ffffff 0%, ${tintColor} 50%, #ffffff 100%); 
-                background-size: 200% 100%;
-                -webkit-background-clip: text; 
-                -webkit-text-fill-color: transparent;
-                color: transparent;
-            `}
-        >
-            <h2
-                class="text-3xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-snug mb-12"
-            >
-                {
-                    titleWords.map((word) => (
-                        <span class="reveal-word opacity-20">{word} </span>
-                    ))
-                }
-            </h2>
+            </div>
 
             <div
-                class="flex flex-col gap-10 text-xl md:text-3xl font-medium tracking-tight leading-relaxed"
+                class="absolute inset-0 flex flex-col justify-end items-center pb-16 md:pb-24 px-6 md:px-12 max-w-7xl mx-auto z-10 w-full"
             >
-                {
-                    paraWordsArray.map((words) => (
-                        <p>
-                            {words.map((word) => (
-                                <span class="reveal-word opacity-20">
-                                    {word}{" "}
-                                </span>
-                            ))}
-                        </p>
-                    ))
-                }
+                <span
+                    class="text-yellow-500 font-mono text-xs md:text-sm tracking-[0.5em] uppercase drop-shadow-lg text-center"
+                >
+                    {tagline}
+                </span>
+                <h1
+                    class="text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl mt-4 text-center"
+                >
+                    {title}
+                </h1>
+            </div>
+        </div>
+
+        <div
+            id="deep-text-layer"
+            class="absolute inset-0 z-20 w-full h-full bg-[#050505] opacity-0 invisible flex items-start justify-center px-6 md:px-12 pt-32 md:pt-48"
+        >
+            <div
+                id="deep-text-reveal"
+                class="text-reveal-gradient max-w-4xl mx-auto flex flex-col items-start"
+                style={`
+                    background-image: linear-gradient(to right, #ffffff 0%, ${tintColor} 50%, #ffffff 100%); 
+                `}
+            >
+                <h2
+                    class="text-3xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-snug mb-8 md:mb-12"
+                >
+                    {
+                        titleWords.map((word) => (
+                            <span class="reveal-word opacity-20">{word} </span>
+                        ))
+                    }
+                </h2>
+
+                <div
+                    class="flex flex-col gap-6 md:gap-10 text-xl md:text-3xl font-medium tracking-tight leading-relaxed"
+                >
+                    {
+                        paraWordsArray.map((words) => (
+                            <p>
+                                {words.map((word) => (
+                                    <span class="reveal-word opacity-20">
+                                        {word}{" "}
+                                    </span>
+                                ))}
+                            </p>
+                        ))
+                    }
+                </div>
             </div>
         </div>
     </div>
-</section>
+</div>

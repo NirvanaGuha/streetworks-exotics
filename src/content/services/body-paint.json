@@ -1,0 +1,24 @@
+{
+  "title": "Body & Paint",
+  "heroTagline": "Concours-Quality Surface Preparation & Finishing",
+  "description": "Flawless surface preparation and period-correct color matching for a concours-quality finish.",
+  "heroImage": "../../assets/images/body-paint/Blue-400GT-rear-scaled-1.jpg",
+  "tintColor": "#800000",
+  "deepTextTitle": "The Art of the Perfect Reflection",
+  "deepTextParagraphs": [
+    "At StreetWorks Exotics, a flawless finish begins long before the first drop of paint is atomized. We strip every chassis down to bare metal, meticulously blocking and sanding to ensure the structural lines flow exactly as the original designers intended.",
+    "We specialize in period-correct color matching, utilizing advanced multi-stage clear coats to provide a depth and luster that will command attention on the lawn at Pebble Beach or the open road."
+  ],
+  "midText": "Perfection is not a goal. It is the absolute baseline of our paint shop.",
+  "finalText": "Ready to command attention on the lawn at Pebble Beach?",
+  "galleryImages": [
+    "../../assets/images/body-paint/body-and-paint-scaled.jpg",
+    "../../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg",
+    "../../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
+    "../../assets/images/body-paint/Isetta-Delivery.jpg",
+    "../../assets/images/body-paint/Aintree-Green-Iso-Grifo-Series-I.jpg",
+    "../../assets/images/body-paint/1964-A3:C.jpg",
+    "../../assets/images/body-paint/Jensen-CV8-Finishing-Assembly-1.jpg",
+    "../../assets/images/body-paint/Porsche-356-Fresh-out-of-the-paint-booth-1.jpg"
+  ]
+}

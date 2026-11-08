@@ -1,0 +1,66 @@
+{
+  "title": "Service & Maintenance",
+  "heroTagline": "World-Class Automotive Service & Repair",
+  "description": "Our mission is simple: to provide the Lake Country area with honest, high-quality service and repair, specializing in high-end European and American vehicles at a fair price.",
+  "heroImage": "../../assets/images/maintenance/Automobile-Service-and-Maintenance-in-Pewaukee.jpg",
+  "tintColor": "#94a3b8",
+  "deepTextTitle": "Restoration & Repair at a Higher Level",
+  "deepTextParagraphs": [
+    "While StreetWorks has built its reputation restoring some of the most rare and valuable vehicles in the world, we are expanding our service department to bring that same level of precision and care to the local community.",
+    "From Ferrari 250s and Shelby Cobras to modern hypercars, our technicians have spent decades perfecting their craft on machines where every detail matters. Today, we apply that same expertise to the vehicles you drive every day.",
+    "Whether it’s a luxury sedan, a performance SUV, or a cherished classic, your vehicle receives the same attention, tools, and processes trusted by collectors and enthusiasts worldwide."
+  ],
+  "contentBlocks": [
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/body-paint/body-and-paint-scaled.jpg",
+        "../../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Our facility is equipped with factory-level scan tools for brands like Lamborghini, McLaren, and Rolls-Royce. We operate a full aluminum and carbon-fiber body shop, complete with advanced laser measuring systems and a climate-controlled paint facility. Maintenance at StreetWorks goes far beyond basic oil changes. We use advanced techniques such as synthetic oil analysis, brake fluid service intervals tailored to driving style (including track use), and suspension geometry optimization."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
+        "../../assets/images/body-paint/Isetta-Delivery.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "This approach allows us to extend the life of your vehicle’s components, reduce unexpected failures, and maintain peak performance long after factory warranties expire. Whether you’re maintaining a daily driver or preserving a collector’s piece, our process ensures your vehicle performs exactly as intended. Examples of our work include timing belt services on vehicles like the Honda S2000, suspension refreshes on cars such as the BMW E92 M3, and full restorations of classic Porsche 911 models."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose.jpg",
+        "../../assets/images/coachwork/Lamborghini-Islero-out-of-metal-shop.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "We believe in complete transparency, which is why we provide complimentary multi-point inspections, detailed service reports with photos, and clear communication at every step. Customers also enjoy premium conveniences such as exotic loaner vehicles, expanded Saturday service hours, and express service lanes for routine maintenance. Factory-Level Tools. Master-Level Talent. Zero Compromise. At StreetWorks, there is no distinction between servicing a million-dollar vehicle and maintaining a daily driver."
+    },
+    {
+      "type": "reviews"
+    },
+    {
+      "type": "text",
+      "text": "Every car that enters our facility is treated with the same precision, care, and respect. Our team brings experience from restoring some of the most valuable automobiles in existence, and we apply those lessons to every vehicle we service. From advanced driver-assistance system (ADAS) calibration to carbon-fiber repair, engine rebuilds, and vintage wiring restoration, we have the capability to handle even the most complex automotive challenges."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/coachwork/A3C Coachwork.jpg",
+        "../../assets/images/coachwork/Lancia-Fulvia-Series-II-Coupe-coachwork-scaled-1.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "The StreetWorks Standard of Precision. Our philosophy is simple: every vehicle deserves to be serviced to the highest possible standard. We do not cut corners, we do not rush processes, and we do not compromise on quality. Whether your vehicle is worth thousands or millions, it receives the same level of attention and expertise. From Million-Dollar Masterpieces to Daily Drivers, we proudly serve southeast Wisconsin, offering a full range of services including maintenance, diagnostics, repair, and complete restoration. Our goal is to deliver factory-correct results with unmatched precision, transparency, and customer care."
+    }
+  ]
+}
