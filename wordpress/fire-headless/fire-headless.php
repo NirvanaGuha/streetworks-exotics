@@ -10,6 +10,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once __DIR__ . '/articles.php';
+
 /**
  * Post types. Showcases and Testimonials are ordered with "Order" (menu_order)
  * in the Page Attributes box, which is what the front end sorts by.
@@ -61,6 +63,17 @@ add_action('init', function () {
         'capability_type' => 'post',
         'capabilities'    => ['create_posts' => 'do_not_allow'],
         'map_meta_cap'    => true,
+    ]);
+
+    // Long-form restoration stories. Blog posts stay as ordinary Posts.
+    register_post_type('case_study', $shared + [
+        'label'               => 'Case Studies',
+        'labels'              => ['singular_name' => 'Case Study', 'add_new_item' => 'Add New Case Study'],
+        'description'         => 'Restoration stories, one car each. Written like a post; the details box adds the car and its recognition.',
+        'menu_icon'           => 'dashicons-media-document',
+        'supports'            => ['title', 'editor', 'thumbnail', 'excerpt', 'page-attributes'],
+        'graphql_single_name' => 'CaseStudy',
+        'graphql_plural_name' => 'CaseStudies',
     ]);
 
     register_post_type('testimonial', $shared + [
@@ -160,6 +173,31 @@ add_action('acf/include_fields', function () {
             $image('field_showcase_gallery_3', 'gallery_image_3', 'Gallery Image 3', 'Right column, tall.'),
         ],
     ] + $graphql('showcaseDetails'));
+
+    acf_add_local_field_group([
+        'key'      => 'group_case_study_details',
+        'title'    => 'Case Study Details',
+        'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'case_study']]],
+        'fields'   => [
+            ['key' => 'field_case_study_vehicle', 'name' => 'vehicle', 'label' => 'Car', 'type' => 'text', 'instructions' => 'Shown large on the case study, e.g. Iso Grifo A3/C. The title is the story headline.'],
+            ['key' => 'field_case_study_year', 'name' => 'year', 'label' => 'Year', 'type' => 'text', 'instructions' => 'Model year, e.g. 1964.'],
+            ['key' => 'field_case_study_scope', 'name' => 'scope', 'label' => 'Work', 'type' => 'text', 'instructions' => 'What the shop did, e.g. Full restoration.'],
+            ['key' => 'field_case_study_recognition', 'name' => 'recognition', 'label' => 'Recognition', 'type' => 'text', 'instructions' => 'Awards or shows, e.g. Best of Show, Concorso Italiano 2017. Leave empty if none.'],
+        ],
+    ] + $graphql('caseStudyDetails'));
+
+    acf_add_local_field_group([
+        'key'      => 'group_article_details',
+        'title'    => 'Byline',
+        'position' => 'side',
+        'location' => [
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'post']],
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'case_study']],
+        ],
+        'fields'   => [
+            ['key' => 'field_article_byline', 'name' => 'byline', 'label' => 'Written by', 'type' => 'text', 'instructions' => 'Leave empty to credit the shop.'],
+        ],
+    ] + $graphql('articleDetails'));
 
     acf_add_local_field_group([
         'key'      => 'group_testimonial_details',

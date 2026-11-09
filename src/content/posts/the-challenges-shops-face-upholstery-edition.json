@@ -1,0 +1,89 @@
+{
+  "title": "The Challenges Shops Face: Upholstery Edition",
+  "date": "2023-03-15T19:28:05",
+  "excerpt": "At StreetWorks, we’ve learned a vital lesson over the years—if you want something done right, do it yourself with the most talented team.",
+  "byline": "Doug Crofton",
+  "image": "../../assets/images/wordpress/A3C-Interior.jpg",
+  "imageAlt": "",
+  "categories": [
+    {
+      "name": "Restorations",
+      "slug": "restorations"
+    },
+    {
+      "name": "Upholstery",
+      "slug": "upholstery"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "heading",
+      "level": 2,
+      "html": "StreetWorks Upholstery Journey"
+    },
+    {
+      "type": "paragraph",
+      "html": "At StreetWorks, we’ve learned a vital lesson over the years—if you want something done right, do it yourself with the most talented team. Our turning point came in 2013 when Earl joined us, bringing his extensive background and a high recommendation from John Ling of Silverstone. Earl’s addition marked the beginning of our internal upholstery department, transforming our capabilities."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "The Aston Martin Challenge"
+    },
+    {
+      "type": "paragraph",
+      "html": "One of our top clients experienced a small fire in his garage, causing smoke damage to his Aston Martin’s interior. He requested a complete restoration, but our newly formed upholstery department couldn’t meet his time frame. An acquaintance recommended a shop in Chicago, so the car was sent there. Six months later, Matt reviewed the work. Despite the professional setup, the quality was far below Aston Martin standards. The high price was paid, and the car returned to our shop, where Earl worked tirelessly to correct the issues. This experience underscored the importance of our internal upholstery department."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "The Lancia Lesson"
+    },
+    {
+      "type": "paragraph",
+      "html": "Another challenge came with a rare Italian sports car, the Lancia. Again, we outsourced the upholstery job, this time to a shop in Milwaukee that came highly recommended. Unfortunately, the work took too long, came with a hefty price tag, and lacked critical details such as proper seat foam fitting, aligned stitching, and tight welt cords. The bill was settled, and the car was back in our hands. Once again, Earl stepped in to fix the problems. These experiences highlighted the time-consuming and costly challenges of outsourcing, reinforcing our commitment to internal excellence."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "A Vision Realized"
+    },
+    {
+      "type": "paragraph",
+      "html": "Today, Earl leads a team of dedicated and incredibly talented trimmers at StreetWorks. His leadership has allowed us to provide world-class, award-winning interiors that our clients rely on. With our team’s expertise and dedication, our customers’ vision truly becomes a reality."
+    },
+    {
+      "type": "paragraph",
+      "html": "These stories offer a glimpse into our journey and the lessons learned. At StreetWorks, we believe that the best upholsterers stand out from the crowd. By keeping as much of the work as possible in-house, we ensure the highest quality and customer service. Our internal team continues to build on our goal of delivering exceptional interiors and showcasing our success and expertise in the industry."
+    },
+    {
+      "type": "paragraph",
+      "html": "Click any image below to view some of our work."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        {
+          "src": "../../assets/images/articles/IMG_1265_1.jpg",
+          "alt": "",
+          "caption": ""
+        },
+        {
+          "src": "../../assets/images/articles/Lamborghini-22-400GT.jpg",
+          "alt": "Lamborghini 2+2 400GT",
+          "caption": ""
+        },
+        {
+          "src": "../../assets/images/articles/ISO-A3-C.jpg",
+          "alt": "ISO A3/C",
+          "caption": ""
+        },
+        {
+          "src": "../../assets/images/articles/LP400S-interior.jpg",
+          "alt": "",
+          "caption": ""
+        }
+      ]
+    }
+  ]
+}

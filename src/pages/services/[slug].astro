@@ -195,7 +195,7 @@ const tint = service.tintColor || "#94a3b8";
     <script>
         import { gsap } from "gsap";
         import { ScrollTrigger } from "gsap/ScrollTrigger";
-        import { createReviewsTimeline, createShowcaseAnimations, createTextBlockTimeline } from "../../utils/animations";
+        import { createReviewsTimeline, createShowcaseAnimations, createTextBlockTimeline, revealOnScroll } from "../../utils/animations";
 
         gsap.registerPlugin(ScrollTrigger);
 
@@ -216,16 +216,7 @@ const tint = service.tintColor || "#94a3b8";
             const reviews = document.getElementById("reviews-container");
             if (reviews) createReviewsTimeline(reviews);
 
-            // Article blocks rise in once as they reach the lower part of the screen.
-            gsap.utils.toArray<HTMLElement>(".article-reveal").forEach((el) => {
-                gsap.fromTo(el, { autoAlpha: 0, y: reduceMotion ? 0 : 32 }, {
-                    autoAlpha: 1,
-                    y: 0,
-                    duration: 0.9,
-                    ease: "power3.out",
-                    scrollTrigger: { trigger: el, start: "top 90%", once: true },
-                });
-            });
+            revealOnScroll(".article-reveal");
         };
 
         document.addEventListener('astro:page-load', initAnimations);

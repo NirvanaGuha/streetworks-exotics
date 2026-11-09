@@ -6,17 +6,26 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const brand = JSON.parse(readFileSync(path.join(ROOT, 'src/data/brand.json'), 'utf8'));
 
 // Every page in the build: "index.html" -> "/", "services/coachwork/index.html" -> "/services/coachwork/".
+// Redirects (old post addresses) are listed apart.
 const CLIENT_DIR = path.join(ROOT, 'dist/client');
 if (!existsSync(CLIENT_DIR)) throw new Error('No build found. Run `npm run build` before the smoke tests.');
-const PAGES = readdirSync(CLIENT_DIR, { recursive: true, encoding: 'utf8' })
+const BUILT = readdirSync(CLIENT_DIR, { recursive: true, encoding: 'utf8' })
     .filter((file) => file.endsWith('index.html'))
-    .map((file) => '/' + file.split(path.sep).join('/').replace(/index\.html$/, ''))
-    .sort();
+    .map((file) => ({
+        route: '/' + file.split(path.sep).join('/').replace(/index\.html$/, ''),
+        redirect: /http-equiv="refresh"/.test(readFileSync(path.join(CLIENT_DIR, file), 'utf8').slice(0, 500)),
+    }));
+const PAGES = BUILT.filter((page) => !page.redirect).map((page) => page.route).sort();
+const REDIRECTS = BUILT.filter((page) => page.redirect).map((page) => page.route).sort();
+const ARTICLES = PAGES.filter((route) => /^\/(blog|case-studies)\/[^/]+\/$/.test(route));
 
 /** Fails the test on console errors, uncaught exceptions and same-origin requests that fail. */
 function watchForErrors(page: Page) {
     const errors: string[] = [];
-    page.on('console', (msg) => msg.type() === 'error' && errors.push(`console: ${msg.text()}`));
+    page.on('console', (msg) => {
+        // Playwright's WebKit can't draw its own media-control icons (audio/video players); not the site's error.
+        if (msg.type() === 'error' && !/^Button failed to load, iconName = /.test(msg.text())) errors.push(`console: ${msg.text()}`);
+    });
     page.on('pageerror', (err) => errors.push(`exception: ${err.message}`));
     page.on('response', (res) => {
         if (res.status() >= 400 && new URL(res.url()).origin === new URL(page.url() || res.url()).origin) {
@@ -195,4 +204,65 @@ test('the footer Services link lands on the first service', async ({ page }) => 
     await expect
         .poll(async () => Number(await page.locator('.service-slide').first().evaluate((el) => getComputedStyle(el).opacity)), { timeout: 8_000 })
         .toBeGreaterThan(0.9);
+});
+
+test('posts and case studies reveal every block', async ({ page }) => {
+    expect(ARTICLES.length).toBeGreaterThan(0);
+    for (const route of ARTICLES) {
+        await page.goto(route);
+        await expect(page.locator('h1')).toHaveCount(1);
+        const peaks = await page.evaluate(async () => {
+            const parts = [...document.querySelectorAll<HTMLElement>('.article-reveal, .listing-reveal')];
+            const peak = parts.map(() => 0);
+            for (let y = 0; y <= document.body.scrollHeight; y += window.innerHeight / 2) {
+                window.scrollTo(0, y);
+                await new Promise((r) => setTimeout(r, 80));
+                parts.forEach((el, i) => (peak[i] = Math.max(peak[i], Number(getComputedStyle(el).opacity))));
+            }
+            return parts.map((el, i) => ({ label: `${el.tagName} ${el.textContent!.trim().slice(0, 40)}`, peak: peak[i] }));
+        });
+        expect(peaks.length, `${route} has content`).toBeGreaterThan(1);
+        for (const part of peaks) expect(part.peak, `${route} ${part.label} becomes visible`).toBeGreaterThan(0.5);
+    }
+});
+
+test('article photos fit the screen', async ({ page }) => {
+    for (const route of ARTICLES) {
+        await page.goto(route);
+        const tall = await page.evaluate(() =>
+            [...document.querySelectorAll<HTMLElement>('.article-figure .gallery-zoomable')]
+                .filter((el) => el.getBoundingClientRect().height > window.innerHeight + 1)
+                .map((el) => el.dataset.src)
+        );
+        expect(tall, route).toEqual([]);
+    }
+});
+
+test('old post addresses redirect to their new pages', async ({ page }) => {
+    expect(REDIRECTS.length).toBeGreaterThan(0);
+    await page.goto(REDIRECTS[0]);
+    await expect(page).toHaveURL(new RegExp(`/(blog|case-studies)/${REDIRECTS[0].replaceAll('/', '')}/?$`));
+    await expect(page.locator('h1')).toBeVisible();
+});
+
+test('blog category buttons filter the posts', async ({ page }) => {
+    await page.goto('/blog/');
+    const buttons = page.locator('.journal-filter[data-filter]:not([data-filter=""])');
+    test.skip((await buttons.count()) === 0, 'no categories with more than one post');
+    const button = buttons.first();
+    const slug = await button.getAttribute('data-filter');
+    await button.click();
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    const shown = await page.locator('.journal-item:not([hidden])').evaluateAll((items) => items.map((item) => (item as HTMLElement).dataset.categories!.split(' ')));
+    for (const categories of shown) expect(categories).toContain(slug);
+    await page.locator('.journal-filter[data-filter=""]').click();
+    await expect(page.locator('.journal-item[hidden]')).toHaveCount(0);
+});
+
+test('showcases link to pages that exist', async ({ page, request }) => {
+    await page.goto('/portfolio/');
+    const links = await page.locator('a.portfolio-card').evaluateAll((cards) => cards.map((card) => card.getAttribute('href')!));
+    for (const href of links.filter((href) => href.startsWith('/'))) {
+        expect((await request.get(href)).status(), href).toBe(200);
+    }
 });

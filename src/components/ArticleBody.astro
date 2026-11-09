@@ -1,0 +1,431 @@
+---
+// A post or case study's content as a long read: text in a narrow column, with photos,
+// galleries, quotes and videos stepping wider than it. Blocks rise in as they scroll into
+// view (`.article-reveal`, see revealOnScroll in utils/animations.ts).
+import { Image } from "astro:assets";
+import ZoomableImage from "./ZoomableImage.astro";
+import { aspect, imageProps, type ArticleBlock, type ArticleImage } from "../lib/articles";
+import brand from "../data/brand.json";
+
+interface Props {
+  blocks: ArticleBlock[];
+  accentColor?: string;
+}
+
+const { blocks, accentColor = brand.colors.accent } = Astro.props;
+
+// The opening paragraph reads as the lead.
+const leadIndex = blocks.findIndex((block) => block.type === "paragraph");
+let chapter = 0;
+
+const youtubeId = (url: string) => url.match(/[?&]v=([\w-]{11})/)?.[1] ?? url.match(/youtu\.be\/([\w-]{11})/)?.[1];
+const vimeoId = (url: string) => url.match(/vimeo\.com\/(\d+)/)?.[1];
+
+// Galleries: two columns for a pair, three for more, four for a long set.
+const galleryColumns = (images: ArticleImage[]) =>
+  images.length <= 2 ? "columns-2" : images.length <= 6 ? "columns-2 md:columns-3" : "columns-2 md:columns-3 lg:columns-4";
+---
+
+<div class="article-body relative w-full px-6 md:px-12" style={`--article-accent: ${accentColor};`}>
+  {blocks.map((block, i) => {
+    switch (block.type) {
+      case "paragraph":
+        return i === leadIndex ? (
+          <p class="article-reveal article-lead" set:html={block.html} />
+        ) : (
+          <p class="article-reveal article-text" set:html={block.html} />
+        );
+
+      case "heading": {
+        if (block.level === 2) {
+          const n = String(++chapter).padStart(2, "0");
+          return (
+            <h2 class="article-reveal article-h2" data-n={n}>
+              <span class="article-chapter-number" aria-hidden="true">{n}</span>
+              <span set:html={block.html} />
+            </h2>
+          );
+        }
+        if (block.level === 3) return <h3 class="article-reveal article-h3" set:html={block.html} />;
+        return <h4 class="article-reveal article-h4" set:html={block.html} />;
+      }
+
+      case "list": {
+        const List = block.ordered ? "ol" : "ul";
+        return (
+          <List class:list={["article-reveal article-list", block.ordered && "is-ordered"]}>
+            {block.items.map((item) => <li set:html={item} />)}
+          </List>
+        );
+      }
+
+      case "quote":
+        return (
+          <figure class="article-reveal article-quote">
+            <blockquote set:html={block.html} />
+            {block.cite && <figcaption set:html={block.cite} />}
+          </figure>
+        );
+
+      case "image": {
+        const [image] = block.images;
+        const ratio = aspect(image);
+        // As wide as the page allows while the whole photo fits on screen.
+        return (
+          <figure class="article-reveal article-figure mx-auto" style={`width: min(100%, 72rem, calc(85svh * ${ratio.toFixed(3)}));`}>
+            <ZoomableImage
+              src={image.src as any}
+              width={image.width}
+              height={image.height}
+              alt={image.alt}
+              class="w-full"
+              style={`aspect-ratio: ${ratio};`}
+              accentColor={accentColor}
+              widths={[640, 1080, 1600, 2200]}
+              sizes="(min-width: 1280px) 1152px, 100vw"
+            />
+            {image.caption && <figcaption class="article-caption" set:html={image.caption} />}
+          </figure>
+        );
+      }
+
+      case "gallery":
+        return (
+          <div class:list={["article-reveal article-gallery max-w-7xl mx-auto gap-3 md:gap-4", galleryColumns(block.images)]}>
+            {block.images.map((image) => (
+              <figure class="break-inside-avoid mb-3 md:mb-4">
+                <ZoomableImage
+                  src={image.src as any}
+                  width={image.width}
+                  height={image.height}
+                  alt={image.alt}
+                  class="w-full"
+                  style={`aspect-ratio: ${aspect(image)};`}
+                  accentColor={accentColor}
+                  widths={[400, 800, 1200]}
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                />
+                {image.caption && <figcaption class="article-caption" set:html={image.caption} />}
+              </figure>
+            ))}
+          </div>
+        );
+
+      case "embed": {
+        const id = block.provider === "vimeo" ? vimeoId(block.url) : youtubeId(block.url);
+        if (!id) return null;
+        const player = block.provider === "vimeo"
+          ? `https://player.vimeo.com/video/${id}?autoplay=1`
+          : `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+        return (
+          <div class="article-reveal article-embed article-player max-w-5xl mx-auto">
+            <button type="button" class="article-video group" data-player={player} aria-label="Play video">
+              {block.provider !== "vimeo" && (
+                <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover opacity-70 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-90" />
+              )}
+              <span class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30"></span>
+              <span class="article-play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 md:w-9 md:h-9 translate-x-[2px]"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>
+              </span>
+            </button>
+          </div>
+        );
+      }
+
+      case "audio":
+        return (
+          <figure class="article-reveal article-audio">
+            <figcaption class="article-audio-label" set:html={block.caption || "Listen to this story"} />
+            <audio controls preload="none" src={block.url}></audio>
+          </figure>
+        );
+
+      case "video":
+        return (
+          <figure class="article-reveal article-figure max-w-5xl mx-auto">
+            <video controls playsinline preload="metadata" src={block.url} class="w-full rounded-lg bg-[#111] shadow-2xl"></video>
+            {block.caption && <figcaption class="article-caption" set:html={block.caption} />}
+          </figure>
+        );
+    }
+  })}
+</div>
+
+<style>
+  .article-body {
+    --column: 42rem;
+  }
+  /* Text sits in a reading column; media steps wider (set per block above). */
+  .article-body > :global(p),
+  .article-body > :global(h2),
+  .article-body > :global(h3),
+  .article-body > :global(h4),
+  .article-body > :global(ul),
+  .article-body > :global(ol),
+  .article-body > :global(.article-audio) {
+    max-width: var(--column);
+    margin-inline: auto;
+  }
+
+  .article-text,
+  .article-list {
+    font-size: 1.075rem;
+    line-height: 1.8;
+    font-weight: 300;
+    color: rgb(255 255 255 / 0.72);
+    margin-top: 1.6rem;
+  }
+  .article-lead {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: #fff;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  @media (min-width: 768px) {
+    .article-text,
+    .article-list {
+      font-size: 1.2rem;
+    }
+    .article-lead {
+      font-size: 1.65rem;
+      line-height: 1.5;
+    }
+  }
+
+  .article-body :global(a) {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: var(--article-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color 0.2s;
+  }
+  .article-body :global(a:hover) {
+    color: var(--article-accent);
+  }
+  .article-body :global(strong),
+  .article-body :global(b) {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Chapters: a numbered display heading. */
+  .article-h2 {
+    margin-top: 6rem;
+    margin-bottom: -0.25rem;
+    font-family: var(--brand-font-heading);
+    font-stretch: var(--brand-heading-stretch);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    font-size: clamp(1.85rem, 4.2vw, 3.25rem);
+    overflow-wrap: anywhere;
+  }
+  .article-chapter-number {
+    display: block;
+    margin-bottom: 1.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: var(--article-accent);
+  }
+  .article-h3 {
+    margin-top: 3.5rem;
+    margin-bottom: -0.5rem;
+    font-family: var(--brand-font-heading);
+    font-stretch: var(--brand-heading-stretch);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  }
+  .article-h4 {
+    margin-top: 3rem;
+    margin-bottom: -0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--article-accent);
+  }
+
+  /* Lists: an accent rule instead of a bullet; numbers in mono. */
+  .article-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    counter-reset: item;
+  }
+  .article-list li {
+    position: relative;
+    padding-left: 2.25rem;
+    counter-increment: item;
+  }
+  .article-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.9em;
+    width: 1.1rem;
+    height: 1px;
+    background: var(--article-accent);
+  }
+  .article-list.is-ordered li::before {
+    content: counter(item, decimal-leading-zero);
+    top: 0.45em;
+    width: auto;
+    height: auto;
+    background: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--article-accent);
+  }
+
+  .article-quote {
+    max-width: 56rem;
+    margin: 5rem auto;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    text-align: center;
+  }
+  .article-quote blockquote {
+    font-family: var(--brand-font-serif);
+    font-style: italic;
+    font-size: clamp(1.75rem, 3.6vw, 3rem);
+    line-height: 1.2;
+    color: #fff;
+  }
+  .article-quote blockquote::before {
+    content: "“";
+    display: block;
+    height: 0.6em;
+    font-size: 2.5em;
+    line-height: 1;
+    color: var(--article-accent);
+  }
+  .article-quote figcaption {
+    margin-top: 1.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .article-figure,
+  .article-gallery,
+  .article-embed {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+  }
+  @media (min-width: 768px) {
+    .article-figure,
+    .article-gallery,
+    .article-embed {
+      margin-top: 5.5rem;
+      margin-bottom: 5.5rem;
+    }
+  }
+  .article-caption {
+    margin-top: 0.9rem;
+    font-family: var(--brand-font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.5);
+  }
+  .article-gallery .article-caption {
+    font-size: 0.95rem;
+  }
+
+  .article-player {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #111;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  }
+  .article-video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  .article-player :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .article-play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 9999px;
+    transform: translate(-50%, -50%);
+    background: var(--article-accent);
+    color: var(--brand-accent-contrast);
+    transition: transform 0.3s;
+  }
+  .article-video:hover .article-play {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  @media (min-width: 768px) {
+    .article-play {
+      width: 6rem;
+      height: 6rem;
+    }
+  }
+
+  .article-audio {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding: 1.25rem 1.25rem 1rem;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 0.5rem;
+    background: rgb(255 255 255 / 0.03);
+  }
+  .article-audio-label {
+    display: block;
+    margin-bottom: 0.9rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--article-accent);
+  }
+  .article-audio audio {
+    width: 100%;
+    color-scheme: dark;
+    accent-color: var(--article-accent);
+  }
+</style>
+
+<script>
+  // Videos load only when played, from YouTube's no-cookie player.
+  const initVideos = () => {
+    document.querySelectorAll<HTMLButtonElement>(".article-video[data-player]").forEach((button) => {
+      button.onclick = () => {
+        const iframe = document.createElement("iframe");
+        iframe.src = button.dataset.player!;
+        iframe.title = "Video";
+        iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        iframe.allowFullscreen = true;
+        button.replaceWith(iframe);
+      };
+    });
+  };
+  document.addEventListener("astro:page-load", initVideos);
+</script>

@@ -1,0 +1,39 @@
+{
+  "title": "Lamborghini Restorations: Balboni Approved",
+  "date": "2019-09-27T19:11:05",
+  "excerpt": "Seems like every year we run into Valentino at an event or two, we always ask him to review the authenticity of our Lamborghini Restorations.",
+  "byline": "Matt Backhaus",
+  "image": "../../assets/images/articles/Balboni-2-scaled-1.jpg",
+  "imageAlt": "",
+  "categories": [
+    {
+      "name": "Restorations",
+      "slug": "restorations"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "paragraph",
+      "html": "Seems like every year we run into Valentino at an event or two, we always ask him to review the authenticity of our Lamborghini Restorations."
+    },
+    {
+      "type": "paragraph",
+      "html": "This year our 400 GT 2+2 got two thumbs up, “Perfect Restoration!”"
+    },
+    {
+      "type": "gallery",
+      "images": [
+        {
+          "src": "../../assets/images/articles/Balboni-2-scaled-1.jpg",
+          "alt": "",
+          "caption": ""
+        },
+        {
+          "src": "../../assets/images/articles/Balboni3.jpg",
+          "alt": "",
+          "caption": ""
+        }
+      ]
+    }
+  ]
+}

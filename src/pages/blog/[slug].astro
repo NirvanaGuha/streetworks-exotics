@@ -1,0 +1,62 @@
+---
+// A blog post: full-screen photo and title, the long read, then more posts.
+import Layout from "../../layouts/Layout.astro";
+import NavBar from "../../components/NavBar.astro";
+import ArticleHero from "../../components/ArticleHero.astro";
+import ArticleBody from "../../components/ArticleBody.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import ContactSection from "../../components/ContactSection.astro";
+import Footer from "../../components/Footer.astro";
+import { formatDate, getPosts, type Article } from "../../lib/articles";
+import { content } from "../../lib/localContent";
+import brand from "../../data/brand.json";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post, posts } }));
+}
+
+const { post, posts } = Astro.props as { post: Article; posts: Article[] };
+const { labels } = content;
+
+// Posts sharing a category come first, then the most recent.
+const shared = (other: Article) => other.categories.some((category) => post.categories.some((own) => own.slug === category.slug));
+const others = posts.filter((other) => other.slug !== post.slug);
+const more = [...others.filter(shared), ...others.filter((other) => !shared(other))].slice(0, 3);
+---
+
+<Layout title={`${post.title} | ${brand.client}`} description={post.excerpt || undefined} image={post.image?.src} type="article">
+  <NavBar />
+
+  <main class="relative w-full bg-black text-white">
+    <ArticleHero
+      image={post.image}
+      eyebrow={post.categories[0]?.name || labels.journal}
+      title={post.title}
+      meta={[formatDate(post.date), `${post.minutes} min read`, ...(post.byline ? [`${labels.writtenBy} ${post.byline}`] : [])]}
+    />
+
+    <article class="pt-20 md:pt-28 pb-24 md:pb-36">
+      <ArticleBody blocks={post.blocks} />
+    </article>
+
+    {more.length > 0 && (
+      <section class="max-w-7xl mx-auto px-6 md:px-12 pb-28 md:pb-40 border-t border-white/10 pt-16 md:pt-20">
+        <div class="flex items-end justify-between gap-6 mb-12 md:mb-16">
+          <h2 class="font-heading text-4xl md:text-6xl font-bold tracking-tighter uppercase leading-[0.9]">{labels.moreStories}</h2>
+          <a href="/blog" class="shrink-0 text-xs md:text-sm tracking-[0.2em] uppercase font-bold text-accent hover:text-white transition-colors">{content.journal.heading} →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+          {more.map((other) => <div class="listing-reveal"><ArticleCard article={other} as="h3" /></div>)}
+        </div>
+      </section>
+    )}
+
+    <ContactSection />
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  import "../../utils/articlePage";
+</script>

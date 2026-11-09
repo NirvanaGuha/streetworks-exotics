@@ -3,6 +3,7 @@ import { fetchAPI } from "../lib/wp";
 import { demoCredit } from "../lib/demo";
 import { getBusiness } from "../lib/business";
 import brand from "../data/brand.json";
+import { content } from "../lib/localContent";
 
 interface Props {
   /** Pages without their own contact section link to the homepage's. */
@@ -37,7 +38,9 @@ const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status ===
     <nav class="flex flex-wrap justify-start gap-6 md:gap-10 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
       <a href="/" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Home</a>
       <a href="/#services" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Services</a>
-      <a href="/portfolio" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Portfolio</a>
+      <a href="/portfolio" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.portfolio}</a>
+      <a href="/case-studies" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.caseStudies}</a>
+      <a href="/blog" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.journal}</a>
       <a href={contactHref} class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Contact</a>
     </nav>
 

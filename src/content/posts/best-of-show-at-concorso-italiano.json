@@ -1,0 +1,46 @@
+{
+  "title": "StreetWorks Exotics Produces Best of Show at Concorso Italiano!",
+  "date": "2017-10-03T18:58:21",
+  "excerpt": "On August 19, 2017, what can only be termed a David beats Goliath event took place. On that date, the prestigious Concorso Italiano was held at Black Horse Golf Course in Monterey Bay, California.",
+  "byline": "Matt Backhaus",
+  "image": "../../assets/images/articles/1969-De-Tomaso-Mangusta.jpg",
+  "imageAlt": "Award-winning 1969 De Tomaso Mangusta restoration",
+  "categories": [
+    {
+      "name": "Award Winning Cars",
+      "slug": "award-winning-cars"
+    },
+    {
+      "name": "Restorations",
+      "slug": "restorations"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "paragraph",
+      "html": "On August 19, 2017, what can only be termed a David beats Goliath event took place. On that date, the prestigious Concorso Italiano was held at Black Horse Golf Course in Monterey Bay, California. It was the 32<sup>nd</sup> edition of this Pebble Beach weekend of events. The show was celebrating the 70<sup>th</sup> birthday of Ferrari along with the Maserati Ghibli turning 50 years of age. There were over 1,000 cars from all over the world representing renowned collections and restorers. Which Ferrari, Maserati or maybe Lamborghini would win? None of the above!"
+    },
+    {
+      "type": "paragraph",
+      "html": "A 1969 De Tomaso Mangusta would own the day and be crowned Best In Show. The stunning vehicle, owned by a private collector from Nashotah, Wisconsin was meticulously restored by StreetWorks Exotics located in Waukesha, Wisconsin."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "html": "How did this Midwestern classic car restoration shop prevail?"
+    },
+    {
+      "type": "paragraph",
+      "html": "SilverStone was established in 1977 by John Ling, a longtime Pebble Beach judge, car collector and automobile historian. He used the shop to restore the cars he would show worldwide and ultimately sell. Fast forward three decades. The world economy and collector car market had changed drastically and SilverStone was acquired by Matt Backhaus, current president and CEO. Matt’s love of both exotic cars and hotrods led to the name change to Streetworks. Under Matt’s direction, StreetWorks Exotics has continued the tradition of concours level restorations and has produced five Pebble Beach class winners, along with dozens of national hotrod show wins."
+    },
+    {
+      "type": "paragraph",
+      "html": "For a closer look at the award winning Mangusta check out the YouTube video below, and while you’re at it, please subscribe to our page: <a href=\"https://youtu.be/XxXTG7hOOW4\">Streetworks Exotics</a>"
+    },
+    {
+      "type": "embed",
+      "url": "https://www.youtube.com/watch?v=HFh6B_-ZZMA",
+      "provider": "youtube"
+    }
+  ]
+}

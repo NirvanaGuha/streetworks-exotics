@@ -26,11 +26,12 @@ const { portfolio, labels } = content;
     <section class="max-w-7xl mx-auto px-6 md:px-12 pb-32 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-20 md:gap-y-28">
       {showcases.map((build, i) => {
         const Card = build.ctaLink ? "a" : "div";
+        const external = !!build.ctaLink && /^https?:/.test(build.ctaLink);
         return (
           <Card
             href={build.ctaLink}
-            target={build.ctaLink ? "_blank" : undefined}
-            rel={build.ctaLink ? "noopener noreferrer" : undefined}
+            target={external ? "_blank" : undefined}
+            rel={external ? "noopener noreferrer" : undefined}
             class:list={["portfolio-card group block", i === 0 && "md:col-span-2", i % 2 === 0 && i > 0 && "md:mt-32"]}
             style={`--card-accent: ${build.accentColor || brand.colors.accent};`}
           >

@@ -1,0 +1,47 @@
+{
+  "title": "Monterey 2019",
+  "date": "2019-09-24T17:39:34",
+  "excerpt": "Seen here are two of our most recent restorations. Both tenaciously restored to our usual uncompromising standard.",
+  "byline": "Matt Backhaus",
+  "image": "../../assets/images/articles/Detomaso-Mangusta.jpg",
+  "imageAlt": "",
+  "categories": [
+    {
+      "name": "Restorations",
+      "slug": "restorations"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "paragraph",
+      "html": "The perfect place to start our Postings, Monterey 2019."
+    },
+    {
+      "type": "paragraph",
+      "html": "Seen here are two of our most recent restorations. Both tenaciously restored to our usual uncompromising standard."
+    },
+    {
+      "type": "paragraph",
+      "html": "Two Italian beauties that could not be any more contrasting – The Lamborghini 400GT 2+2, with its high revving v12 symphony powering it’s advance, and the Detomaso Mangusta’s fire breathing Ford v8 ready to pound the pavement."
+    },
+    {
+      "type": "paragraph",
+      "html": "Stay tuned for our blog to keep up with all things Streetworks."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        {
+          "src": "../../assets/images/articles/Lamborghini-400GT.jpg",
+          "alt": "",
+          "caption": ""
+        },
+        {
+          "src": "../../assets/images/articles/Detomaso-Mangusta.jpg",
+          "alt": "",
+          "caption": ""
+        }
+      ]
+    }
+  ]
+}

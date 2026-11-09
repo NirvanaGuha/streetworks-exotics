@@ -1,0 +1,61 @@
+{
+  "title": "StreetWorks – The beginning of a legacy",
+  "date": "2021-03-05T23:23:33",
+  "excerpt": "2004 was our first year invited to the Pebble Beach Concours d’Elegance. We were a relatively new shop at the time, with only two full-time employees.",
+  "byline": "Matt Backhaus",
+  "image": "../../assets/images/articles/Grifo-3.jpg",
+  "imageAlt": "",
+  "categories": [
+    {
+      "name": "Award Winning Cars",
+      "slug": "award-winning-cars"
+    },
+    {
+      "name": "Restorations",
+      "slug": "restorations"
+    },
+    {
+      "name": "Streetworks News",
+      "slug": "streetworks-news"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "paragraph",
+      "html": "2004 was our first year invited to the Pebble Beach Concours d’Elegance. We were a relatively new shop at the time, with only two full-time employees. When we heard Pebble beach was doing a Giugiaro class, we submitted the Iso Grifo GL350 (chassis #148 pictured above) we were restoring at the time. We were very fortunate to get invited, and it was a pivotal learning experience. I remember arriving at the polo grounds and seeing some of the vehicles parked there getting cleaned up after their varying transports. I immediately felt insecure as the quality of the cars before me were beyond anything I had ever imagined, however our little Iso was no slouch. We had given her a great paint job and upholstery, but I just knew we would have to up our game significantly if we ever intended to produce the workmanship I had seen that day."
+    },
+    {
+      "type": "image",
+      "images": [
+        {
+          "src": "../../assets/images/articles/Grifo-1.jpg",
+          "alt": "",
+          "caption": "1967 Iso Grifo GL350 #148 at Pebble Beach Concours d’Elegance"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "html": "One of the cars in our class was an outstanding Maserati Ghibli Spyder restored by none other than Junior Conway. I was absolutely stunned by the straightness of the body work and paint finish. I found Junior on the show field, told him why I was there, what car we had brought, and asked him his tricks. He surprisingly spent thirty minutes with me, providing a lot of knowledge to take back to Wisconsin. Immediately upon getting back to the shop, I began tutoring myself using some of Junior’s ideas, as well as coming up with many of my own. Over the next few years, I would practice on anything we were lucky enough to paint – Barracudas, Firebirds, Mustangs, etc. Some of these clients were getting unreal paint jobs based on lower end budgets. I was able to use their cars to learn how to produce the finishes I had seen at Pebble. As our business grew over the years, all of our departments have been able to achieve that same level of quality and standard. In 2008 we returned to Pebble again, this time with a Lancia and lots of confidence. We felt like our car was the best in our class. We did manage a class win, and we also gained even more knowledge from this experience. Fast forward to 2017 with many more Monterey weekends under out belt, we secured a best of show at Concours Italiano."
+    },
+    {
+      "type": "paragraph",
+      "html": "This year we will back at it again with yet another Iso Grifo. We know how difficult our class and competition will be but we are confident that we have met the standard of excellence to win. Thanks to Junior, who probably has no recollection of our conversation – you inspired me to strive to be the best, and we still work to do that every day."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "Stay tuned for our upcoming blog posts, Youtube videos and Facebook updates!"
+    },
+    {
+      "type": "image",
+      "images": [
+        {
+          "src": "../../assets/images/articles/Grifo-2.jpg",
+          "alt": "",
+          "caption": "1967 Iso Grifo GL350 #148 back home in Wisconsin"
+        }
+      ]
+    }
+  ]
+}

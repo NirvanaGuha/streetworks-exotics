@@ -9,9 +9,13 @@ interface Props {
   accentColor?: string;
   width?: number;
   height?: number;
+  // Responsive sizes; the defaults suit a two-column gallery.
+  widths?: number[];
+  sizes?: string;
+  style?: string;
 }
 
-const { src, alt, class: className, accentColor = "white", width, height } = Astro.props;
+const { src, alt, class: className, accentColor = "white", width, height, widths = [480, 960, 1440], sizes = "(min-width: 768px) 45vw, 90vw", style } = Astro.props;
 
 // For the lightbox, we need a string URL. 
 let displaySrc = '';
@@ -37,6 +41,7 @@ if (typeof src === 'string') {
   class={`gallery-zoomable group relative overflow-hidden bg-[#111] rounded-lg shadow-2xl cursor-zoom-in ${className}`}
   data-src={displaySrc}
   data-alt={alt}
+  style={style}
 >
   {imageSrc && (
     <Image
@@ -45,8 +50,8 @@ if (typeof src === 'string') {
       width={inferredWidth}
       height={inferredHeight}
       inferSize={!inferredWidth || !inferredHeight}
-      widths={[480, 960, 1440]}
-      sizes="(min-width: 768px) 45vw, 90vw"
+      widths={widths}
+      sizes={sizes}
       class="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-[0.97]"
     />
   )}

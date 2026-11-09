@@ -3,21 +3,28 @@
  * Copies the WordPress content into the site's local fallback files, so a build without
  * WordPress (e.g. a public demo on Vercel) shows exactly what WordPress has:
  *
- *   src/content/services/<slug>.json   title, order, tagline, tint, hero image, text and gallery blocks
- *   src/data/content.json              hero headline/tagline and the three intro texts
+ *   src/content/services/<slug>.json       title, order, tagline, tint, hero image, text and gallery blocks
+ *   src/content/posts/<slug>.json          blog posts: title, date, categories, byline, photo, blocks
+ *   src/content/case-studies/<slug>.json   case studies: the same plus order and the car's details
+ *   src/data/content.json                  hero headline/tagline and the three intro texts
  *
  * Images are matched to files already in src/assets/images by name; anything without an
- * exact match is downloaded from WordPress into src/assets/images/wordpress/.
+ * exact match is downloaded from WordPress into src/assets/images/wordpress/ (post and case
+ * study photos into src/assets/images/articles/, at most 2000px across to keep the repo small).
+ * Post and case study files that WordPress no longer has are removed.
  *
  *   node --env-file=.env scripts/snapshot-wordpress.mjs
  */
-import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, readdir, mkdir, rm } from 'node:fs/promises';
+import sharp from 'sharp';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const ASSETS = path.join(ROOT, 'src/assets/images');
 const SERVICES = path.join(ROOT, 'src/content/services');
+const POSTS = path.join(ROOT, 'src/content/posts');
+const CASE_STUDIES = path.join(ROOT, 'src/content/case-studies');
 const CONTENT = path.join(ROOT, 'src/data/content.json');
 const GRAPHQL = process.env.PUBLIC_WP_GRAPHQL_URL;
 
@@ -43,18 +50,26 @@ async function indexImages(dir) {
     }
 }
 
-/** WordPress image URL -> path under src/assets/images (downloading the original if needed). */
-async function localImage(url) {
+/**
+ * WordPress image URL -> path under src/assets/images (downloading the original if needed).
+ * `maxSize` caps the longer side of a downloaded photo.
+ */
+async function localImage(url, { folder = 'wordpress', maxSize } = {}) {
     const original = url.replace(/-\d+x\d+(?=\.\w+$)/, ''); // drop WordPress's size suffix
     const name = decodeURIComponent(original.split('/').pop());
     const existing = localImages.get(name.toLowerCase());
     if (existing) return existing;
 
-    await mkdir(path.join(ASSETS, 'wordpress'), { recursive: true });
+    await mkdir(path.join(ASSETS, folder), { recursive: true });
     const res = await fetch(original);
     if (!res.ok) throw new Error(`Could not download ${original}: ${res.status}`);
-    await writeFile(path.join(ASSETS, 'wordpress', name), Buffer.from(await res.arrayBuffer()));
-    const rel = path.join('wordpress', name);
+    let file = Buffer.from(await res.arrayBuffer());
+    if (maxSize && /\.(jpe?g|png|webp)$/i.test(name)) {
+        const image = sharp(file).rotate().resize({ width: maxSize, height: maxSize, fit: 'inside', withoutEnlargement: true });
+        file = await (/\.png$/i.test(name) ? image.png() : /\.webp$/i.test(name) ? image.webp({ quality: 82 }) : image.jpeg({ quality: 82, mozjpeg: true })).toBuffer();
+    }
+    await writeFile(path.join(ASSETS, folder, name), file);
+    const rel = path.join(folder, name);
     localImages.set(name.toLowerCase(), rel);
     console.log(`  downloaded ${rel}`);
     return rel;
@@ -96,6 +111,70 @@ for (const service of data.services.nodes) {
     await writeFile(file, JSON.stringify(entry, null, 2) + '\n');
     console.log(`service ${service.slug}: ${contentBlocks.filter((b) => b.type === 'text').length} texts, ${contentBlocks.filter((b) => b.type === 'gallery').length} galleries`);
 }
+
+// Posts and case studies: the plugin's `articleBlocks`, with photos copied in.
+const ARTICLE_FIELDS = `slug title date excerpt menuOrder
+    featuredImage { node { sourceUrl altText } }
+    articleDetails { byline }
+    articleBlocks { type level html ordered items cite url provider caption images { url alt caption } }`;
+const articles = await query(`{
+  posts(first: 100) { nodes { ${ARTICLE_FIELDS.replace('menuOrder', '')} categories { nodes { name slug } } } }
+  caseStudies(first: 100) { nodes { ${ARTICLE_FIELDS} caseStudyDetails { vehicle year scope recognition } } }
+}`);
+const plain = (html) => (html || '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&(amp|quot|lt|gt|nbsp|hellip);/g, (_, name) => ({ amp: '&', quot: '"', lt: '<', gt: '>', nbsp: ' ', hellip: '…' })[name])
+    .replace(/\s*\[…\]\s*$/, '…')
+    .replace(/\s+/g, ' ')
+    .trim();
+const articleImage = async (url) => servicePath(await localImage(url, { folder: 'articles', maxSize: 2000 }));
+
+async function writeArticles(nodes, dir, extra) {
+    await mkdir(dir, { recursive: true });
+    const keep = new Set();
+    for (const node of nodes) {
+        const blocks = [];
+        for (const block of node.articleBlocks || []) {
+            const { type } = block;
+            if (type === 'image' || type === 'gallery') {
+                const images = [];
+                for (const img of block.images || []) images.push({ src: await articleImage(img.url), alt: img.alt || '', caption: img.caption || '' });
+                if (images.length) blocks.push({ type, images });
+            } else if (type === 'heading') blocks.push({ type, level: block.level, html: block.html });
+            else if (type === 'list') blocks.push({ type, ordered: !!block.ordered, items: block.items });
+            else if (type === 'quote') blocks.push({ type, html: block.html, cite: block.cite || '' });
+            else if (type === 'embed') blocks.push({ type, url: block.url, provider: block.provider || '' });
+            else if (type === 'audio' || type === 'video') blocks.push({ type, url: block.url, caption: block.caption || '' });
+            else blocks.push({ type: 'paragraph', html: block.html });
+        }
+        const featured = node.featuredImage?.node;
+        const entry = {
+            title: node.title,
+            date: node.date,
+            excerpt: plain(node.excerpt),
+            byline: node.articleDetails?.byline || '',
+            ...(featured && { image: await articleImage(featured.sourceUrl), imageAlt: featured.altText || '' }),
+            ...extra(node),
+            blocks,
+        };
+        await writeFile(path.join(dir, `${node.slug}.json`), JSON.stringify(entry, null, 2) + '\n');
+        keep.add(`${node.slug}.json`);
+        console.log(`${path.basename(dir)} ${node.slug}: ${blocks.length} blocks`);
+    }
+    for (const file of await readdir(dir)) {
+        if (file.endsWith('.json') && !keep.has(file)) {
+            await rm(path.join(dir, file));
+            console.log(`  removed ${path.basename(dir)}/${file} (no longer in WordPress)`);
+        }
+    }
+}
+
+await writeArticles(articles.posts.nodes, POSTS, (node) => ({ categories: node.categories?.nodes || [] }));
+await writeArticles(articles.caseStudies.nodes, CASE_STUDIES, (node) => ({
+    order: node.menuOrder,
+    ...Object.fromEntries(['vehicle', 'year', 'scope', 'recognition'].map((field) => [field, node.caseStudyDetails?.[field] || ''])),
+}));
 
 const home = data.page?.homepageSettings;
 if (home) {

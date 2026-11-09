@@ -184,3 +184,31 @@ export function createShowcaseAnimations() {
         });
     });
 }
+
+/**
+ * Elements that rise in once as they reach the lower part of the screen: article blocks
+ * (`.article-reveal`) and listing cards. Pass the selector to reveal.
+ */
+export function revealOnScroll(selector: string) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gsap.utils.toArray<HTMLElement>(selector).forEach((el) => {
+        gsap.fromTo(el, { autoAlpha: 0, y: reduceMotion ? 0 : 32 }, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 90%", once: true },
+        });
+    });
+}
+
+/**
+ * Article heroes (components/ArticleHero.astro): the photo pushes in slowly and the title
+ * lifts away as the page scrolls past.
+ */
+export function createArticleHeroTimeline(hero: HTMLElement) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const tl = gsap.timeline({ scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true } });
+    if (!reduceMotion) tl.to(hero.querySelector(".article-hero-image"), { scale: 1.12, yPercent: 8, ease: "none" }, 0);
+    tl.to(hero.querySelector(".article-hero-copy"), { autoAlpha: 0, y: reduceMotion ? 0 : -60, ease: "none" }, 0);
+}

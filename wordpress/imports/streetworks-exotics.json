@@ -1,0 +1,44 @@
+{
+    "_comment": "Import settings for wordpress/import-posts.php: which posts on the old site become case studies (with their details), and which to leave behind.",
+    "source": "https://streetworksexotics.com",
+    "skip": ["we-are-hiring"],
+    "skipCategories": ["open-positions"],
+    "caseStudies": {
+        "restoring-the-last-duesenberg-1966-model-d-prototype": {
+            "vehicle": "Duesenberg Model D Prototype",
+            "year": "1966",
+            "scope": "Restoration and completion of a one-off prototype",
+            "recognition": "Second in Class, Pebble Beach Concours d’Elegance 2025"
+        },
+        "rare-iso-grifo-a3c-restoration-story": {
+            "vehicle": "Iso Grifo A3/C",
+            "year": "1964",
+            "scope": "Full restoration from a rust-eaten chassis",
+            "recognition": "Shown at the Pebble Beach Concours d’Elegance"
+        },
+        "the-mangustas-secret-life-stories-from-the-garage-and-the-italian-dream-machine": {
+            "vehicle": "De Tomaso Mangusta",
+            "year": "1969",
+            "scope": "Full restoration, then ongoing care",
+            "recognition": "Best of Show, Concorso Italiano 2017"
+        },
+        "the-incredible-restoration-journey-of-the-jensen-cv8-mkiii": {
+            "vehicle": "Jensen CV8 MkIII",
+            "year": "1966",
+            "scope": "Rescue and full restoration",
+            "recognition": ""
+        },
+        "1967-iso-grifo-restoration": {
+            "vehicle": "Iso Grifo GL350",
+            "year": "1967",
+            "scope": "Full restoration",
+            "recognition": "Placed in Class, Pebble Beach Concours d’Elegance 2004"
+        },
+        "1974-intermeccanica-indra": {
+            "vehicle": "Intermeccanica Indra",
+            "year": "1974",
+            "scope": "Suspension, engine and total restoration",
+            "recognition": ""
+        }
+    }
+}

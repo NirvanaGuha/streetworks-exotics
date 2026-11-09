@@ -238,4 +238,50 @@ foreach (glob("$root/src/content/services/*.json") as $file) {
     ], true, ['post_name' => $slug, 'post_content' => fire_seed_service_content($data, $img)]);
 }
 
+// Posts and case studies: one per file in src/content/posts and src/content/case-studies,
+// written back as blocks with the plugin's own markup builder (see articles.php).
+
+/** A file's blocks with every image uploaded, ready for fire_headless_article_markup(). */
+function fire_seed_article_blocks(array $blocks, callable $img): array
+{
+    foreach ($blocks as &$block) {
+        foreach ($block['images'] ?? [] as $i => $image) {
+            $id = $img(fire_seed_service_image_path($image['src']));
+            $block['images'][$i] = ['id' => $id, 'url' => wp_get_attachment_url($id), 'alt' => $image['alt'] ?? '', 'caption' => $image['caption'] ?? ''];
+        }
+    }
+    return $blocks;
+}
+
+$article_types = ['post' => "$root/src/content/posts", 'case_study' => "$root/src/content/case-studies"];
+foreach ($article_types as $type => $dir) {
+    foreach (glob("$dir/*.json") as $file) {
+        $data = fire_seed_json($file);
+        $slug = basename($file, '.json');
+        if (get_page_by_path($slug, OBJECT, $type) && !$overwrite) {
+            WP_CLI::log("Kept existing $type: $slug");
+            continue;
+        }
+        $fields = ['byline' => $data['byline'] ?? ''];
+        if ($type === 'case_study') {
+            foreach (['vehicle', 'year', 'scope', 'recognition'] as $field) $fields[$field] = $data[$field] ?? '';
+        }
+        fire_seed_post($type, $data['title'], (int) ($data['order'] ?? 0), !empty($data['image']) ? $img(fire_seed_service_image_path($data['image'])) : null, $fields, true, [
+            'post_name'    => $slug,
+            'post_date'    => $data['date'],
+            'post_excerpt' => $data['excerpt'] ?? '',
+            'post_content' => wp_slash(fire_headless_article_markup(fire_seed_article_blocks($data['blocks'], $img))),
+        ]);
+        if ($type === 'post' && !empty($data['categories'])) {
+            $post = get_page_by_path($slug, OBJECT, 'post');
+            $ids = [];
+            foreach ($data['categories'] as $category) {
+                $term = term_exists($category['slug'], 'category') ?: wp_insert_term($category['name'], 'category', ['slug' => $category['slug']]);
+                if (!is_wp_error($term)) $ids[] = (int) $term['term_id'];
+            }
+            wp_set_post_categories($post->ID, $ids);
+        }
+    }
+}
+
 WP_CLI::success('Starter content seeded' . ($overwrite ? ' (overwrite)' : '') . '.');

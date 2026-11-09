@@ -69,9 +69,9 @@ const {
             
             {linkUrl && (
               <a 
-                href={linkUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+                href={linkUrl}
+                target={/^https?:/.test(linkUrl) ? "_blank" : undefined}
+                rel={/^https?:/.test(linkUrl) ? "noopener noreferrer" : undefined}
                 style={`color: ${ctaColor};`}
                 class="group inline-flex items-center gap-3 mt-10 hover:opacity-70 transition-opacity duration-300 pointer-events-auto"
               >

@@ -14,9 +14,11 @@ interface Props {
 	description?: string;
 	/** Link-preview image (WordPress URL or local image); defaults to the hero image. */
 	image?: string | ImageMetadata;
+	/** Open Graph type: "article" for posts and case studies. */
+	type?: 'website' | 'article';
 }
 
-const { title = brand.client, description = brand.description, image = asset(content.hero.image) } = Astro.props;
+const { title = brand.client, description = brand.description, image = asset(content.hero.image), type = 'website' } = Astro.props;
 
 // Link previews (iMessage, WhatsApp, Instagram/Facebook DMs, LinkedIn, Slack) need absolute URLs,
 // so set PUBLIC_SITE_URL to the deployed address.
@@ -41,7 +43,7 @@ const brandVars = `:root{--brand-accent:${brand.colors.accent};--brand-accent-co
 		{demoMode && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
 		<link rel="canonical" href={canonicalUrl} />
-		<meta property="og:type" content="website" />
+		<meta property="og:type" content={type} />
 		<meta property="og:site_name" content={brand.client} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />

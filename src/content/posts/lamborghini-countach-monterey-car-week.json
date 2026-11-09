@@ -1,0 +1,110 @@
+{
+  "title": "Monterey Car Week 2021",
+  "date": "2021-11-11T20:13:16",
+  "excerpt": "It was a sight to behold—the 1967 ISO Grifo GL350 gliding into the show field at the 2021 Pebble Beach Concours d’Elegance. Click here to see this year’s class winners!",
+  "byline": "Matt Backhaus",
+  "image": "../../assets/images/articles/LP400S-4.jpg",
+  "imageAlt": "",
+  "categories": [
+    {
+      "name": "Award Winning Cars",
+      "slug": "award-winning-cars"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "images": [
+        {
+          "src": "../../assets/images/articles/Monterey-Blog.jpg",
+          "alt": "1967 ISO Grifo GL350 entering the show field at the 2021 Pebble Beach Concours d'Elegance.",
+          "caption": "Entering the show field at the 2021 Pebble Beach Concours d’Elegance – click <a href=\"https://pebblebeachconcours.net/cars/class-winners/\">here</a> to see this year’s class winners"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "html": "It was a sight to behold—the 1967 ISO Grifo GL350 gliding into the show field at the 2021 Pebble Beach Concours d’Elegance. Click <a href=\"https://pebblebeachconcours.net/cars/class-winners/\">here</a> to see this year’s class winners!"
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "The Return We All Awaited"
+    },
+    {
+      "type": "paragraph",
+      "html": "After the pandemic forced the cancellation of the 2020 event, 2021 marked the long-anticipated return of Monterey Car Week. We ventured into this year’s gathering, uncertain what to expect regarding crowds and participation. To our delight, the turnout was nothing short of spectacular—the crowd seemed even larger than in previous years. Our time at home has only deepened our appreciation for our cars and the vibrant communities that celebrate them."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "Back in Action"
+    },
+    {
+      "type": "paragraph",
+      "html": "Being back this year was exhilarating! We had the privilege of showcasing not one but two remarkable cars—each with its own unique allure. Our meticulously restored 1979 Lamborghini LP400S Lowbody Countach took center stage at the Quail Motorsport Gathering. This car isn’t just about looks; it’s a piece of automotive history that drew admiring glances and large crowds throughout the day. Seeing it alongside Lamborghini’s newest Countach prototype felt like witnessing a family reunion—father and son, side by side. For me, though, the ’79 Countach holds a special place in my heart."
+    },
+    {
+      "type": "paragraph",
+      "html": "Our second showstopper, the 1967 ISO Grifo GL350, was displayed in near-perfect condition. Competing at Pebble Beach in the Iso class was fierce, with the prototype Iso Grifo A3L—fresh from an extensive restoration—proving to be tough competition. We were thrilled to clinch 2nd place in this highly competitive class, a testament to the dedication and passion poured into our cars."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "The Community and Competitive Spirit"
+    },
+    {
+      "type": "image",
+      "images": [
+        {
+          "src": "../../assets/images/articles/33062.jpeg",
+          "alt": "Erik and Austin - eager to get back on the road!",
+          "caption": "Erik and Austin – eager to get back on the road! Read about their last trip <a href=\"/blog/monterey-2019\">here.</a>"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "html": "Monterey Car Week isn’t just about the cars; it’s about the shared passion and camaraderie among enthusiasts. The Rame Colorado Lamborghini was a star attraction at the Quail, drawing excited crowds all day. This event isn’t just fun—it’s a celebration of the supercars that captivate our imaginations and fuel our dreams."
+    },
+    {
+      "type": "paragraph",
+      "html": "Seeing our LP400S next to Lamborghini’s latest prototype was a poignant moment, a blend of nostalgia and excitement for the future. While the new model is impressive, there’s something timeless about the ’79 Countach that resonates deeply with me."
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "html": "Final Thoughts"
+    },
+    {
+      "type": "paragraph",
+      "html": "Returning to Monterey Car Week this year reminded us why we love these gatherings—the cars, the competition, and, most importantly, the community. It’s this shared passion that makes events like these so special."
+    },
+    {
+      "type": "paragraph",
+      "html": "Here’s to many more years of celebrating automotive excellence together!"
+    },
+    {
+      "type": "paragraph",
+      "html": "Stay tuned for more updates and stories from the world of classic cars and supercars."
+    },
+    {
+      "type": "image",
+      "images": [
+        {
+          "src": "../../assets/images/articles/LP400S-4.jpg",
+          "alt": "",
+          "caption": "1979 Rame Colorado Lowbody Countach LP400S"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "html": "How about you? Learn more about the newest Countach in <strong>The Verge</strong>‘s article “<a href=\"https://www.theverge.com/2021/8/13/22623297/lamborghini-countach-supercar-hybrid-specs-speed\"><em>The Lamborghini Countach, the poster car of ’80s Luxury, is back – and it’s a hybrid”.</em></a>"
+    },
+    {
+      "type": "paragraph",
+      "html": "Don’t forget to follow Streetworks’ social media channels for more updates on future events!"
+    }
+  ]
+}

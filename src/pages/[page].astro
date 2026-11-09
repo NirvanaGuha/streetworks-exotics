@@ -1,9 +1,11 @@
 ---
-// Plain WordPress pages (privacy policy, terms and the like) at /<slug>.
+// Plain WordPress pages (privacy policy, terms and the like) at /<slug>. Posts and case
+// studies lived at /<slug> on the old site, so those addresses redirect to their new pages.
 import Layout from "../layouts/Layout.astro";
 import NavBar from "../components/NavBar.astro";
 import Footer from "../components/Footer.astro";
 import { fetchAPI } from "../lib/wp";
+import { getCaseStudies, getPosts } from "../lib/articles";
 import brand from "../data/brand.json";
 
 export async function getStaticPaths() {
@@ -14,12 +16,17 @@ export async function getStaticPaths() {
       }
     }
   `);
-  return (data?.pages?.nodes || [])
-    .filter((page: any) => !page.isFrontPage)
-    .map((page: any) => ({ params: { page: page.slug }, props: { title: page.title, content: page.content } }));
+  const pages = (data?.pages?.nodes || []).filter((page: any) => !page.isFrontPage);
+  const taken = new Set(pages.map((page: any) => page.slug));
+  const moved = [...(await getPosts()), ...(await getCaseStudies())].filter((article) => !taken.has(article.slug));
+  return [
+    ...pages.map((page: any) => ({ params: { page: page.slug }, props: { title: page.title, content: page.content } })),
+    ...moved.map((article) => ({ params: { page: article.slug }, props: { redirect: article.href } })),
+  ];
 }
 
-const { title, content } = Astro.props;
+const { title, content, redirect } = Astro.props;
+if (redirect) return Astro.redirect(redirect, 301);
 ---
 
 <Layout title={`${title} | ${brand.client}`}>

@@ -32,4 +32,49 @@ const services = defineCollection({
     })
 });
 
-export const collections = { services };
+// Posts and case studies: the same blocks as the plugin's `articleBlocks` field, with
+// images as paths (see scripts/snapshot-wordpress.mjs).
+const article = ({ image }: { image: () => any }) => {
+    const picture = z.object({ src: image(), alt: z.string().default(''), caption: z.string().default('') });
+    return {
+        title: z.string(),
+        date: z.string(),
+        excerpt: z.string().default(''),
+        byline: z.string().default(''),
+        image: image().optional(),
+        imageAlt: z.string().default(''),
+        blocks: z.array(z.discriminatedUnion('type', [
+            z.object({ type: z.literal('paragraph'), html: z.string() }),
+            z.object({ type: z.literal('heading'), level: z.number(), html: z.string() }),
+            z.object({ type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(z.string()) }),
+            z.object({ type: z.literal('quote'), html: z.string(), cite: z.string().default('') }),
+            z.object({ type: z.literal('image'), images: z.array(picture) }),
+            z.object({ type: z.literal('gallery'), images: z.array(picture) }),
+            z.object({ type: z.literal('embed'), url: z.string(), provider: z.string().default('') }),
+            z.object({ type: z.literal('audio'), url: z.string(), caption: z.string().default('') }),
+            z.object({ type: z.literal('video'), url: z.string(), caption: z.string().default('') }),
+        ])),
+    };
+};
+
+const posts = defineCollection({
+    loader: glob({ pattern: "**/*.json", base: "./src/content/posts" }),
+    schema: (helpers) => z.object({
+        ...article(helpers),
+        categories: z.array(z.object({ name: z.string(), slug: z.string() })).default([]),
+    })
+});
+
+const caseStudies = defineCollection({
+    loader: glob({ pattern: "**/*.json", base: "./src/content/case-studies" }),
+    schema: (helpers) => z.object({
+        ...article(helpers),
+        order: z.number().optional(),
+        vehicle: z.string().default(''),
+        year: z.string().default(''),
+        scope: z.string().default(''),
+        recognition: z.string().default(''),
+    })
+});
+
+export const collections = { services, posts, caseStudies };

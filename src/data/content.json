@@ -32,19 +32,38 @@
     "labels": {
         "showcaseYear": "Restoration",
         "showcaseCta": "See full restoration",
-        "portfolio": "Portfolio"
+        "portfolio": "Portfolio",
+        "caseStudies": "Case Studies",
+        "caseStudy": "Case Study",
+        "journal": "News",
+        "readStory": "Read the story",
+        "nextCaseStudy": "Next case study",
+        "moreStories": "More stories",
+        "allCategories": "All",
+        "writtenBy": "Words by",
+        "car": "Car",
+        "work": "The work",
+        "recognition": "Recognition"
     },
     "homepageShowcases": 2,
     "portfolio": {
         "heading": "The Builds",
         "intro": "Selected restorations from the StreetWorks shop, from bare metal to the concours lawn."
     },
+    "journal": {
+        "heading": "News & Articles",
+        "intro": "Concours results, open houses and the people behind the work, straight from the shop floor in Pewaukee."
+    },
+    "caseStudies": {
+        "heading": "The Restorations",
+        "intro": "Every car arrives with a history. These are the full stories of how we brought them back, from the first teardown to the show lawn."
+    },
     "showcases": [
         {
             "title": "Iso Grifo 350GT",
             "year": "1967",
             "description": "In 2004, we showcased our first restoration of an Iso Grifo 350GT at Pebble Beach.",
-            "ctaLink": "https://streetworksexotics.com/1967-iso-grifo-restoration/",
+            "ctaLink": "/case-studies/1967-iso-grifo-restoration",
             "accentColor": "#fef08a",
             "image": "homepage/Restored-1967-Iso-Grifo-4.jpg",
             "gallery": [
@@ -57,7 +76,7 @@
             "title": "Jensen CV8 MkIII",
             "year": "1966",
             "description": "At StreetWorks, we deliver exceptional automobile restorations. We are dedicated to preserving the cars you love, specializing in Post-War vehicles.",
-            "ctaLink": "https://streetworksexotics.com/the-incredible-restoration-journey-of-the-jensen-cv8-mkiii/",
+            "ctaLink": "/case-studies/the-incredible-restoration-journey-of-the-jensen-cv8-mkiii",
             "accentColor": "#cbd5e1",
             "image": "homepage/Jensen-CV8-MKIII-10.jpg",
             "gallery": [
@@ -70,7 +89,7 @@
             "title": "Iso Grifo A3/C",
             "year": "1964",
             "description": "An ultra-rare Iso Grifo A3/C, brought back from a rust-eaten chassis to concours-ready condition.",
-            "ctaLink": "https://streetworksexotics.com/rare-iso-grifo-a3c-restoration-story/",
+            "ctaLink": "/case-studies/rare-iso-grifo-a3c-restoration-story",
             "accentColor": "#e5e7eb",
             "image": "body-paint/1964-A3:C.jpg",
             "gallery": [
@@ -83,7 +102,7 @@
             "title": "De Tomaso Mangusta",
             "year": "",
             "description": "Our full restoration earned Best of Show at the 2017 Concorso Italiano during Pebble Beach week, the first time any Mangusta had claimed the honor.",
-            "ctaLink": "https://streetworksexotics.com/the-mangustas-secret-life-stories-from-the-garage-and-the-italian-dream-machine/",
+            "ctaLink": "/case-studies/the-mangustas-secret-life-stories-from-the-garage-and-the-italian-dream-machine",
             "accentColor": "#fb923c",
             "image": "body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
             "gallery": [
