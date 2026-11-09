@@ -1,0 +1,54 @@
+---
+// A featured build as it plays in a scroll story (homepage and service pages): full-screen
+// photo and title, then the description and gallery. It fades in over the last screen of the
+// section before it, so that screen should be empty (a faded-out text block or a spacer).
+// Animated by createShowcaseAnimations in utils/animations.ts.
+import RestorationShowcase from "./RestorationShowcase.astro";
+import ZoomableImage from "./ZoomableImage.astro";
+import brand from "../data/brand.json";
+
+interface Props {
+  showcase: {
+    title: string;
+    year: string;
+    description: string;
+    accentColor?: string;
+    ctaLink?: string;
+    image: any;
+    gallery: any[];
+  };
+  // Position on the page, from 0: sets the ids and the gradient.
+  index: number;
+}
+
+const { showcase, index: i } = Astro.props;
+const [gradientFrom, gradientTo] = brand.showcaseGradients[i % brand.showcaseGradients.length];
+const accent = showcase.accentColor || brand.colors.accent;
+const [gallery1, gallery2, gallery3] = showcase.gallery;
+---
+
+<div id={`showcase-${i + 1}`} class="relative w-full z-20 -mt-[100dvh] opacity-0 bg-black">
+  <RestorationShowcase
+    year={showcase.year}
+    title={showcase.title}
+    mainImgUrl={showcase.image}
+    textId={`showcase-${i + 1}-text`}
+    gradientFrom={gradientFrom}
+    gradientTo={gradientTo}
+    linkUrl={showcase.ctaLink}
+    ctaColor={accent}
+  >
+    <span slot="intro">{showcase.description}</span>
+
+    <div slot="gallery-left" class="contents">
+      {gallery1 && (
+        <ZoomableImage src={gallery1} alt={`${showcase.title} detail`} class="w-11/12 ml-auto aspect-[4/5] mt-12 md:mt-32" accentColor={accent} />
+      )}
+    </div>
+
+    <div slot="gallery-right" class="contents">
+      {gallery2 && <ZoomableImage src={gallery2} alt={`${showcase.title} detail`} class="w-full aspect-square" accentColor={accent} />}
+      {gallery3 && <ZoomableImage src={gallery3} alt={`${showcase.title} detail`} class="w-10/12 mr-auto aspect-[3/4]" accentColor={accent} />}
+    </div>
+  </RestorationShowcase>
+</div>

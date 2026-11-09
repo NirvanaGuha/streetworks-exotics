@@ -36,9 +36,9 @@ Plugins (all free): **WPGraphQL**, **Advanced Custom Fields**, **WPGraphQL for A
 | --- | --- |
 | Hero headline, tagline, image; the three intro texts | Pages → Home → *Homepage Settings* |
 | Address, phone, email, directions link, hero video, social links | Pages → Home → *Business Details* |
-| Featured restorations (homepage and `/portfolio`) | **Showcases** — featured image, year, intro, link, accent colour, 3 gallery images |
+| Featured restorations (homepage, service pages and `/portfolio`) | **Showcases** — featured image, year, intro, link, accent colour, 3 gallery images |
 | Reviews (homepage and service pages, first three) | **Testimonials** — title is the name, featured image is the photo |
-| Services (pages, nav, homepage strip) | **Services** — featured image, *Service Details*, and page content. Write it as normal blocks: paragraphs, headings and lists become text sections; each gallery (or run of image blocks) becomes a gallery section. Any number of sections, in order; a final text section becomes the closing line after the reviews. |
+| Services (pages, nav, homepage strip) | **Services** — featured image, *Service Details*, and page content. Write it as normal blocks, any number, in order. Short text (a sentence or two) plays as a full-screen statement; longer text, or text with headings or lists, becomes an article: H2/H3 start a chapter, H4 is its subheading, list items become numbered rows ("Title: description" shows the title in bold). Each gallery (or run of image blocks) marks where a featured restoration appears; the first gallery's images also fill the service's homepage strip. A final text section becomes the closing line after the reviews. |
 | Privacy policy / terms | Pages with slugs `privacy-policy` / `terms-of-service`; footer links appear once published |
 | Contact form submissions | **Enquiries** (read-only) |
 
@@ -82,7 +82,7 @@ Everything client-specific lives in data files and images; the components don't 
 
 1. **`src/data/brand.json`**: name, short name (nav and footer), wordmark lines (the hero cut-out logo; sized to fit automatically), tagline, meta description, accent colour plus the text colour that sits on it, fonts (heading, its width, body, serif; the files themselves are imported in `src/styles/fonts.css`), gradient pairs for the intro texts and showcases, and business details (address, phone, email, directions, YouTube video, socials; leave a social out to hide its icon).
 2. **`src/data/content.json`**: hero, the three intro texts, awards copy and logos (files in `src/assets/images/awards`), labels, portfolio heading and intro, `homepageShowcases` (how many showcases the homepage features), showcases (all of them appear on `/portfolio`; on the homepage each is followed by the next intro text), three testimonials, the four images in the services strip, and the contact copy.
-3. **`src/content/services/*.json`**: one file per service; the file name becomes its URL slug. Title, `order`, hero image, tagline, tint colour, intro paragraphs, mid text, closing text and gallery images (split across the page's two galleries).
+3. **`src/content/services/*.json`**: one file per service; the file name becomes its URL slug. Title, `order`, hero image, tagline, tint colour and `contentBlocks`: text blocks (paragraphs separated by a blank line; `## ` heading, `### ` subheading, `• ` list item) and gallery blocks, in page order. `npm run snapshot` writes these from WordPress.
 4. **`src/assets/images/`**: the client's photos, referred to by path from the JSON files.
 5. **`public/favicon.svg`** and **`favicon.ico`**.
 6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET`, then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, showcases, testimonials and services (with their text and gallery blocks) and uploads every image they use. Tested on a brand-new WordPress.
@@ -100,7 +100,7 @@ Known limit: the reviews slider is sized for three testimonials.
 ## Checks
 
 - **Client leak check** runs after every build (`postbuild`): it fails if the output contains details of any other client listed in `scripts/client-fingerprints.json`. Add each new client there.
-- **Smoke tests** (`npm run test:smoke`, after a build) open every built page in desktop Chrome and an iPhone-sized WebKit (Safari's engine): status, console errors, broken images, sideways overflow, clipped headings, every service section playing, the contact form, 404, robots.txt, link-preview tags, the preloader and reduced motion. First run: `npx playwright install chromium webkit`.
+- **Smoke tests** (`npm run test:smoke`, after a build) open every built page in desktop Chrome and an iPhone-sized WebKit (Safari's engine): status, console errors, broken images, sideways overflow, clipped headings, every service section revealing, statements fitting the screen, the footer Services link, the contact form, 404, robots.txt, link-preview tags, the preloader and reduced motion. First run: `npx playwright install chromium webkit`.
 - **CI** (`.github/workflows/ci.yml`) runs the build, leak check and smoke tests on every push to `main` and on pull requests.
 
 Requires Node 22.22 or newer (Astro 7).

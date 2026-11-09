@@ -1,0 +1,23 @@
+---
+// A short statement that rises over the end of the section before it, reveals word by word
+// and fades out (homepage and service pages). Animated by createTextBlockTimeline.
+import TextReveal from "./TextReveal.astro";
+
+interface Props {
+  // Unique number on the page: sets the ids.
+  n: number;
+  text: string;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+const { n, text, gradientFrom, gradientTo } = Astro.props;
+---
+
+<div id={`text${n}-container`} class="text-block-container relative w-full h-[350dvh] bg-black -mt-[100dvh] z-10">
+  <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
+    <div id={`text${n}-layer`} class="absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-center items-start max-w-5xl mx-auto px-6 md:px-12 text-left pointer-events-none">
+      <TextReveal id={`text-${n}`} gradientFrom={gradientFrom} gradientTo={gradientTo} text={text} />
+    </div>
+  </div>
+</div>

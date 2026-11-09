@@ -7,8 +7,8 @@ import VideoModal from "../components/VideoModal.astro";
 import HeroSequence from "../components/HeroSequence.astro";
 import AwardsGrid from "../components/AwardsGrid.astro";
 import TextReveal from "../components/TextReveal.astro";
-import RestorationShowcase from "../components/RestorationShowcase.astro";
-import ZoomableImage from "../components/ZoomableImage.astro";
+import ShowcaseStory from "../components/ShowcaseStory.astro";
+import StoryText from "../components/StoryText.astro";
 import ReviewsSection from "../components/ReviewsSection.astro";
 import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
@@ -132,57 +132,18 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
       </div>
     </div>
 
-    {story.map((section) => {
-      if (section.kind === "text") {
-        const n = section.index + 1;
-        return (
-          <div id={`text${n}-container`} class="text-block-container relative w-full h-[350dvh] bg-black -mt-[100dvh] z-10">
-            <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
-              <div id={`text${n}-layer`} class="absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-center items-start max-w-5xl mx-auto px-6 md:px-12 text-left pointer-events-none">
-                <TextReveal
-                  id={`text-${n}`}
-                  gradientFrom={gradient(brand.introGradients, section.index)[0]}
-                  gradientTo={gradient(brand.introGradients, section.index)[1]}
-                  text={section.text}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      const { showcase, index: i } = section;
-      const [gradientFrom, gradientTo] = gradient(brand.showcaseGradients, i);
-      const accent = showcase.accentColor || brand.colors.accent;
-      const [gallery1, gallery2, gallery3] = showcase.gallery;
-      return (
-        <div id={`showcase-${i + 1}`} class="relative w-full z-20 -mt-[100dvh] opacity-0 bg-black">
-          <RestorationShowcase
-            year={showcase.year}
-            title={showcase.title}
-            mainImgUrl={showcase.image}
-            textId={`showcase-${i + 1}-text`}
-            gradientFrom={gradientFrom}
-            gradientTo={gradientTo}
-            linkUrl={showcase.ctaLink}
-            ctaColor={accent}
-          >
-            <span slot="intro">{showcase.description}</span>
-
-            <div slot="gallery-left" class="contents">
-              {gallery1 && (
-                <ZoomableImage src={gallery1} alt={`${showcase.title} detail`} class="w-11/12 ml-auto aspect-[4/5] mt-12 md:mt-32" accentColor={accent} />
-              )}
-            </div>
-
-            <div slot="gallery-right" class="contents">
-              {gallery2 && <ZoomableImage src={gallery2} alt={`${showcase.title} detail`} class="w-full aspect-square" accentColor={accent} />}
-              {gallery3 && <ZoomableImage src={gallery3} alt={`${showcase.title} detail`} class="w-10/12 mr-auto aspect-[3/4]" accentColor={accent} />}
-            </div>
-          </RestorationShowcase>
-        </div>
-      );
-    })}
+    {story.map((section) =>
+      section.kind === "text" ? (
+        <StoryText
+          n={section.index + 1}
+          text={section.text}
+          gradientFrom={gradient(brand.introGradients, section.index)[0]}
+          gradientTo={gradient(brand.introGradients, section.index)[1]}
+        />
+      ) : (
+        <ShowcaseStory showcase={section.showcase} index={section.index} />
+      )
+    )}
 
     <ReviewsSection dynamicReviews={testimonialList} />
 
@@ -214,7 +175,7 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
 <script>
   import { gsap } from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { createReviewsTimeline, createTextBlockTimeline } from "../utils/animations";
+  import { createReviewsTimeline, createShowcaseAnimations, createTextBlockTimeline } from "../utils/animations";
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -270,85 +231,7 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
 
     gsap.utils.toArray<HTMLElement>(".text-block-container").forEach((container) => createTextBlockTimeline(container));
 
-    if (!reduceMotion) gsap.utils.toArray(".showcase-bg").forEach((bg) => {
-      const htmlBg = bg as HTMLElement;
-      gsap.to(htmlBg, {
-        yPercent: 15,
-        ease: "none",
-        scrollTrigger: {
-          trigger: htmlBg.closest("section"),
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
-    });
-
-    gsap.utils.toArray(".reveal-text").forEach((text) => {
-      const htmlText = text as HTMLElement;
-      gsap.fromTo(htmlText, { backgroundPosition: "0% 100%" }, {
-          backgroundPosition: "0% 0%",
-          ease: "none",
-          scrollTrigger: {
-            trigger: htmlText,
-            start: "top 85%",
-            end: "bottom 45%",
-            scrub: true,
-          },
-        },
-      );
-    });
-
-    let mm = gsap.matchMedia();
-    mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
-      gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
-        const htmlContainer = container as HTMLElement;
-        const travelDistance = index % 2 === 0 ? 180 : 80;
-        gsap.fromTo(htmlContainer, { y: travelDistance }, {
-            y: -travelDistance,
-            ease: "none",
-            scrollTrigger: {
-              trigger: htmlContainer,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1.2,
-            },
-          },
-        );
-      });
-    });
-
-    mm.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => {
-      gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
-        const htmlContainer = container as HTMLElement;
-        const travelDistance = index % 2 === 0 ? 40 : 20;
-        gsap.fromTo(htmlContainer, { y: travelDistance }, {
-            y: -travelDistance,
-            ease: "none",
-            scrollTrigger: {
-              trigger: htmlContainer,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1.2,
-            },
-          },
-        );
-      });
-    });
-
-    gsap.utils.toArray('[id^="showcase-"]').forEach((showcase) => {
-      const htmlShowcase = showcase as HTMLElement;
-      gsap.to(htmlShowcase, {
-        opacity: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: htmlShowcase,
-          start: "top top",
-          end: "+=100vh",
-          scrub: true,
-        },
-      });
-    });
+    createShowcaseAnimations();
 
     const reviewsContainer = document.getElementById("reviews-container");
     if (reviewsContainer) createReviewsTimeline(reviewsContainer);

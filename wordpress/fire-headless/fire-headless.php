@@ -243,7 +243,8 @@ add_action('manage_enquiry_posts_custom_column', function ($column, $post_id) {
  * Service page content as ordered sections for the front end: { type: "text" | "gallery", text, images }.
  * Built with WordPress's own block parser, so the site never has to pattern-match HTML.
  * Consecutive text blocks (paragraphs, headings, lists, quotes) form one text section,
- * one paragraph per "\n\n"; headings start with "## " and list items with "• ".
+ * one paragraph per "\n\n"; headings start with "## ", subheadings with "### " and list
+ * items with "• ".
  * each gallery block, or run of single image blocks, forms one gallery section.
  * Groups and columns are flattened into their contents.
  */
@@ -258,8 +259,12 @@ function fire_headless_block_text(array $block): string
     $text = preg_replace("/[ \t]+/", ' ', $text);
     $text = preg_replace("/ *\n */", "\n", $text);
     $text = trim(preg_replace("/\n{3,}/", "\n\n", $text));
-    // Headings keep their role so the site can style them: "## " starts a heading line.
-    if ($block['blockName'] === 'core/heading' && $text !== '') $text = '## ' . str_replace("\n\n", ' ', $text);
+    // Headings keep their role so the site can style them: "## " starts a heading line (H1–H3)
+    // and "### " a subheading (H4–H6).
+    if ($block['blockName'] === 'core/heading' && $text !== '') {
+        $marker = ((int) ($block['attrs']['level'] ?? 2)) >= 4 ? '### ' : '## ';
+        $text = $marker . str_replace("\n\n", ' ', $text);
+    }
     return $text;
 }
 

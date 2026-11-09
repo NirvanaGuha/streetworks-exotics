@@ -6,13 +6,12 @@ interface Props {
   src: string | ImageMetadata | { url: string; width: number; height: number };
   alt: string;
   class?: string;
-  style?: string;
   accentColor?: string;
   width?: number;
   height?: number;
 }
 
-const { src, alt, class: className, style, accentColor = "white", width, height } = Astro.props;
+const { src, alt, class: className, accentColor = "white", width, height } = Astro.props;
 
 // For the lightbox, we need a string URL. 
 let displaySrc = '';
@@ -36,7 +35,6 @@ if (typeof src === 'string') {
 
 <div
   class={`gallery-zoomable group relative overflow-hidden bg-[#111] rounded-lg shadow-2xl cursor-zoom-in ${className}`}
-  style={style}
   data-src={displaySrc}
   data-alt={alt}
 >

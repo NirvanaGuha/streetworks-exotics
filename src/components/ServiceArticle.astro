@@ -1,0 +1,180 @@
+---
+// Longer service copy as an editorial section that scrolls normally: each heading starts a
+// chapter, with the heading held on the left (desktop) beside readable body text. List items
+// become numbered feature rows. Blocks rise in as they scroll into view (see the page script).
+import { toChapters, type TextBlock } from "../lib/storyText";
+
+interface Props {
+  text: string;
+  accentColor: string;
+  gradientTo: string;
+  // Number of the first headed chapter, so numbering runs on across the page.
+  firstNumber?: number;
+  // Leaves an empty last screen for the next section to fade in over.
+  spacer?: boolean;
+}
+
+const { text, accentColor, gradientTo, firstNumber = 1, spacer = false } = Astro.props;
+const chapters = toChapters(text);
+
+let number = firstNumber - 1;
+const numbered = chapters.map((chapter) => ({
+  ...chapter,
+  number: chapter.heading ? String(++number).padStart(2, "0") : null,
+  // A heading with nothing under it reads as a display line between chapters.
+  display: !!chapter.heading && !chapter.subheading && chapter.blocks.length === 0,
+}));
+
+// Consecutive list items render as one list.
+type Group = { kind: "paragraph"; text: string } | { kind: "items"; items: Extract<TextBlock, { kind: "item" }>[] };
+const groups = (blocks: TextBlock[]) =>
+  blocks.reduce<Group[]>((out, block) => {
+    if (block.kind === "item") {
+      const last = out.at(-1);
+      if (last?.kind === "items") last.items.push(block);
+      else out.push({ kind: "items", items: [block] });
+    } else out.push({ kind: "paragraph", text: block.text });
+    return out;
+  }, []);
+---
+
+<section
+  class:list={["service-article relative z-10 w-full bg-black px-6 md:px-12", spacer && "pb-[100dvh]"]}
+  style={`--article-accent: ${accentColor}; --grad-from: #ffffff; --grad-to: ${gradientTo};`}
+>
+  <div class="max-w-7xl mx-auto">
+    {numbered.map((chapter, c) => {
+      if (chapter.display) {
+        return (
+          <div class="py-[14dvh] md:py-[20dvh]">
+            <p class="article-reveal reveal-text font-heading text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold uppercase tracking-tighter leading-[0.9] max-w-6xl">
+              {chapter.heading}
+            </p>
+          </div>
+        );
+      }
+
+      const body = groups(chapter.blocks);
+      // A short first paragraph is set large as the lead; a long one reads better at body size.
+      const [lead, ...rest] = body[0]?.kind === "paragraph" && body[0].text.length <= 300 ? body : [null, ...body];
+
+      if (!chapter.heading && !chapter.subheading) {
+        // Copy without a heading: the first paragraph as a large lead line (smaller the longer
+        // it is), then the body set in from the left.
+        const [opening, ...after] = body[0]?.kind === "paragraph" && body[0].text.length <= 480 ? body : [null, ...body];
+        const openingSize = (opening?.text.length ?? 0) > 260 ? "text-2xl sm:text-[1.7rem] md:text-3xl lg:text-4xl" : "text-2xl sm:text-3xl md:text-4xl lg:text-5xl";
+        return (
+          <div class:list={["grid md:grid-cols-12 gap-y-10 md:gap-x-12", c === 0 ? "pt-[22dvh] md:pt-[28dvh] pb-[12dvh] md:pb-[16dvh]" : "py-[12dvh] md:py-[16dvh]"]}>
+            {opening && (
+              <p class:list={["article-reveal reveal-text md:col-span-11 lg:col-span-10 font-bold tracking-tight leading-[1.2]", openingSize]}>
+                {opening.text}
+              </p>
+            )}
+            {after.length > 0 && (
+              <div class="md:col-start-6 md:col-span-7 flex flex-col gap-6 md:gap-8">
+                {after.map((group) =>
+                  group.kind === "paragraph" ? (
+                    <p class="article-reveal text-base md:text-lg lg:text-xl text-white/65 leading-relaxed max-w-[62ch]">{group.text}</p>
+                  ) : (
+                    <ol class="article-features">{group.items.map((item, i) => <li class="article-reveal" data-n={String(i + 1).padStart(2, "0")}>{item.title && <span class="article-feature-title">{item.title}</span>}<span>{item.text}</span></li>)}</ol>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      return (
+        <div class="article-chapter grid md:grid-cols-12 gap-y-10 md:gap-x-12 py-[12dvh] md:py-[16dvh] border-t border-white/10">
+          <header class="md:col-span-5 md:sticky md:top-[18dvh] self-start">
+            {chapter.number && (
+              <span class="article-reveal block font-mono text-xs md:text-sm tracking-[0.25em] uppercase mb-5 md:mb-6" style="color: var(--article-accent);">
+                {chapter.number}
+              </span>
+            )}
+            {chapter.heading && (
+              <h2 class="article-reveal font-heading text-[2rem] sm:text-4xl md:text-[clamp(2.25rem,3.9vw,3.5rem)] font-bold uppercase tracking-tighter leading-[0.92] [overflow-wrap:anywhere]">
+                {chapter.heading}
+              </h2>
+            )}
+            {chapter.subheading && (
+              <h3 class:list={["article-reveal font-serif italic font-normal normal-case tracking-normal text-white/70 leading-snug", chapter.heading ? "mt-5 md:mt-6 text-xl md:text-2xl lg:text-3xl" : "text-3xl md:text-4xl lg:text-5xl"]}>
+                {chapter.subheading}
+              </h3>
+            )}
+          </header>
+
+          <div class="md:col-span-7 flex flex-col gap-6 md:gap-8 md:pt-10">
+            {lead && (
+              <p class="article-reveal text-xl md:text-2xl lg:text-[1.65rem] text-white leading-snug md:leading-[1.4] font-medium max-w-[52ch]">{lead.text}</p>
+            )}
+            {rest.map((group) =>
+              group.kind === "paragraph" ? (
+                <p class="article-reveal text-base md:text-lg lg:text-xl text-white/65 leading-relaxed max-w-[62ch]">{group.text}</p>
+              ) : (
+                <ol class="article-features">{group.items.map((item, i) => <li class="article-reveal" data-n={String(i + 1).padStart(2, "0")}>{item.title && <span class="article-feature-title">{item.title}</span>}<span>{item.text}</span></li>)}</ol>
+              )
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>
+
+<style>
+  .service-article :global(.article-chapter:first-child) {
+    border-top: 0;
+  }
+
+  /* Features: numbered rows between hairlines instead of bullets. */
+  .article-features {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+    margin-top: 0.5rem;
+  }
+  .article-features li {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    column-gap: 1rem;
+    row-gap: 0.4rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.1);
+    color: rgb(255 255 255 / 0.65);
+    line-height: 1.65;
+  }
+  .article-features li::before {
+    content: attr(data-n);
+    grid-row: span 2;
+    padding-top: 0.2rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--article-accent);
+  }
+  .article-features li > span:last-child {
+    grid-column: 2;
+  }
+  .article-feature-title {
+    grid-column: 2;
+    font-family: var(--brand-font-heading);
+    font-stretch: var(--brand-heading-stretch);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  @media (min-width: 768px) {
+    .article-features li {
+      grid-template-columns: 4rem 1fr;
+      padding: 2rem 0;
+      font-size: 1.125rem;
+    }
+    .article-feature-title {
+      font-size: 1.3rem;
+    }
+  }
+</style>

@@ -97,3 +97,90 @@ export function createTextBlockTimeline(container: HTMLElement, triggerStart: st
 
     return tl;
 }
+
+/**
+ * Featured-build sections (components/ShowcaseStory.astro): each fades in, its photo drifts,
+ * its description fills with colour and its gallery images float at different speeds.
+ */
+export function createShowcaseAnimations() {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduceMotion) gsap.utils.toArray(".showcase-bg").forEach((bg) => {
+        const htmlBg = bg as HTMLElement;
+        gsap.to(htmlBg, {
+            yPercent: 15,
+            ease: "none",
+            scrollTrigger: {
+                trigger: htmlBg.closest("section"),
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+            },
+        });
+    });
+
+    gsap.utils.toArray(".reveal-text").forEach((text) => {
+        const htmlText = text as HTMLElement;
+        gsap.fromTo(htmlText, { backgroundPosition: "0% 100%" }, {
+                backgroundPosition: "0% 0%",
+                ease: "none",
+                scrollTrigger: {
+                    trigger: htmlText,
+                    start: "top 85%",
+                    end: "bottom 45%",
+                    scrub: true,
+                },
+            },
+        );
+    });
+
+    let mm = gsap.matchMedia();
+    mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
+        gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
+            const htmlContainer = container as HTMLElement;
+            const travelDistance = index % 2 === 0 ? 180 : 80;
+            gsap.fromTo(htmlContainer, { y: travelDistance }, {
+                    y: -travelDistance,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: htmlContainer,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: 1.2,
+                    },
+                },
+            );
+        });
+    });
+
+    mm.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => {
+        gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
+            const htmlContainer = container as HTMLElement;
+            const travelDistance = index % 2 === 0 ? 40 : 20;
+            gsap.fromTo(htmlContainer, { y: travelDistance }, {
+                    y: -travelDistance,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: htmlContainer,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: 1.2,
+                    },
+                },
+            );
+        });
+    });
+
+    gsap.utils.toArray('[id^="showcase-"]').forEach((showcase) => {
+        const htmlShowcase = showcase as HTMLElement;
+        gsap.to(htmlShowcase, {
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {
+                trigger: htmlShowcase,
+                start: "top top",
+                end: "+=100vh",
+                scrub: true,
+            },
+        });
+    });
+}

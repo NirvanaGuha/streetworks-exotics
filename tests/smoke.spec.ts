@@ -148,45 +148,43 @@ test('without reduced motion the logo zoom plays', async ({ page }) => {
         .toBeGreaterThan(0);
 });
 
-test('service pages play every section, the reviews and the closing line', async ({ page }) => {
+test('service pages reveal every section, the reviews and the closing line', async ({ page }) => {
     const servicePages = PAGES.filter((p) => p.startsWith('/services/'));
     expect(servicePages.length).toBeGreaterThan(0);
     for (const route of servicePages) {
         await page.goto(route);
-        const layers = await page.locator('#master-pin-container [data-story]').count();
-        expect(layers, `${route} story layers`).toBeGreaterThanOrEqual(3);
 
-        // Scroll through the pinned story, recording the highest opacity each layer reaches.
+        // Scroll through the page, recording the highest opacity each animated part reaches.
         const peaks = await page.evaluate(async () => {
-            const layers = [...document.querySelectorAll<HTMLElement>('#master-pin-container [data-story]')];
-            const peak = layers.map(() => 0);
+            const parts = [
+                ...[...document.querySelectorAll<HTMLElement>('.text-block-container [id$="-layer"]')].map((el) => ({ el, label: 'statement' })),
+                ...[...document.querySelectorAll<HTMLElement>('.article-reveal')].map((el) => ({ el, label: `article: ${el.textContent!.trim().slice(0, 40)}` })),
+                ...[...document.querySelectorAll<HTMLElement>('div[id^="showcase-"]')].map((el) => ({ el, label: el.id })),
+                ...[...document.querySelectorAll<HTMLElement>('#reviews-fade-layer')].map((el) => ({ el, label: 'reviews' })),
+            ];
+            const peak = parts.map(() => 0);
             const end = document.getElementById('contact-footer-wrapper')!.getBoundingClientRect().top + window.scrollY;
             for (let y = 0; y <= end; y += window.innerHeight / 3) {
                 window.scrollTo(0, y);
                 await new Promise((r) => setTimeout(r, 120));
-                layers.forEach((layer, i) => (peak[i] = Math.max(peak[i], Number(getComputedStyle(layer).opacity))));
+                parts.forEach(({ el }, i) => (peak[i] = Math.max(peak[i], Number(getComputedStyle(el).opacity))));
             }
-            return layers.map((layer, i) => ({ kind: layer.dataset.story, peak: peak[i] }));
+            return parts.map(({ label }, i) => ({ label, peak: peak[i] }));
         });
-        for (const layer of peaks) expect(layer.peak, `${route} ${layer.kind} layer becomes visible`).toBeGreaterThan(0.5);
+        expect(peaks.filter((p) => p.label === 'reviews'), `${route} has reviews`).toHaveLength(1);
+        for (const part of peaks) expect(part.peak, `${route} ${part.label} becomes visible`).toBeGreaterThan(0.5);
     }
 });
 
-test('service text screens and gallery images fit the screen', async ({ page }) => {
+test('service statements fit the screen', async ({ page }) => {
     for (const route of PAGES.filter((p) => p.startsWith('/services/'))) {
         await page.goto(route);
-        const overflow = await page.evaluate(() => {
-            const problems: string[] = [];
-            document.querySelectorAll<HTMLElement>('#master-pin-container .text-fit').forEach((box, i) => {
-                const rect = box.getBoundingClientRect(); // after any fit-to-screen scaling
-                if (rect.height > window.innerHeight) problems.push(`text screen ${i} is ${Math.round(rect.height)}px tall`);
-            });
-            document.querySelectorAll<HTMLElement>('#master-pin-container .gallery-zoomable').forEach((image, i) => {
-                if (image.offsetHeight > window.innerHeight * 0.8) problems.push(`gallery image ${i} is ${image.offsetHeight}px tall`);
-            });
-            return problems;
-        });
-        expect(overflow, route).toEqual([]);
+        const tall = await page.evaluate(() =>
+            [...document.querySelectorAll<HTMLElement>('.text-block-container .text-reveal-gradient')]
+                .filter((el) => el.offsetHeight > window.innerHeight)
+                .map((el) => el.textContent!.trim().slice(0, 40))
+        );
+        expect(tall, route).toEqual([]);
     }
 });
 

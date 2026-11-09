@@ -162,10 +162,13 @@ function fire_seed_paragraphs(string $text): string
 {
     $blocks = [];
     foreach (preg_split('/\n{2,}/', trim($text)) as $paragraph) {
-        // "## " marks a heading (see fire_headless_block_text in the plugin).
-        $blocks[] = str_starts_with($paragraph, '## ')
-            ? "<!-- wp:heading {\"level\":3} -->\n<h3 class=\"wp-block-heading\">" . esc_html(substr($paragraph, 3)) . "</h3>\n<!-- /wp:heading -->"
-            : "<!-- wp:paragraph -->\n<p>" . esc_html($paragraph) . "</p>\n<!-- /wp:paragraph -->";
+        // "## " marks a heading and "### " a subheading (see fire_headless_block_text in the plugin).
+        if (preg_match('/^(#{2,3}) (.*)$/s', $paragraph, $m)) {
+            $level = $m[1] === '###' ? 4 : 3;
+            $blocks[] = "<!-- wp:heading {\"level\":$level} -->\n<h$level class=\"wp-block-heading\">" . esc_html($m[2]) . "</h$level>\n<!-- /wp:heading -->";
+        } else {
+            $blocks[] = "<!-- wp:paragraph -->\n<p>" . esc_html($paragraph) . "</p>\n<!-- /wp:paragraph -->";
+        }
     }
     return implode("\n\n", $blocks);
 }
