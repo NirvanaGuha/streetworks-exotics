@@ -1,41 +1,34 @@
 {
     "client": "StreetWorks Exotics",
+    "shortName": "StreetWorks",
+    "wordmark": ["STREETWORKS", "EXOTICS"],
     "tagline": "Resurrecting Legends.",
+    "description": "Award-winning classic and exotic car restoration in Pewaukee, Wisconsin: coachwork, mechanical, paint, interiors and concours preparation.",
     "colors": {
-        "background": "#0a0a0a",
-        "text": "#f5f5f5",
-        "accent": "#d92323",
-        "surface": "#171717"
+        "accent": "#eab308",
+        "accentContrast": "#000000"
     },
-    "typography": {
-        "heading": "Inter, sans-serif",
-        "body": "Inter, sans-serif"
-    },
-    "chapters": [
-        {
-            "id": "01",
-            "title": "Coachwork & Custom Fabrication",
-            "description": "Hand-rolled aluminum and precision TIG welding to rebuild history from the bare metal up."
-        },
-        {
-            "id": "02",
-            "title": "Mechanical & Electrical",
-            "description": "Period-correct power meets modern reliability. Every wire routed, every engine rebuilt to perfection."
-        },
-        {
-            "id": "03",
-            "title": "Body & Paint",
-            "description": "Flawless panels and glass-like finishes. Hundreds of hours culminating in a Concours-level coat."
-        },
-        {
-            "id": "04",
-            "title": "Interior & Upholstery",
-            "description": "Bespoke cabins tailored to the millimeter. Hand-stitched hides and sensory perfection."
-        },
-        {
-            "id": "05",
-            "title": "Detailing & Elite Maintenance",
-            "description": "The masterpiece is finished, but the relationship begins. Dedicated service to keep your legacy flawless."
+    "introGradients": [
+        ["#ff2a00", "#800000"],
+        ["#fef08a", "#b45309"],
+        ["#ffffff", "#52525b"]
+    ],
+    "showcaseGradients": [
+        ["#fef08a", "#b45309"],
+        ["#ffffff", "#94a3b8"]
+    ],
+    "business": {
+        "name": "StreetWorks Exotics",
+        "address": ["600 Hickory St", "Pewaukee, WI 53072", "United States"],
+        "phone": "+1 262-547-0052",
+        "email": "streetworkshotrods@gmail.com",
+        "mapsUrl": "https://www.google.com/maps/search/?api=1&query=StreetWorks+Exotics,+600+Hickory+St,+Pewaukee,+WI+53072",
+        "videoUrl": "https://www.youtube.com/watch?v=Ds0gTPLmRuA",
+        "socials": {
+            "instagram": "https://www.instagram.com/streetworks_exotics",
+            "facebook": "https://www.facebook.com/streetworkshotrods",
+            "youtube": "https://www.youtube.com/@streetworkshotrods",
+            "tiktok": "https://www.tiktok.com/@streetworksexotics"
         }
-    ]
+    }
 }

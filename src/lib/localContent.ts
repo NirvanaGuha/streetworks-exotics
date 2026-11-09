@@ -1,8 +1,31 @@
 /**
- * Local service content (src/content/services) used when WordPress isn't configured
- * or can't be reached during development. Shapes match what the pages build from WordPress.
+ * Local content used when WordPress isn't configured, can't be reached during development,
+ * or has nothing for a section: services from src/content/services, everything else from
+ * src/data/content.json. Shapes match what the pages build from WordPress.
  */
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import content from '../data/content.json';
+import { asset } from './assets';
+
+export { content };
+
+/** Showcases in the shape of the homepage's `showcaseList`. */
+export function getLocalShowcases() {
+    return content.showcases.map((s) => ({
+        ...s,
+        image: asset(s.image),
+        gallery: s.gallery.map(asset),
+    }));
+}
+
+/** Testimonials in the shape the reviews sections use. */
+export function getLocalTestimonials() {
+    return content.testimonials.map((t) => ({ name: t.name, quote: t.quote, photo: asset(t.photo) }));
+}
+
+export function getServiceStripImages() {
+    return content.serviceStripImages.map(asset);
+}
 
 type LocalService = CollectionEntry<'services'>['data'];
 

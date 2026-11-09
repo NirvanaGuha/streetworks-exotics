@@ -1,12 +1,12 @@
 ---
+import { getBusiness } from "../lib/business";
 
-const videoId = "Ds0gTPLmRuA";
-
+const { videoId } = await getBusiness();
 ---
 
 
 
-<div id="video-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-md">
+<div id="video-modal" data-video-id={videoId} class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-md">
 
   <button id="close-modal" class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-4">
 
@@ -33,9 +33,9 @@ const videoId = "Ds0gTPLmRuA";
       const modal = document.getElementById('video-modal');
       const ytPlayer = document.getElementById('yt-player');
       const navbar = document.getElementById('main-navbar');
-      const videoId = "Ds0gTPLmRuA"; 
+      const videoId = modal?.dataset.videoId;
       
-      if (modal && ytPlayer) {
+      if (modal && ytPlayer && videoId) {
         ytPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
         modal.classList.remove('opacity-0', 'pointer-events-none');
         document.body.style.overflow = 'hidden';

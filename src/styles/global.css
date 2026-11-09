@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Brand colours come from src/data/brand.json via CSS variables set in Layout.astro. */
+@theme inline {
+  --color-accent: var(--brand-accent);
+  --color-accent-contrast: var(--brand-accent-contrast);
+}
+
 @layer utilities {
   .text-reveal-gradient {
     background-size: 200% 100%;

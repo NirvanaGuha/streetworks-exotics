@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import ZoomableImage from "./ZoomableImage.astro";
+import brand from "../data/brand.json";
 
 interface Props {
     images: (string | ImageMetadata | { url: string; width: number; height: number })[];
@@ -26,7 +27,7 @@ const rightImages = images.slice(half);
             leftImages.map((src, index) => (
                 <ZoomableImage
                     src={src}
-                    alt="StreetWorks Restoration Detail"
+                    alt={`${brand.shortName} work detail`}
                     accentColor={accentColor}
                     class={index % 2 === 0 ? "aspect-[4/5] w-full" : "aspect-square w-9/12 md:w-10/12 ml-auto"}
                 />
@@ -41,7 +42,7 @@ const rightImages = images.slice(half);
             rightImages.map((src, index) => (
                 <ZoomableImage
                     src={src}
-                    alt="StreetWorks Restoration Detail"
+                    alt={`${brand.shortName} work detail`}
                     accentColor={accentColor}
                     class={index % 2 === 0 ? "aspect-[3/4] w-10/12 md:w-11/12 mr-auto" : "aspect-[4/3] w-full"}
                 />

@@ -13,7 +13,9 @@ import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
 import { fetchAPI, parseWPBlocks } from "../lib/wp";
-import { getLocalHomepageServices } from "../lib/localContent";
+import { content, getLocalHomepageServices, getLocalShowcases, getServiceStripImages } from "../lib/localContent";
+import { asset } from "../lib/assets";
+import brand from "../data/brand.json";
 
 // 1. Fetch Homepage Data from WordPress
 // Showcases, testimonials and services are their own post types (see wordpress/fire-headless),
@@ -68,20 +70,28 @@ const data = await fetchAPI(`
 
 const wp = data?.page?.homepageSettings;
 
-// 2. Normalize WordPress data to the shapes the sections below expect (empty lists fall back to local content)
-const showcaseList = (data?.showcases?.nodes || []).map((s: any) => ({
-  year: s.showcaseDetails?.year,
-  title: s.title,
-  description: s.showcaseDetails?.description,
-  accentColor: s.showcaseDetails?.accentColor,
-  ctaLink: s.showcaseDetails?.ctaLink,
-  mainImage: s.featuredImage,
-  gallery: {
-    nodes: [s.showcaseDetails?.galleryImage1, s.showcaseDetails?.galleryImage2, s.showcaseDetails?.galleryImage3]
+// 2. Normalize WordPress data; anything WordPress doesn't have comes from src/data/content.json
+const hero = {
+  headline: wp?.heroHeadline || content.hero.headline,
+  tagline: wp?.heroTagline || content.hero.tagline,
+  image: wp?.heroImage?.node?.sourceUrl || asset(content.hero.image),
+};
+const introTexts = [wp?.introText1, wp?.introText2, wp?.introText3].map((text, i) => text || content.introTexts[i]);
+
+const wpShowcases = (data?.showcases?.nodes || [])
+  .filter((s: any) => s.featuredImage)
+  .map((s: any) => ({
+    title: s.title,
+    year: s.showcaseDetails?.year,
+    description: s.showcaseDetails?.description,
+    accentColor: s.showcaseDetails?.accentColor,
+    ctaLink: s.showcaseDetails?.ctaLink,
+    image: s.featuredImage.node.sourceUrl,
+    gallery: [s.showcaseDetails?.galleryImage1, s.showcaseDetails?.galleryImage2, s.showcaseDetails?.galleryImage3]
       .filter(Boolean)
-      .map((img: any) => img.node),
-  },
-}));
+      .map((img: any) => img.node.sourceUrl),
+  }));
+const showcaseList = wpShowcases.length > 0 ? wpShowcases : getLocalShowcases();
 
 const testimonialList = (data?.testimonials?.nodes || []).map((t: any) => ({
   clientName: t.title,
@@ -100,23 +110,23 @@ const wpServices = (data?.services?.nodes || []).map((s: any) => ({
 }));
 const serviceList = wpServices.length > 0 ? wpServices : await getLocalHomepageServices();
 
-// Image Imports (Local Fallbacks - Keeping these for safety)
-import bodyPaintScaledImg from "../assets/images/body-paint/body-and-paint-scaled.jpg";
-import maseratiGhibliImg from "../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg";
-import detomasoMangustaImg from "../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg";
-import isettaDeliveryImg from "../assets/images/body-paint/Isetta-Delivery.jpg";
-import isoGrifo4Img from "../assets/images/homepage/Restored-1967-Iso-Grifo-4.jpg";
-import isoGrifoEngineImg from "../assets/images/homepage/Restored-1967-Iso-Grifo-Engine.jpg";
-import isoGrifoBodyImg from "../assets/images/homepage/Restored-1967-Iso-Grifo-Body.jpg";
-import jensenCv8Img from "../assets/images/homepage/Jensen-CV8-MKIII-10.jpg";
-import jensenCv8RestoredImg from "../assets/images/homepage/Jensen-CV8-MKIII-Restored.jpg";
-import jensenCv8InteriorImg from "../assets/images/homepage/Jensen-CV8-MKIII-Interior.jpg";
-import jensenCv8EngineImg from "../assets/images/homepage/Jensen-CV8-MKIII-Engine.jpg";
+// Row 1 of every service strip shows the same brand-focused images.
+const serviceStripImages = getServiceStripImages();
+const gradient = (list: string[][], i: number) => list[i % list.length];
 
-const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangustaImg, isettaDeliveryImg];
+// The story after the intro: each showcase is followed by the next intro text
+// (text 2 after showcase 1, text 3 after showcase 2); leftover texts follow the last showcase.
+type StorySection = { kind: "showcase"; showcase: (typeof showcaseList)[number]; index: number } | { kind: "text"; text: string; index: number };
+const laterTexts = introTexts.slice(1);
+const story: StorySection[] = showcaseList.flatMap((showcase, i): StorySection[] =>
+  laterTexts[i] ? [{ kind: "showcase", showcase, index: i }, { kind: "text", text: laterTexts[i], index: i + 1 }] : [{ kind: "showcase", showcase, index: i }]
+);
+laterTexts.slice(showcaseList.length).forEach((text, j) => {
+  if (text) story.push({ kind: "text", text, index: showcaseList.length + j + 1 });
+});
 ---
 
-<Layout title="StreetWorks Exotics">
+<Layout title={brand.client}>
   <SmoothScroll />
   <VideoModal />
   <NavBar />
@@ -126,9 +136,9 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
       <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
         <div id="hero-layer" class="absolute inset-0 z-10">
           <HeroSequence 
-            headline={wp?.heroHeadline}
-            tagline={wp?.heroTagline}
-            bgImgUrl={wp?.heroImage?.node?.sourceUrl || isoGrifo4Img}
+            headline={hero.headline}
+            tagline={hero.tagline}
+            bgImgUrl={hero.image}
           />
         </div>
 
@@ -139,117 +149,65 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
         <div id="text1-layer" class="text1-layer absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-start items-start max-w-5xl mx-auto px-6 md:px-12 pt-48 text-left pointer-events-none">
           <TextReveal
             id="text-1"
-            gradientFrom="#ff2a00"
-            gradientTo="#800000"
-            text={wp?.introText1 || "StreetWorks was founded in 1999 by Matt Backhaus. We initially shared shop space with a British car service specialist in Waukesha and expanded to our current location in Pewaukee, Wisconsin, in 2022. Our early work included restoring Jaguars and Triumphs."}
+            gradientFrom={gradient(brand.introGradients, 0)[0]}
+            gradientTo={gradient(brand.introGradients, 0)[1]}
+            text={introTexts[0]}
           />
         </div>
       </div>
     </div>
 
-    <div id="showcase-1" class="relative w-full z-20 -mt-[100dvh] opacity-0 bg-black">
-      <RestorationShowcase
-        year={showcaseList[0]?.year || "1967"}
-        title={showcaseList[0]?.title || "Iso Grifo 350GT"}
-        mainImgUrl={showcaseList[0]?.mainImage?.node?.sourceUrl || isoGrifo4Img}
-        textId="iso-text"
-        gradientFrom="#fef08a"
-        gradientTo="#b45309"
-        linkUrl={showcaseList[0]?.ctaLink || "https://streetworksexotics.com/1967-iso-grifo-restoration/"}
-        ctaColor={showcaseList[0]?.accentColor || "#fef08a"}
-      >
-        <span slot="intro">{showcaseList[0]?.description || "In 2004, we showcased our first restoration of an Iso Grifo 350GT at Pebble Beach."}</span>
+    {story.map((section) => {
+      if (section.kind === "text") {
+        const n = section.index + 1;
+        return (
+          <div id={`text${n}-container`} class="text-block-container relative w-full h-[350dvh] bg-black -mt-[100dvh] z-10">
+            <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
+              <div id={`text${n}-layer`} class="absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-center items-start max-w-5xl mx-auto px-6 md:px-12 text-left pointer-events-none">
+                <TextReveal
+                  id={`text-${n}`}
+                  gradientFrom={gradient(brand.introGradients, section.index)[0]}
+                  gradientTo={gradient(brand.introGradients, section.index)[1]}
+                  text={section.text}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
 
-        <div slot="gallery-left" class="contents">
-          <ZoomableImage
-            src={showcaseList[0]?.gallery?.nodes?.[0]?.sourceUrl || isoGrifoEngineImg}
-            alt="Engine Restoration"
-            class="w-11/12 ml-auto aspect-[4/5] mt-12 md:mt-32"
-            accentColor={showcaseList[0]?.accentColor || "#eab308"}
-          />
+      const { showcase, index: i } = section;
+      const [gradientFrom, gradientTo] = gradient(brand.showcaseGradients, i);
+      const accent = showcase.accentColor || brand.colors.accent;
+      const [gallery1, gallery2, gallery3] = showcase.gallery;
+      return (
+        <div id={`showcase-${i + 1}`} class="relative w-full z-20 -mt-[100dvh] opacity-0 bg-black">
+          <RestorationShowcase
+            year={showcase.year}
+            title={showcase.title}
+            mainImgUrl={showcase.image}
+            textId={`showcase-${i + 1}-text`}
+            gradientFrom={gradientFrom}
+            gradientTo={gradientTo}
+            linkUrl={showcase.ctaLink}
+            ctaColor={accent}
+          >
+            <span slot="intro">{showcase.description}</span>
+
+            <div slot="gallery-left" class="contents">
+              {gallery1 && (
+                <ZoomableImage src={gallery1} alt={`${showcase.title} detail`} class="w-11/12 ml-auto aspect-[4/5] mt-12 md:mt-32" accentColor={accent} />
+              )}
+            </div>
+
+            <div slot="gallery-right" class="contents">
+              {gallery2 && <ZoomableImage src={gallery2} alt={`${showcase.title} detail`} class="w-full aspect-square" accentColor={accent} />}
+              {gallery3 && <ZoomableImage src={gallery3} alt={`${showcase.title} detail`} class="w-10/12 mr-auto aspect-[3/4]" accentColor={accent} />}
+            </div>
+          </RestorationShowcase>
         </div>
-
-        <div slot="gallery-right" class="contents">
-          <ZoomableImage
-            src={showcaseList[0]?.gallery?.nodes?.[1]?.sourceUrl || isoGrifoBodyImg}
-            alt="Body Work"
-            class="w-full aspect-square"
-            accentColor={showcaseList[0]?.accentColor || "#eab308"}
-          />
-          <ZoomableImage
-            src={showcaseList[0]?.gallery?.nodes?.[2]?.sourceUrl || isoGrifo4Img}
-            alt="Full Restoration"
-            class="w-10/12 mr-auto aspect-[3/4]"
-            accentColor={showcaseList[0]?.accentColor || "#eab308"}
-          />
-        </div>
-      </RestorationShowcase>
-    </div>
-
-    <div id="text2-container" class="text2-container relative w-full h-[350dvh] bg-black -mt-[100dvh] z-10">
-      <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
-        <div id="text2-layer" class="absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-center items-start max-w-5xl mx-auto px-6 md:px-12 text-left pointer-events-none">
-          <TextReveal
-            id="text-2"
-            gradientFrom="#fef08a"
-            gradientTo="#b45309"
-            text={wp?.introText2 || "Today, we restore and service some of the world's most interesting and valuable cars, including a Lamborghini from the former Shah of Iran."}
-          />
-        </div>
-      </div>
-    </div>
-
-    <div id="showcase-2" class="relative w-full z-20 -mt-[100dvh] opacity-0 bg-black">
-      <RestorationShowcase
-        year={showcaseList[1]?.year || "1966"}
-        title={showcaseList[1]?.title || "Jensen CV8 MkIII"}
-        mainImgUrl={showcaseList[1]?.mainImage?.node?.sourceUrl || jensenCv8Img}
-        textId="jensen-text"
-        gradientFrom="#ffffff"
-        gradientTo="#94a3b8"
-        linkUrl={showcaseList[1]?.ctaLink || "https://streetworksexotics.com/the-incredible-restoration-journey-of-the-jensen-cv8-mkiii/"}
-        ctaColor={showcaseList[1]?.accentColor || "#cbd5e1"}
-      >
-        <span slot="intro">{showcaseList[1]?.description || "At StreetWorks, we deliver exceptional automobile restorations. We are dedicated to preserving the cars you love, specializing in Post-War vehicles."}</span>
-
-        <div slot="gallery-left" class="contents">
-          <ZoomableImage
-            src={showcaseList[1]?.gallery?.nodes?.[0]?.sourceUrl || jensenCv8RestoredImg}
-            alt="Restoration Process"
-            class="w-11/12 ml-auto aspect-[4/5] mt-12 md:mt-32"
-            accentColor={showcaseList[1]?.accentColor || "#cbd5e1"}
-          />
-        </div>
-
-        <div slot="gallery-right" class="contents">
-          <ZoomableImage
-            src={showcaseList[1]?.gallery?.nodes?.[1]?.sourceUrl || jensenCv8InteriorImg}
-            alt="Interior Work"
-            class="w-full aspect-square"
-            accentColor={showcaseList[1]?.accentColor || "#cbd5e1"}
-          />
-          <ZoomableImage
-            src={showcaseList[1]?.gallery?.nodes?.[2]?.sourceUrl || jensenCv8EngineImg}
-            alt="Engine Work"
-            class="w-10/12 mr-auto aspect-[3/4]"
-            accentColor={showcaseList[1]?.accentColor || "#cbd5e1"}
-          />
-        </div>
-      </RestorationShowcase>
-    </div>
-
-    <div id="text3-container" class="text3-container relative w-full h-[350dvh] bg-black -mt-[100dvh] z-10">
-      <div class="sticky top-0 w-full h-[100dvh] overflow-hidden z-10 flex items-center justify-center">
-        <div id="text3-layer" class="absolute inset-0 z-30 opacity-0 invisible flex flex-col justify-center items-start max-w-5xl mx-auto px-6 md:px-12 text-left pointer-events-none" style="z-index: 10;">
-          <TextReveal
-            id="text-3"
-            gradientFrom="#ffffff"
-            gradientTo="#52525b"
-            text={wp?.introText3 || "Our extensive expertise ensures that everything from Sports and GTs to Vintage Racecars, Muscle Cars, and Hot Rods are revived and returned to you in pristine condition."}
-          />
-        </div>
-      </div>
-    </div>
+      );
+    })}
 
     <ReviewsSection dynamicReviews={testimonialList} />
 
@@ -263,7 +221,7 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
             bgImgUrl={service.backgroundImage}
             serviceUrl={service.link}
             bookingUrl="#contact-section"
-            galleryRow1={defaultGalleryRow1} // Row 1 remains brand-focused
+            galleryRow1={serviceStripImages}
             galleryRow2={service.galleryImages}
           />
         ))}
@@ -324,11 +282,7 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
     introTl.to("#text-1", { autoAlpha: 0, scale: 0.95, duration: 0.3, ease: "power2.inOut" }, 4.6);
     introTl.to(".text1-layer", { autoAlpha: 0, duration: 0.1 }, 4.9);
 
-    const text2Container = document.querySelector(".text2-container") as HTMLElement;
-    if (text2Container) createTextBlockTimeline(text2Container);
-
-    const text3Container = document.querySelector(".text3-container") as HTMLElement;
-    if (text3Container) createTextBlockTimeline(text3Container);
+    gsap.utils.toArray<HTMLElement>(".text-block-container").forEach((container) => createTextBlockTimeline(container));
 
     gsap.utils.toArray(".showcase-bg").forEach((bg) => {
       const htmlBg = bg as HTMLElement;

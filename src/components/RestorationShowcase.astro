@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import ZoomableImage from "./ZoomableImage.astro";
+import { content } from "../lib/localContent";
 
 interface Props {
   mainImgUrl: string | ImageMetadata;
@@ -36,7 +37,7 @@ const { mainImgUrl, year, title, textId, gradientFrom, gradientTo, linkUrl, ctaC
       </div>
 
       <div class="relative z-10 px-6 md:px-12 w-full max-w-7xl mx-auto">
-        <span class="text-yellow-500 font-mono text-xs md:text-sm tracking-[0.5em] uppercase drop-shadow-lg">{year} Restoration</span>
+        <span class="text-accent font-mono text-xs md:text-sm tracking-[0.5em] uppercase drop-shadow-lg">{year} {content.labels.showcaseYear}</span>
         <h3 class="text-5xl md:text-8xl lg:text-[7rem] font-bold tracking-tighter uppercase drop-shadow-xl leading-[0.8] mt-2">{title}</h3>
       </div>
     </div>
@@ -66,7 +67,7 @@ const { mainImgUrl, year, title, textId, gradientFrom, gradientTo, linkUrl, ctaC
                 style={`color: ${ctaColor};`}
                 class="group inline-flex items-center gap-3 mt-10 hover:opacity-70 transition-opacity duration-300 pointer-events-auto"
               >
-                <span class="text-xs md:text-sm tracking-[0.2em] uppercase font-bold">See full restoration</span>
+                <span class="text-xs md:text-sm tracking-[0.2em] uppercase font-bold">{content.labels.showcaseCta}</span>
                 <svg class="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
               </a>
             )}

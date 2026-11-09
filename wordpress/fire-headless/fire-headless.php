@@ -113,6 +113,28 @@ add_action('acf/include_fields', function () {
         ],
     ] + $graphql('homepageSettings'));
 
+    // Free ACF has no options pages, so site-wide details live on the front page too.
+    // Empty fields fall back to src/data/brand.json in the front end.
+    $url = fn(string $network, string $label) => ['key' => "field_business_{$network}_url", 'name' => "{$network}_url", 'label' => $label, 'type' => 'url'];
+    acf_add_local_field_group([
+        'key'        => 'group_business_details',
+        'title'      => 'Business Details',
+        'menu_order' => 1,
+        'location'   => [[['param' => 'page_type', 'operator' => '==', 'value' => 'front_page']]],
+        'fields'     => [
+            ['key' => 'field_business_name', 'name' => 'business_name', 'label' => 'Business Name', 'type' => 'text'],
+            ['key' => 'field_business_address', 'name' => 'address', 'label' => 'Address', 'type' => 'textarea', 'rows' => 3, 'new_lines' => '', 'instructions' => 'One line per row.'],
+            ['key' => 'field_business_phone', 'name' => 'phone', 'label' => 'Phone', 'type' => 'text', 'instructions' => 'As it should appear, e.g. +1 262-547-0052.'],
+            ['key' => 'field_business_email', 'name' => 'email', 'label' => 'Email', 'type' => 'email'],
+            ['key' => 'field_business_maps_url', 'name' => 'maps_url', 'label' => 'Directions Link', 'type' => 'url', 'instructions' => 'Google Maps link for "Get Directions".'],
+            ['key' => 'field_business_video_url', 'name' => 'video_url', 'label' => 'Hero Video', 'type' => 'url', 'instructions' => 'YouTube link for the play button on the homepage.'],
+            $url('instagram', 'Instagram'),
+            $url('facebook', 'Facebook'),
+            $url('youtube', 'YouTube'),
+            $url('tiktok', 'TikTok'),
+        ],
+    ] + $graphql('businessDetails'));
+
     acf_add_local_field_group([
         'key'      => 'group_6a001011735de',
         'title'    => 'Service Details',

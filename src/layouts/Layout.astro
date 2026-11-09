@@ -9,17 +9,21 @@ interface Props {
 }
 
 const { title = brand.client } = Astro.props;
+
+// Feeds the `accent` / `accent-contrast` Tailwind colours (see styles/global.css).
+const brandVars = `:root{--brand-accent:${brand.colors.accent};--brand-accent-contrast:${brand.colors.accentContrast};}`;
 ---
 
 <!doctype html>
 <html lang="en" class="bg-black text-white antialiased">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={brand.tagline} />
+		<meta name="description" content={brand.description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		{demoMode && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
+		<style is:inline set:html={brandVars}></style>
 		<ClientRouter />
 	</head>
 	<body class="overflow-x-hidden">

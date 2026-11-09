@@ -1,6 +1,8 @@
 ---
 import { fetchAPI } from "../lib/wp";
 import { demoCredit } from "../lib/demo";
+import { getBusiness } from "../lib/business";
+import brand from "../data/brand.json";
 
 interface Props {
   /** Pages without their own contact section link to the homepage's. */
@@ -9,6 +11,7 @@ interface Props {
 
 const { contactHref = "#contact-section" } = Astro.props;
 const currentYear = new Date().getFullYear();
+const business = await getBusiness();
 
 // Legal links appear once these pages are published in WordPress (rendered by src/pages/[page].astro).
 const data = await fetchAPI(`
@@ -24,18 +27,18 @@ const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status ===
   <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
     
     <div class="flex flex-col items-start gap-3">
-      <span class="text-2xl font-bold tracking-tighter uppercase text-white">StreetWorks</span>
+      <span class="text-2xl font-bold tracking-tighter uppercase text-white">{brand.shortName}</span>
       <p class="text-white/40 text-xs font-mono uppercase tracking-[0.2em]">
-        &copy; {currentYear} StreetWorks Exotics. All rights reserved.
+        &copy; {currentYear} {business.name}. All rights reserved.
       </p>
       {demoCredit && <p class="text-white/30 text-[10px] font-mono uppercase tracking-[0.2em]">{demoCredit}</p>}
     </div>
 
     <nav class="flex flex-wrap justify-start gap-6 md:gap-10 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
-      <a href="/" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Home</a>
-      <a href="/#services-master-container" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Services</a>
-      <a href="/#showcase-1" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Portfolio</a>
-      <a href={contactHref} class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Contact</a>
+      <a href="/" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Home</a>
+      <a href="/#services-master-container" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Services</a>
+      <a href="/#showcase-1" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Portfolio</a>
+      <a href={contactHref} class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Contact</a>
     </nav>
 
     {legalPages.length > 0 && (

@@ -1,0 +1,84 @@
+{
+    "_comment": "Starter content. The site falls back to this when WordPress has nothing, and wordpress/seed.php loads it into a fresh WordPress. Image paths are relative to src/assets/images.",
+    "hero": {
+        "headline": "StreetWorks Exotics",
+        "tagline": "Resurrecting Legends",
+        "image": "homepage/Restored-1967-Iso-Grifo-4.jpg"
+    },
+    "introTexts": [
+        "StreetWorks was founded in 1999 by Matt Backhaus. We initially shared shop space with a British car service specialist in Waukesha and expanded to our current location in Pewaukee, Wisconsin, in 2022. Our early work included restoring Jaguars and Triumphs.",
+        "Today, we restore and service some of the world's most interesting and valuable cars, including a Lamborghini from the former Shah of Iran.",
+        "Our extensive expertise ensures that everything from Sports and GTs to Vintage Racecars, Muscle Cars, and Hot Rods are revived and returned to you in pristine condition."
+    ],
+    "awards": {
+        "heading": "We don’t like to toot our own horn,",
+        "headingAside": "but…",
+        "text": "Our award winning restorations speak for themselves. We have experienced success worldwide including The Pebble Beach Concours d’Elegance, Amelia Island Concours d’Elegance and Concorso d’Eleganza Villa d’Este in Cernobbio, Italy.",
+        "logos": [
+            { "name": "Pebble Beach Concours d'Elegance", "logo": "https://www.pebblebeachconcours.net/wp-content/themes/pbc-wp-theme-child/library/images/logo.png" },
+            { "name": "The Amelia", "logo": "https://cdn.prod.website-files.com/68c03ec0d6be7142be9855ae/68db1f4c0a9bb199d48eb997_Amelia-horizontal-revised.svg" },
+            { "name": "Concorso d’Eleganza Villa d’Este", "logo": "https://www.concorsodeleganzavilladeste.com/assets/concorso/VdE_Logo_white.svg" }
+        ]
+    },
+    "labels": {
+        "showcaseYear": "Restoration",
+        "showcaseCta": "See full restoration"
+    },
+    "showcases": [
+        {
+            "title": "Iso Grifo 350GT",
+            "year": "1967",
+            "description": "In 2004, we showcased our first restoration of an Iso Grifo 350GT at Pebble Beach.",
+            "ctaLink": "https://streetworksexotics.com/1967-iso-grifo-restoration/",
+            "accentColor": "#fef08a",
+            "image": "homepage/Restored-1967-Iso-Grifo-4.jpg",
+            "gallery": [
+                "homepage/Restored-1967-Iso-Grifo-Engine.jpg",
+                "homepage/Restored-1967-Iso-Grifo-Body.jpg",
+                "homepage/Restored-1967-Iso-Grifo-4.jpg"
+            ]
+        },
+        {
+            "title": "Jensen CV8 MkIII",
+            "year": "1966",
+            "description": "At StreetWorks, we deliver exceptional automobile restorations. We are dedicated to preserving the cars you love, specializing in Post-War vehicles.",
+            "ctaLink": "https://streetworksexotics.com/the-incredible-restoration-journey-of-the-jensen-cv8-mkiii/",
+            "accentColor": "#cbd5e1",
+            "image": "homepage/Jensen-CV8-MKIII-10.jpg",
+            "gallery": [
+                "homepage/Jensen-CV8-MKIII-Restored.jpg",
+                "homepage/Jensen-CV8-MKIII-Interior.jpg",
+                "homepage/Jensen-CV8-MKIII-Engine.jpg"
+            ]
+        }
+    ],
+    "testimonials": [
+        {
+            "name": "Brian Roell",
+            "quote": "On my Corvette, their team repaired the leather on my dash, A-pillar, and center console. They also restored the headliner and door panel map pockets on my Mustang Cobra. I am not an easy one to please, but both jobs were done with outstanding craftsmanship and attention to detail. The results honestly exceeded my expectations. The entire process was professional, timely, and hassle-free, and it’s clear they take real pride in their work.",
+            "photo": "reviews/Corvette-Testimonial.jpg"
+        },
+        {
+            "name": "Matt Protz",
+            "quote": "This shop is amazing! The owner and all the staff are exceptional! Very friendly, and their skills are unmatched! If you have any need of professional car building or customizations, this is THE PLACE! Dream cars are made and perfected here.",
+            "photo": "reviews/Testimonial-Matt.jpg"
+        },
+        {
+            "name": "John Zick",
+            "quote": "They built my 30 Ford Coupe, and did an excellent job.",
+            "photo": "reviews/Ford-Coupe-60.jpg"
+        }
+    ],
+    "serviceStripImages": [
+        "body-paint/body-and-paint-scaled.jpg",
+        "body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg",
+        "body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
+        "body-paint/Isetta-Delivery.jpg"
+    ],
+    "contact": {
+        "heading": ["Visit", "The Shop."],
+        "text": "We believe the best way to start a build is a conversation. Stop by to see current restorations, meet the craftsmen, and discuss your vision.",
+        "formHeading": "Can't make it in?",
+        "formText": "Drop us a line and we'll reach out."
+    }
+}
