@@ -18,6 +18,10 @@ const { dynamicReviews = [] } = Astro.props;
 // The track below is sized for three slides.
 const defaultReviews = getLocalTestimonials().map((t) => ({ clientName: t.name, quote: t.quote, photo: t.photo }));
 const reviews = dynamicReviews.length > 0 ? dynamicReviews : defaultReviews;
+
+// Long quotes step down a size so they fit short laptop and phone screens.
+const quoteSize = (quote: string) =>
+  quote.length > 320 ? "text-base md:text-xl lg:text-2xl" : quote.length > 160 ? "text-lg md:text-2xl lg:text-[1.75rem]" : "text-xl sm:text-2xl md:text-3xl lg:text-4xl";
 ---
 
 <section id="reviews-container" class="relative w-full h-[400dvh] z-[15] -mt-[100dvh]">
@@ -47,7 +51,7 @@ const reviews = dynamicReviews.length > 0 ? dynamicReviews : defaultReviews;
                   ))}
                 </div>
                 
-                <p class="text-base sm:text-lg md:text-2xl lg:text-3xl font-serif italic text-white/90 leading-relaxed mb-4 md:mb-8">"{review.quote}"</p>
+                <p class:list={[quoteSize(review.quote), "font-serif italic text-white/90 leading-relaxed mb-4 md:mb-8"]}>"{review.quote}"</p>
                 
                 <span class="text-white font-bold uppercase tracking-[0.2em] text-xs md:text-base">— {review.clientName}</span>
               </div>

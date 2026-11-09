@@ -1,0 +1,95 @@
+---
+// Branded cover shown on the first homepage visit of a session, until the hero image
+// and fonts are ready (at least 0.7s, at most 2.5s). Without JavaScript it fades out on
+// its own via CSS. When it lifts it sets window.__firePreloaderDone and dispatches
+// "fire:preloader-done", which starts the hero entrance animation.
+import brand from "../data/brand.json";
+---
+
+<script is:inline>
+  try {
+    if (sessionStorage.getItem("fire-preloaded")) document.documentElement.classList.add("fire-preloaded");
+  } catch (e) {}
+</script>
+
+<div id="preloader" aria-hidden="true" class="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-8 bg-black pointer-events-none">
+  <div class="preloader-mark flex flex-col items-center text-3xl md:text-5xl font-heading font-black uppercase tracking-tighter leading-[0.9] text-white">
+    {brand.wordmark.map((line) => <span>{line}</span>)}
+  </div>
+  <div class="w-40 md:w-56 h-px bg-white/10 overflow-hidden">
+    <div class="preloader-bar h-full bg-accent"></div>
+  </div>
+</div>
+
+<style>
+  #preloader {
+    animation: preloader-fallback 0.6s ease 3.5s forwards;
+    transition: opacity 0.7s ease, visibility 0.7s;
+  }
+  :global(.fire-preloaded) #preloader,
+  #preloader.is-done {
+    opacity: 0;
+    visibility: hidden;
+  }
+  :global(.fire-preloaded) #preloader {
+    display: none;
+  }
+  .preloader-mark {
+    animation: preloader-mark 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .preloader-bar {
+    width: 40%;
+    animation: preloader-bar 1.1s ease-in-out infinite;
+  }
+  @keyframes preloader-mark {
+    from { opacity: 0; letter-spacing: 0.1em; filter: blur(6px); }
+    to { opacity: 1; filter: blur(0); }
+  }
+  @keyframes preloader-bar {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
+  @keyframes preloader-fallback {
+    to { opacity: 0; visibility: hidden; }
+  }
+</style>
+
+<script>
+  const MIN_MS = 700;
+  const MAX_MS = 2500;
+
+  const seenThisSession = () => {
+    try {
+      return sessionStorage.getItem("fire-preloaded") === "1";
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const finish = (preloader: HTMLElement | null) => {
+    if ((window as any).__firePreloaderDone) return;
+    (window as any).__firePreloaderDone = true;
+    preloader?.classList.add("is-done");
+    try {
+      sessionStorage.setItem("fire-preloaded", "1");
+    } catch (e) {}
+    window.dispatchEvent(new Event("fire:preloader-done"));
+  };
+
+  // Runs on every page load, including client-side navigations back to the homepage.
+  const run = () => {
+    (window as any).__firePreloaderDone = false;
+    const preloader = document.getElementById("preloader");
+    if (!preloader || seenThisSession() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (preloader) preloader.style.display = "none";
+      return finish(preloader);
+    }
+
+    const hero = document.querySelector<HTMLImageElement>("#hero-bg-wrapper img");
+    const heroReady = hero && !hero.complete ? hero.decode().catch(() => {}) : Promise.resolve();
+    const ready = Promise.all([heroReady, document.fonts?.ready, new Promise((r) => setTimeout(r, MIN_MS))]);
+    Promise.race([ready, new Promise((r) => setTimeout(r, MAX_MS))]).then(() => finish(preloader));
+  };
+
+  document.addEventListener("astro:page-load", run);
+</script>

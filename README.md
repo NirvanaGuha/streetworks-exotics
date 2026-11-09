@@ -36,7 +36,7 @@ Plugins (all free): **WPGraphQL**, **Advanced Custom Fields**, **WPGraphQL for A
 | --- | --- |
 | Hero headline, tagline, image; the three intro texts | Pages → Home → *Homepage Settings* |
 | Address, phone, email, directions link, hero video, social links | Pages → Home → *Business Details* |
-| Featured restorations (homepage showcases) | **Showcases** — featured image, year, intro, link, accent colour, 3 gallery images |
+| Featured restorations (homepage and `/portfolio`) | **Showcases** — featured image, year, intro, link, accent colour, 3 gallery images |
 | Reviews (homepage and service pages, first three) | **Testimonials** — title is the name, featured image is the photo |
 | Services (pages, nav, homepage strip) | **Services** — featured image, *Service Details*, and page content (text + gallery blocks) |
 | Privacy policy / terms | Pages with slugs `privacy-policy` / `terms-of-service`; footer links appear once published |
@@ -57,16 +57,17 @@ node --env-file=.env dist/server/entry.mjs   # serve the production build
 | Variable | Purpose |
 | --- | --- |
 | `PUBLIC_WP_GRAPHQL_URL` | WPGraphQL endpoint. Empty = local content only. |
+| `PUBLIC_SITE_URL` | Deployed address. Needed for absolute link-preview images and canonical URLs. |
 | `WP_FORM_SECRET` | Must match `FIRE_FORM_SECRET`. Read at runtime by the contact action. |
-| `PUBLIC_DEMO_MODE` | `true` for concept builds: `noindex`, robots.txt blocks crawlers, "Concept by" badge. Set `false` at launch. |
+| `PUBLIC_DEMO_MODE` | `true` for concept builds: `noindex`, robots.txt blocks search crawlers (link-preview bots stay allowed so DMs show a card), "Concept by" badge. Set `false` at launch. |
 | `PUBLIC_DEMO_CREDIT` | Optional badge text. |
 
 ## New client checklist
 
 Everything client-specific lives in data files and images; the components don't need editing.
 
-1. **`src/data/brand.json`**: name, short name (nav and footer), wordmark lines (the hero cut-out logo), tagline, meta description, accent colour plus the text colour that sits on it, gradient pairs for the intro texts and showcases, and business details (address, phone, email, directions, YouTube video, socials; leave a social out to hide its icon).
-2. **`src/data/content.json`**: hero, the three intro texts, awards copy and logos (files in `src/assets/images/awards`), the labels on showcases, showcases (as many as you like; each is followed by the next intro text), three testimonials, the four images in the services strip, and the contact copy.
+1. **`src/data/brand.json`**: name, short name (nav and footer), wordmark lines (the hero cut-out logo; sized to fit automatically), tagline, meta description, accent colour plus the text colour that sits on it, fonts (heading, its width, body, serif; the files themselves are imported in `src/styles/fonts.css`), gradient pairs for the intro texts and showcases, and business details (address, phone, email, directions, YouTube video, socials; leave a social out to hide its icon).
+2. **`src/data/content.json`**: hero, the three intro texts, awards copy and logos (files in `src/assets/images/awards`), labels, portfolio heading and intro, `homepageShowcases` (how many showcases the homepage features), showcases (all of them appear on `/portfolio`; on the homepage each is followed by the next intro text), three testimonials, the four images in the services strip, and the contact copy.
 3. **`src/content/services/*.json`**: one file per service; the file name becomes its URL slug. Title, `order`, hero image, tagline, tint colour, intro paragraphs, mid text, closing text and gallery images (split across the page's two galleries).
 4. **`src/assets/images/`**: the client's photos, referred to by path from the JSON files.
 5. **`public/favicon.svg`** and **`favicon.ico`**.
@@ -76,9 +77,15 @@ Everything client-specific lives in data files and images; the components don't 
 
 Known limit: the reviews slider is sized for three testimonials.
 
+## Behaviour notes
+
+- **Reduced motion:** with the OS setting on, smooth scrolling, parallax, the logo zoom and the colour sweep are off; scroll-driven fades and reveals stay.
+- **Preloader:** shown once per browser session on the homepage, until the hero image and fonts are ready (0.7–2.5s). It fades on its own after 3.5s if JavaScript fails.
+- **Link previews:** every page has Open Graph/Twitter tags with a 1200×630 image cut from its hero.
+
 ## Project map
 
-- `src/pages/index.astro` — homepage story; `src/pages/services/[slug].astro` — service pages; `src/pages/[page].astro` — plain WordPress pages; `src/pages/404.astro`
+- `src/pages/index.astro` — homepage story; `src/pages/portfolio.astro` — all showcases; `src/pages/services/[slug].astro` — service pages; `src/pages/[page].astro` — plain WordPress pages; `src/pages/404.astro`
 - `src/data/brand.json` — identity, colours, business details; `src/data/content.json` — starter/fallback content
 - `src/lib/wp.ts` — GraphQL client and Gutenberg block parsing; `src/lib/localContent.ts` — local fallbacks; `src/lib/business.ts` — business details (WordPress over brand.json); `src/lib/assets.ts` — image paths to Astro images; `src/lib/demo.ts` — demo mode
 - `src/actions/index.ts` — contact form action

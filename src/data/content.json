@@ -31,7 +31,13 @@
     },
     "labels": {
         "showcaseYear": "Restoration",
-        "showcaseCta": "See full restoration"
+        "showcaseCta": "See full restoration",
+        "portfolio": "Portfolio"
+    },
+    "homepageShowcases": 2,
+    "portfolio": {
+        "heading": "The Builds",
+        "intro": "Selected restorations from the StreetWorks shop, from bare metal to the concours lawn."
     },
     "showcases": [
         {
@@ -58,6 +64,30 @@
                 "homepage/Jensen-CV8-MKIII-Restored.jpg",
                 "homepage/Jensen-CV8-MKIII-Interior.jpg",
                 "homepage/Jensen-CV8-MKIII-Engine.jpg"
+            ]
+        },
+        {
+            "title": "Iso Grifo A3/C",
+            "year": "1964",
+            "description": "An ultra-rare Iso Grifo A3/C, brought back from a rust-eaten chassis to concours-ready condition.",
+            "ctaLink": "https://streetworksexotics.com/rare-iso-grifo-a3c-restoration-story/",
+            "accentColor": "#e5e7eb",
+            "image": "body-paint/1964-A3:C.jpg",
+            "gallery": [
+                "coachwork/A3C Coachwork.jpg",
+                "mechanical/1964-A3C.jpg",
+                "interior/A3C Interior.jpg"
+            ]
+        },
+        {
+            "title": "De Tomaso Mangusta",
+            "year": "",
+            "description": "Our full restoration earned Best of Show at the 2017 Concorso Italiano during Pebble Beach week, the first time any Mangusta had claimed the honor.",
+            "ctaLink": "https://streetworksexotics.com/the-mangustas-secret-life-stories-from-the-garage-and-the-italian-dream-machine/",
+            "accentColor": "#fb923c",
+            "image": "body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
+            "gallery": [
+                "coachwork/DeTomaso-Mangusta-Rebody.jpg"
             ]
         }
     ],

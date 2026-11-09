@@ -52,7 +52,7 @@ const { videoId } = await getBusiness();
       <mask id="text-mask">
         <rect x="-10000" y="-10000" width="20000" height="20000" fill="white" />
         {brand.wordmark.map((line, i) => (
-          <text x="0" y={(i - (brand.wordmark.length - 1) / 2) * 320} dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="260" letter-spacing="-0.02em" fill="black">{line}</text>
+          <text x="0" y={(i - (brand.wordmark.length - 1) / 2) * 320} dominant-baseline="middle" text-anchor="middle" font-weight="900" font-size="260" letter-spacing="-0.02em" fill="black" style="font-family: var(--brand-font-heading); font-stretch: var(--brand-heading-stretch);">{line}</text>
         ))}
       </mask>
     </defs>
@@ -61,7 +61,7 @@ const { videoId } = await getBusiness();
 </div>
 
 <div id="hero-ui" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 pointer-events-none">
-  <h1 class="hero-stagger text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-center uppercase drop-shadow-2xl mb-4">
+  <h1 class="hero-stagger text-[clamp(1.75rem,9vw,3rem)] md:text-7xl lg:text-8xl font-bold tracking-tighter text-center uppercase drop-shadow-2xl mb-4">
     {headline}
   </h1>
   <p class="hero-stagger text-xs md:text-sm font-light tracking-[0.4em] text-white/80 uppercase text-center mb-10">
@@ -91,3 +91,25 @@ const { videoId } = await getBusiness();
     100% { transform: translateY(100%); }
   }
 </style>
+<script>
+  // The cut-out wordmark zooms out to a 1920-wide frame. Once the brand font has loaded,
+  // shrink it if the longest line wouldn't fit, so any client name stays whole.
+  const FONT_SIZE = 260;
+  const LINE_HEIGHT = 320;
+  const MAX_WIDTH = 1800;
+
+  const fitWordmark = async () => {
+    await document.fonts?.ready;
+    const lines = [...document.querySelectorAll<SVGTextElement>("#logo-svg text")];
+    if (lines.length === 0) return;
+    lines.forEach((line) => line.setAttribute("font-size", String(FONT_SIZE)));
+    const widest = Math.max(...lines.map((line) => line.getComputedTextLength()));
+    const scale = Math.min(1, MAX_WIDTH / widest);
+    lines.forEach((line, i) => {
+      line.setAttribute("font-size", String(FONT_SIZE * scale));
+      line.setAttribute("y", String((i - (lines.length - 1) / 2) * LINE_HEIGHT * scale));
+    });
+  };
+
+  document.addEventListener("astro:page-load", fitWordmark);
+</script>

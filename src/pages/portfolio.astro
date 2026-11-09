@@ -1,0 +1,112 @@
+---
+// Every showcase in WordPress "Order": the homepage features the first few, this lists them all.
+import Layout from "../layouts/Layout.astro";
+import NavBar from "../components/NavBar.astro";
+import ContactSection from "../components/ContactSection.astro";
+import Footer from "../components/Footer.astro";
+import { Image } from "astro:assets";
+import { getShowcases } from "../lib/showcases";
+import { content } from "../lib/localContent";
+import brand from "../data/brand.json";
+
+const showcases = await getShowcases();
+const { portfolio, labels } = content;
+---
+
+<Layout title={`${labels.portfolio} | ${brand.client}`} description={portfolio.intro} image={showcases[0]?.image}>
+  <NavBar />
+
+  <main class="relative w-full bg-black text-white">
+    <header class="max-w-7xl mx-auto px-6 md:px-12 pt-40 md:pt-48 pb-16 md:pb-24">
+      <p class="text-accent font-mono text-xs md:text-sm tracking-[0.5em] uppercase mb-6">{labels.portfolio}</p>
+      <h1 class="font-heading text-6xl md:text-8xl lg:text-[8rem] font-bold tracking-tighter uppercase leading-[0.85]">{portfolio.heading}</h1>
+      <p class="mt-8 max-w-xl text-lg md:text-2xl text-white/60 font-light leading-relaxed">{portfolio.intro}</p>
+    </header>
+
+    <section class="max-w-7xl mx-auto px-6 md:px-12 pb-32 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-20 md:gap-y-28">
+      {showcases.map((build, i) => {
+        const Card = build.ctaLink ? "a" : "div";
+        return (
+          <Card
+            href={build.ctaLink}
+            target={build.ctaLink ? "_blank" : undefined}
+            rel={build.ctaLink ? "noopener noreferrer" : undefined}
+            class:list={["portfolio-card group block", i === 0 && "md:col-span-2", i % 2 === 0 && i > 0 && "md:mt-32"]}
+            style={`--card-accent: ${build.accentColor || brand.colors.accent};`}
+          >
+            <div class:list={["relative overflow-hidden rounded-xl bg-[#111]", i === 0 ? "aspect-[16/9]" : "aspect-[4/5]"]}>
+              <Image
+                src={build.image as any}
+                alt={build.title}
+                inferSize={typeof build.image === "string"}
+                widths={i === 0 ? [640, 1080, 1600, 2400] : [480, 960, 1440]}
+                sizes={i === 0 ? "(min-width: 1280px) 1200px, 100vw" : "(min-width: 768px) 45vw, 100vw"}
+                loading={i === 0 ? "eager" : "lazy"}
+                class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+            </div>
+            <div class="mt-6 md:mt-8 flex flex-col gap-3">
+              <span class="font-mono text-xs tracking-[0.4em] uppercase" style="color: var(--card-accent);">
+                {[build.year, labels.showcaseYear].filter(Boolean).join(" ")}
+              </span>
+              <h2 class="font-heading text-3xl md:text-5xl font-bold tracking-tighter uppercase leading-[0.95]">{build.title}</h2>
+              {build.description && <p class="max-w-xl text-white/60 font-light leading-relaxed">{build.description}</p>}
+              {build.ctaLink && (
+                <span class="mt-2 inline-flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase font-bold" style="color: var(--card-accent);">
+                  {labels.showcaseCta}
+                  <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </span>
+              )}
+            </div>
+          </Card>
+        );
+      })}
+    </section>
+
+    <ContactSection />
+  </main>
+  <Footer />
+</Layout>
+
+<noscript><style is:inline>.portfolio-card { opacity: 1 !important; transform: none !important; }</style></noscript>
+
+<style>
+  .portfolio-card {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .portfolio-card.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio-card {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  // Cards rise in as they scroll into view.
+  const revealCards = () => {
+    const cards = document.querySelectorAll(".portfolio-card");
+    if (!("IntersectionObserver" in window)) {
+      cards.forEach((card) => card.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      }),
+      { rootMargin: "0px 0px -10% 0px" }
+    );
+    cards.forEach((card) => observer.observe(card));
+  };
+  document.addEventListener("astro:page-load", revealCards);
+</script>

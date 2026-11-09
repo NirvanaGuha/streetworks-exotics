@@ -7,14 +7,17 @@
 
   gsap.registerPlugin(ScrollTrigger);
 
-  const lenis = new Lenis({
-    autoRaf: false, 
-  });
+  // Smooth-scroll inertia is motion people can't opt out of, so native scrolling for reduced motion.
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const lenis = new Lenis({
+      autoRaf: false, 
+    });
 
-  // The critical GSAP handshake
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
+    // The critical GSAP handshake
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
 
-  gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(0);
+  }
 </script>

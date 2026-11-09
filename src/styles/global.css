@@ -4,6 +4,16 @@
 @theme inline {
   --color-accent: var(--brand-accent);
   --color-accent-contrast: var(--brand-accent-contrast);
+  --font-sans: var(--brand-font-body);
+  --font-serif: var(--brand-font-serif);
+  --font-heading: var(--brand-font-heading);
+}
+
+@layer base {
+  h1, h2, h3, .font-heading {
+    font-family: var(--brand-font-heading);
+    font-stretch: var(--brand-heading-stretch);
+  }
 }
 
 @layer utilities {
@@ -16,4 +26,12 @@
   }
 }
 
-/* We'll add our custom Lenis and GSAP utilities here later */
+/* Reduced motion: stop CSS animations and transitions (GSAP effects are handled in the page scripts). */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

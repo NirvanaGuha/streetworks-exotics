@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import NavBar from "../components/NavBar.astro";
 import SmoothScroll from "../components/SmoothScroll.astro";
+import Preloader from "../components/Preloader.astro";
 import VideoModal from "../components/VideoModal.astro";
 import HeroSequence from "../components/HeroSequence.astro";
 import AwardsGrid from "../components/AwardsGrid.astro";
@@ -13,8 +14,9 @@ import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
 import { fetchAPI, parseWPBlocks } from "../lib/wp";
-import { content, getLocalHomepageServices, getLocalShowcases, getServiceStripImages } from "../lib/localContent";
+import { content, getLocalHomepageServices, getServiceStripImages } from "../lib/localContent";
 import { asset } from "../lib/assets";
+import { getShowcases } from "../lib/showcases";
 import brand from "../data/brand.json";
 
 // 1. Fetch Homepage Data from WordPress
@@ -32,21 +34,6 @@ const data = await fetchAPI(`
         introText1
         introText2
         introText3
-      }
-    }
-    showcases(first: 20, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
-      nodes {
-        title
-        featuredImage { node { sourceUrl } }
-        showcaseDetails {
-          year
-          description
-          accentColor
-          ctaLink
-          galleryImage1 { node { sourceUrl } }
-          galleryImage2 { node { sourceUrl } }
-          galleryImage3 { node { sourceUrl } }
-        }
       }
     }
     testimonials(first: 3, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
@@ -78,20 +65,7 @@ const hero = {
 };
 const introTexts = [wp?.introText1, wp?.introText2, wp?.introText3].map((text, i) => text || content.introTexts[i]);
 
-const wpShowcases = (data?.showcases?.nodes || [])
-  .filter((s: any) => s.featuredImage)
-  .map((s: any) => ({
-    title: s.title,
-    year: s.showcaseDetails?.year,
-    description: s.showcaseDetails?.description,
-    accentColor: s.showcaseDetails?.accentColor,
-    ctaLink: s.showcaseDetails?.ctaLink,
-    image: s.featuredImage.node.sourceUrl,
-    gallery: [s.showcaseDetails?.galleryImage1, s.showcaseDetails?.galleryImage2, s.showcaseDetails?.galleryImage3]
-      .filter(Boolean)
-      .map((img: any) => img.node.sourceUrl),
-  }));
-const showcaseList = wpShowcases.length > 0 ? wpShowcases : getLocalShowcases();
+const showcaseList = (await getShowcases()).slice(0, content.homepageShowcases);
 
 const testimonialList = (data?.testimonials?.nodes || []).map((t: any) => ({
   clientName: t.title,
@@ -126,7 +100,8 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
 });
 ---
 
-<Layout title={brand.client}>
+<Layout title={`${brand.client} | ${brand.tagline}`} image={hero.image}>
+  <Preloader />
   <SmoothScroll />
   <VideoModal />
   <NavBar />
@@ -242,16 +217,19 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
 
   const initAnimations = () => {
     ScrollTrigger.getAll().forEach(t => t.kill());
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Initial Load
-    gsap.from(".hero-stagger", {
-      y: 30,
+    // Hero entrance plays once the preloader has lifted (immediately if it was skipped)
+    const playHeroIntro = () => gsap.from(".hero-stagger", {
+      y: reduceMotion ? 0 : 30,
       opacity: 0,
       duration: 1.5,
       stagger: 0.15,
       ease: "power4.out",
       delay: 0.2,
     });
+    if ((window as any).__firePreloaderDone) playHeroIntro();
+    else window.addEventListener("fire:preloader-done", playHeroIntro, { once: true });
 
     const introTl = gsap.timeline({
       scrollTrigger: {
@@ -263,13 +241,18 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
     });
 
     introTl.to("#hero-ui", { opacity: 0, duration: 0.1 }, 0);
-    introTl.to("#logo-svg", { opacity: 1, duration: 0.1 }, 0);
-    introTl.to("#hero-frost", { backdropFilter: "blur(24px)", backgroundColor: "rgba(255, 255, 255, 0.10)", duration: 0.4 }, 0);
-    introTl.to("#logo-svg", { attr: { viewBox: "-960 -540 1920 1080" }, duration: 0.5 }, 0);
+    // A full-screen 24px backdrop blur is expensive on phones, so they get a lighter one.
+    const frostBlur = window.matchMedia("(max-width: 767px)").matches ? "blur(12px)" : "blur(24px)";
+    introTl.to("#hero-frost", { backdropFilter: frostBlur, backgroundColor: "rgba(255, 255, 255, 0.10)", duration: 0.4 }, 0);
+    // Reduced motion: the hero cross-fades to the awards instead of zooming through the logo.
+    if (!reduceMotion) {
+      introTl.to("#logo-svg", { opacity: 1, duration: 0.1 }, 0);
+      introTl.to("#logo-svg", { attr: { viewBox: "-960 -540 1920 1080" }, duration: 0.5 }, 0);
+      introTl.to("#gradient-sweep", { opacity: 1, duration: 0.05 }, 0.4);
+      introTl.to("#gradient-sweep", { backgroundPosition: "-100% 0%", duration: 1.0, ease: "power2.inOut" }, 0.45);
+      introTl.to("#gradient-sweep", { opacity: 0, duration: 0.2 }, 1.45);
+    }
     introTl.to("#hero-bg-wrapper", { opacity: 0, duration: 0.2 }, 0.3);
-    introTl.to("#gradient-sweep", { opacity: 1, duration: 0.05 }, 0.4);
-    introTl.to("#gradient-sweep", { backgroundPosition: "-100% 0%", duration: 1.0, ease: "power2.inOut" }, 0.45);
-    introTl.to("#gradient-sweep", { opacity: 0, duration: 0.2 }, 1.45);
     introTl.to(["#logo-svg", "#hero-frost"], { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 1.5);
     introTl.to(".awards-layer", { autoAlpha: 1, duration: 0.1 }, 1.4);
     introTl.fromTo("#awards-section", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.5);
@@ -284,7 +267,7 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
 
     gsap.utils.toArray<HTMLElement>(".text-block-container").forEach((container) => createTextBlockTimeline(container));
 
-    gsap.utils.toArray(".showcase-bg").forEach((bg) => {
+    if (!reduceMotion) gsap.utils.toArray(".showcase-bg").forEach((bg) => {
       const htmlBg = bg as HTMLElement;
       gsap.to(htmlBg, {
         yPercent: 15,
@@ -314,7 +297,7 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
     });
 
     let mm = gsap.matchMedia();
-    mm.add("(min-width: 768px)", () => {
+    mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
       gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
         const htmlContainer = container as HTMLElement;
         const travelDistance = index % 2 === 0 ? 180 : 80;
@@ -332,7 +315,7 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
       });
     });
 
-    mm.add("(max-width: 767px)", () => {
+    mm.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => {
       gsap.utils.toArray(".gallery-zoomable").forEach((container, index) => {
         const htmlContainer = container as HTMLElement;
         const travelDistance = index % 2 === 0 ? 40 : 20;

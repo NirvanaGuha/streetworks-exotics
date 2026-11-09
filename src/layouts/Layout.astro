@@ -1,28 +1,59 @@
 ---
+import '../styles/fonts.css';
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import brand from '../data/brand.json';
 import { demoMode, demoCredit } from '../lib/demo';
+import { content } from '../lib/localContent';
+import { asset } from '../lib/assets';
 
 interface Props {
 	title?: string;
+	description?: string;
+	/** Link-preview image (WordPress URL or local image); defaults to the hero image. */
+	image?: string | ImageMetadata;
 }
 
-const { title = brand.client } = Astro.props;
+const { title = brand.client, description = brand.description, image = asset(content.hero.image) } = Astro.props;
 
-// Feeds the `accent` / `accent-contrast` Tailwind colours (see styles/global.css).
-const brandVars = `:root{--brand-accent:${brand.colors.accent};--brand-accent-contrast:${brand.colors.accentContrast};}`;
+// Link previews (iMessage, WhatsApp, Instagram/Facebook DMs, LinkedIn, Slack) need absolute URLs,
+// so set PUBLIC_SITE_URL to the deployed address.
+const siteBase = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, siteBase).href;
+const previewImage = await getImage({ src: image, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 80 });
+const previewImageUrl = new URL(previewImage.src, siteBase).href;
+
+// Feeds the brand colours and fonts used by Tailwind (see styles/global.css).
+const brandVars = `:root{--brand-accent:${brand.colors.accent};--brand-accent-contrast:${brand.colors.accentContrast};` +
+	`--brand-font-heading:${brand.fonts.heading};--brand-heading-stretch:${brand.fonts.headingStretch};` +
+	`--brand-font-body:${brand.fonts.body};--brand-font-serif:${brand.fonts.serif};}`;
 ---
 
 <!doctype html>
 <html lang="en" class="bg-black text-white antialiased">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={brand.description} />
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		{demoMode && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
+		<link rel="canonical" href={canonicalUrl} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={brand.client} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={previewImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={previewImageUrl} />
+		<meta name="theme-color" content="#000000" />
 		<style is:inline set:html={brandVars}></style>
 		<ClientRouter />
 	</head>

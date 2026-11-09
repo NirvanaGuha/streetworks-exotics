@@ -82,9 +82,13 @@ const service = !entry ? await getLocalService(slug!) : {
     textCta: texts[2]?.text || "Ready to get in touch?",
 };
 if (!service) throw new Error(`No service content for "${slug}" in WordPress or src/content/services.`);
+
+// Long quotes step down a size so they fit short laptop and phone screens.
+const quoteSize = (quote: string) =>
+  quote.length > 320 ? "text-base md:text-xl lg:text-2xl" : quote.length > 160 ? "text-lg md:text-2xl lg:text-[1.75rem]" : "text-xl sm:text-2xl md:text-3xl lg:text-4xl";
 ---
 
-<Layout title={`${service.title} | ${brand.client}`}>
+<Layout title={`${service.title} | ${brand.client}`} description={service.heroTagline || undefined} image={service.heroImage || undefined}>
     <Navbar />
 
     <main class="relative w-full bg-black text-white">
@@ -155,7 +159,7 @@ if (!service) throw new Error(`No service content for "${slug}" in WordPress or 
                             </svg>
                             ))}
                         </div>
-                        <p class="text-base sm:text-lg md:text-2xl lg:text-3xl font-serif italic text-white/90 leading-relaxed mb-4 md:mb-8">"{review.text}"</p>
+                        <p class:list={[quoteSize(review.text), "font-serif italic text-white/90 leading-relaxed mb-4 md:mb-8"]}>"{review.text}"</p>
                         <span class="text-white font-bold uppercase tracking-[0.2em] text-xs md:text-base">— {review.name}</span>
                         </div>
                         <div class="w-full md:w-1/2 h-[25dvh] sm:h-[30dvh] md:h-[50dvh] max-w-xl rounded-xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 shrink-0">
@@ -207,7 +211,9 @@ if (!service) throw new Error(`No service content for "${slug}" in WordPress or 
 
             // A. Hero Animation
             masterTl.to({}, { duration: 1 }); // hold hero
-            masterTl.to("#layer-hero img", { scale: 1.1, duration: 2 }, 0);
+            if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                masterTl.to("#layer-hero img", { scale: 1.1, duration: 2 }, 0);
+            }
             masterTl.to("#layer-hero", { autoAlpha: 0, duration: 1 }); // fade out to black
 
             // B. Text 1

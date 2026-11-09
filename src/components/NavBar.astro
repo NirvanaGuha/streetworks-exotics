@@ -2,6 +2,7 @@
 import { fetchAPI } from "../lib/wp";
 import { getLocalServiceLinks } from "../lib/localContent";
 import brand from "../data/brand.json";
+import { content } from "../lib/localContent";
 
 interface Props {
   /** Pages without their own contact section link to the homepage's. */
@@ -37,7 +38,7 @@ const services = data?.services?.nodes?.length ? data.services.nodes : await get
   <div class="flex items-center gap-8 md:gap-12 pointer-events-auto">
     <a
       href="/"
-      class="text-xl md:text-2xl font-black tracking-tighter uppercase text-white drop-shadow-md hover:text-accent transition-colors"
+      class="font-heading text-lg md:text-2xl font-black tracking-tighter uppercase text-white drop-shadow-md hover:text-accent transition-colors"
     >
       {brand.shortName}
     </a>
@@ -48,14 +49,32 @@ const services = data?.services?.nodes?.length ? data.services.nodes : await get
     >
       Services
     </button>
+
+    <a
+      href="/portfolio"
+      class="hidden md:block font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"
+    >
+      {content.labels.portfolio}
+    </a>
   </div>
+
+  <div class="flex items-center gap-3 pointer-events-auto">
+  <!-- Phones: the Services and Portfolio links live in the full-screen menu -->
+  <button
+    id="menu-open-btn"
+    aria-label="Open menu"
+    class="md:hidden w-11 h-11 flex items-center justify-center rounded-sm border border-white/20 bg-black/30 backdrop-blur-md text-white hover:text-accent transition-colors"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"></path></svg>
+  </button>
 
   <a
     href={contactHref}
-    class="px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent hover:text-accent-contrast transition-colors duration-300 pointer-events-auto rounded-sm shadow-2xl z-50"
+    class="px-4 md:px-6 py-3 whitespace-nowrap bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent hover:text-accent-contrast transition-colors duration-300 pointer-events-auto rounded-sm shadow-2xl z-50"
   >
-    Get in touch
+    <span class="md:hidden">Contact</span><span class="hidden md:inline">Get in touch</span>
   </a>
+  </div>
 
   <div
     id="services-modal"
@@ -93,12 +112,18 @@ const services = data?.services?.nodes?.length ? data.services.nodes : await get
         services.map((service: any) => (
           <a
             href={`/services/${service.slug}`}
-            class="modal-link opacity-0 text-3xl md:text-5xl lg:text-7xl font-black uppercase tracking-tighter text-white hover:text-accent transition-colors text-left"
+            class="modal-link opacity-0 font-heading text-3xl md:text-5xl lg:text-7xl font-black uppercase tracking-tighter text-white hover:text-accent transition-colors text-left"
           >
             {service.title}
           </a>
         ))
       }
+      <a
+        href="/portfolio"
+        class="modal-link opacity-0 mt-4 md:mt-8 text-sm md:text-base font-bold uppercase tracking-[0.3em] text-accent hover:text-white transition-colors"
+      >
+        {content.labels.portfolio} →
+      </a>
     </nav>
   </div>
 </header>
@@ -145,10 +170,13 @@ const services = data?.services?.nodes?.length ? data.services.nodes : await get
       );
 
       // We use onclick to overwrite previous listeners and avoid stacking
-      openBtn.onclick = () => {
+      const openMenu = () => {
         document.body.style.overflow = "hidden";
         modalTl?.play();
       };
+      openBtn.onclick = openMenu;
+      const mobileBtn = document.getElementById("menu-open-btn");
+      if (mobileBtn) mobileBtn.onclick = openMenu;
 
       closeBtn.onclick = () => {
         document.body.style.overflow = "";

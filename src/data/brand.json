@@ -8,6 +8,12 @@
         "accent": "#eab308",
         "accentContrast": "#000000"
     },
+    "fonts": {
+        "heading": "'Archivo Variable', system-ui, sans-serif",
+        "headingStretch": "112%",
+        "body": "'Inter Variable', system-ui, sans-serif",
+        "serif": "'Instrument Serif', Georgia, serif"
+    },
     "introGradients": [
         ["#ff2a00", "#800000"],
         ["#fef08a", "#b45309"],
