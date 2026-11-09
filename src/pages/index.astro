@@ -141,7 +141,16 @@ laterTexts.slice(showcaseList.length).forEach((text, j) => {
           gradientTo={gradient(brand.introGradients, section.index)[1]}
         />
       ) : (
-        <ShowcaseStory showcase={section.showcase} index={section.index} />
+        <ShowcaseStory
+          image={section.showcase.image}
+          eyebrow={`${section.showcase.year} ${content.labels.showcaseYear}`}
+          title={section.showcase.title}
+          intro={section.showcase.description}
+          gallery={section.showcase.gallery}
+          accentColor={section.showcase.accentColor}
+          linkUrl={section.showcase.ctaLink}
+          index={section.index}
+        />
       )
     )}
 

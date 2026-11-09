@@ -10,8 +10,7 @@ import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { fetchAPI } from "../../lib/wp";
 import { getLocalService, getLocalServiceSlugs } from "../../lib/localContent";
-import { getShowcases } from "../../lib/showcases";
-import { isStatement, parseTextBlocks } from "../../lib/storyText";
+import { isStatement, parseTextBlocks, takeCaption } from "../../lib/storyText";
 import brand from "../../data/brand.json";
 
 export async function getStaticPaths() {
@@ -19,12 +18,10 @@ export async function getStaticPaths() {
     const slugs = data?.services?.nodes?.length
         ? data.services.nodes.map((entry: any) => entry.slug)
         : await getLocalServiceSlugs();
-    // The index picks which featured builds the page shows, so neighbouring services differ.
-    return slugs.map((slug: string, index: number) => ({ params: { slug }, props: { index } }));
+    return slugs.map((slug: string) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
-const { index: serviceIndex } = Astro.props;
 
 const data = await fetchAPI(`
   query GetServiceBySlug($id: ID!) {
@@ -84,33 +81,69 @@ if (!service) throw new Error(`No service content for "${slug}" in WordPress or 
 
 // The page scrolls like the homepage: the hero, then the service's sections in order, the
 // reviews and a closing line. Short copy plays as a full-screen statement and longer copy as
-// an article; each gallery in the service's content is where a featured build appears.
-// A final text section becomes the closing line, after the reviews.
-const showcases = await getShowcases();
-const last = service.sections.at(-1);
-const closingText = service.sections.length > 1 && last?.type === "text" ? (last.text as string) : null;
-const body = closingText ? service.sections.slice(0, -1) : service.sections;
-
+// an article. Each gallery becomes a case study: its first image fills the screen, the rest
+// form the gallery, and the text after it gives the title (its heading) and the intro (its
+// first paragraph); the rest of that text follows as normal copy. Copy without a heading
+// takes the service's tagline, then its name, as the title. A final text section that no
+// gallery used becomes the closing line, after the reviews.
 type StoryItem =
     | { kind: "statement"; text: string; n: number }
     | { kind: "article"; text: string; firstNumber: number }
-    | { kind: "showcase"; showcase: (typeof showcases)[number]; index: number };
+    | { kind: "case"; image: any; gallery: any[]; eyebrow: string; title: string; intro: string; index: number }
+    | { kind: "spacer" };
 let statements = 0;
 let chapters = 0;
-let builds = 0;
+let cases = 0;
 const toItem = (text: string): StoryItem => {
     if (isStatement(text)) return { kind: "statement", text, n: ++statements };
     const item = { kind: "article" as const, text, firstNumber: chapters + 1 };
     chapters += parseTextBlocks(text).filter((block) => block.kind === "heading").length;
     return item;
 };
-const story: StoryItem[] = body.flatMap((section: any): StoryItem[] => {
-    if (section.type === "text") return [toItem(section.text)];
-    if (!showcases.length) return [];
-    const showcase = showcases[(serviceIndex * 2 + builds) % showcases.length];
-    return [{ kind: "showcase", showcase, index: builds++ }];
+const photoName = (img: any) =>
+    String(typeof img === "string" ? img : img?.url ?? img?.src ?? "")
+        .split("?")[0]
+        .split("/")
+        .pop()!
+        .replace(/\.[^.]+$/, "") // extension
+        .replace(/\.[\w-]{8}$/, "") // build hash
+        .replace(/(-\d+x\d+|-scaled|-\d)+$/, ""); // WordPress size, scaled and copy suffixes
+const fallbackTitles = [service.heroTagline, service.title].filter(Boolean);
+const sections = service.sections;
+const used = new Set<number>();
+const story: StoryItem[] = [];
+sections.forEach((section: any, i: number) => {
+    if (used.has(i)) return;
+    if (section.type === "text") {
+        story.push(toItem(section.text));
+        return;
+    }
+    // The full-screen photo shouldn't repeat the hero (WordPress keeps re-uploads as "name-1.jpg").
+    const images = [...section.images];
+    if (images.length > 1 && photoName(images[0]) === photoName(service.heroImage)) images.push(images.shift());
+    const [image, ...gallery] = images;
+    if (!image) return;
+    const next = sections[i + 1]?.type === "text" ? sections[i + 1] : null;
+    const caption = next ? takeCaption(next.text) : { rest: "" };
+    if (next) used.add(i + 1);
+    // Case studies fade in over the screen before them; back to back, that screen is a blank one.
+    if (story.at(-1)?.kind === "case") story.push({ kind: "spacer" });
+    const title = caption.title || fallbackTitles.shift() || service.title;
+    story.push({
+        kind: "case",
+        image,
+        gallery,
+        title,
+        eyebrow: title === service.title ? service.heroTagline : service.title,
+        intro: caption.intro || service.heroTagline,
+        index: cases++,
+    });
+    if (caption.rest) story.push(toItem(caption.rest));
 });
-const closing = toItem(closingText || "Ready to get in touch?");
+const lastIndex = sections.length - 1;
+type TextItem = Extract<StoryItem, { kind: "statement" | "article" }>;
+const closingItem = sections.length > 1 && sections[lastIndex]?.type === "text" && !used.has(lastIndex) ? (story.pop() as TextItem) : null;
+const closing = closingItem ?? (toItem("Ready to get in touch?") as TextItem);
 const tint = service.tintColor || "#94a3b8";
 ---
 
@@ -136,8 +169,10 @@ const tint = service.tintColor || "#94a3b8";
                 <StoryText n={item.n} text={item.text} gradientFrom="#ffffff" gradientTo={tint} />
             ) : item.kind === "article" ? (
                 <ServiceArticle text={item.text} accentColor={brand.colors.accent} gradientTo={tint} firstNumber={item.firstNumber} spacer />
+            ) : item.kind === "spacer" ? (
+                <div class="h-[100dvh]" aria-hidden="true"></div>
             ) : (
-                <ShowcaseStory showcase={item.showcase} index={item.index} />
+                <ShowcaseStory image={item.image} gallery={item.gallery} eyebrow={item.eyebrow} title={item.title} intro={item.intro} accentColor={brand.colors.accent} index={item.index} />
             )
         )}
 

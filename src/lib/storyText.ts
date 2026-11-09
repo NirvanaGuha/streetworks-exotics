@@ -53,3 +53,39 @@ export function toChapters(text: string): Chapter[] {
     }
     return chapters;
 }
+
+const serialize = (blocks: TextBlock[]) =>
+    blocks
+        .map((block) => {
+            if (block.kind === "heading") return `## ${block.text}`;
+            if (block.kind === "subheading") return `### ${block.text}`;
+            if (block.kind === "item") return `• ${block.title ? `${block.title}: ` : ""}${block.text}`;
+            return block.text;
+        })
+        .join("\n\n");
+
+/**
+ * Splits a case study's words off the front of a text section: its opening heading becomes
+ * the title and the first paragraph the intro (a long paragraph gives its first sentences,
+ * up to about `introChars`). Whatever is left carries on as normal copy.
+ */
+export function takeCaption(text: string, introChars = 220): { title?: string; intro?: string; rest: string } {
+    const blocks = parseTextBlocks(text);
+    const title = blocks[0]?.kind === "heading" ? blocks.shift()!.text : undefined;
+    let intro: string | undefined;
+    const first = blocks[0];
+    if (first?.kind === "paragraph") {
+        blocks.shift();
+        const sentences = first.text.match(/[^.!?]+[.!?]+["”’)]*\s*|[^.!?]+$/g) ?? [first.text];
+        let taken = 0;
+        let length = 0;
+        while (taken < sentences.length && (taken === 0 || length + sentences[taken].length <= introChars)) {
+            length += sentences[taken].length;
+            taken++;
+        }
+        intro = sentences.slice(0, taken).join("").trim();
+        const remainder = sentences.slice(taken).join("").trim();
+        if (remainder) blocks.unshift({ kind: "paragraph", text: remainder });
+    }
+    return { title, intro, rest: serialize(blocks) };
+}
