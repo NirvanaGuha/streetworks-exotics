@@ -15,9 +15,18 @@
         "headingAside": "but…",
         "text": "Our award winning restorations speak for themselves. We have experienced success worldwide including The Pebble Beach Concours d’Elegance, Amelia Island Concours d’Elegance and Concorso d’Eleganza Villa d’Este in Cernobbio, Italy.",
         "logos": [
-            { "name": "Pebble Beach Concours d'Elegance", "logo": "https://www.pebblebeachconcours.net/wp-content/themes/pbc-wp-theme-child/library/images/logo.png" },
-            { "name": "The Amelia", "logo": "https://cdn.prod.website-files.com/68c03ec0d6be7142be9855ae/68db1f4c0a9bb199d48eb997_Amelia-horizontal-revised.svg" },
-            { "name": "Concorso d’Eleganza Villa d’Este", "logo": "https://www.concorsodeleganzavilladeste.com/assets/concorso/VdE_Logo_white.svg" }
+            {
+                "name": "Pebble Beach Concours d'Elegance",
+                "logo": "awards/pebble-beach.png"
+            },
+            {
+                "name": "The Amelia",
+                "logo": "awards/the-amelia.svg"
+            },
+            {
+                "name": "Concorso d’Eleganza Villa d’Este",
+                "logo": "awards/villa-deste.svg"
+            }
         ]
     },
     "labels": {
@@ -76,7 +85,10 @@
         "body-paint/Isetta-Delivery.jpg"
     ],
     "contact": {
-        "heading": ["Visit", "The Shop."],
+        "heading": [
+            "Visit",
+            "The Shop."
+        ],
         "text": "We believe the best way to start a build is a conversation. Stop by to see current restorations, meet the craftsmen, and discuss your vision.",
         "formHeading": "Can't make it in?",
         "formText": "Drop us a line and we'll reach out."

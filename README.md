@@ -25,7 +25,7 @@ Plugins (all free): **WPGraphQL**, **Advanced Custom Fields**, **WPGraphQL for A
    wp config set FIRE_FORM_SECRET "$(openssl rand -hex 24)" --type=constant
    ```
    Enquiry emails go to the site admin email, or to `FIRE_ENQUIRY_RECIPIENT` if defined.
-3. Load the starter content from `src/data/content.json` and `src/data/brand.json`. It only fills what's empty, so it's safe to re-run on a live site; add `overwrite` to replace existing values:
+3. Load the starter content from `src/data/content.json`, `src/data/brand.json` and `src/content/services`. It only fills what's empty, so it's safe to re-run on a live site; add `overwrite` to replace existing values:
    ```bash
    wp eval-file wordpress/seed.php "$PWD"
    ```
@@ -66,15 +66,15 @@ node --env-file=.env dist/server/entry.mjs   # serve the production build
 Everything client-specific lives in data files and images; the components don't need editing.
 
 1. **`src/data/brand.json`**: name, short name (nav and footer), wordmark lines (the hero cut-out logo), tagline, meta description, accent colour plus the text colour that sits on it, gradient pairs for the intro texts and showcases, and business details (address, phone, email, directions, YouTube video, socials; leave a social out to hide its icon).
-2. **`src/data/content.json`**: hero, the three intro texts, awards copy and logos, the labels on showcases, showcases (as many as you like; each is followed by the next intro text), three testimonials, the four images in the services strip, and the contact copy.
-3. **`src/content/services/*.json`**: one file per service, named after its WordPress slug, with an `order` number.
+2. **`src/data/content.json`**: hero, the three intro texts, awards copy and logos (files in `src/assets/images/awards`), the labels on showcases, showcases (as many as you like; each is followed by the next intro text), three testimonials, the four images in the services strip, and the contact copy.
+3. **`src/content/services/*.json`**: one file per service; the file name becomes its URL slug. Title, `order`, hero image, tagline, tint colour, intro paragraphs, mid text, closing text and gallery images (split across the page's two galleries).
 4. **`src/assets/images/`**: the client's photos, referred to by path from the JSON files.
 5. **`public/favicon.svg`** and **`favicon.ico`**.
-6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET`, enter the services (title, featured image, *Service Details*, page content as text and gallery blocks), then run `wp eval-file wordpress/seed.php "$PWD"` for everything else.
+6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET`, then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, showcases, testimonials and services (with their text and gallery blocks) and uploads every image they use. Tested on a brand-new WordPress.
 7. **`.env`**: the client's GraphQL URL and form secret, and `PUBLIC_DEMO_MODE=true` until launch.
 8. Build, then search the output for the previous client's name and phone number. Nothing should turn up.
 
-Known limits: the reviews slider is sized for three testimonials, and award logos are loaded from the award organisers' sites.
+Known limit: the reviews slider is sized for three testimonials.
 
 ## Project map
 

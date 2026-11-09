@@ -3,7 +3,7 @@
  * Loads a client's starter content into WordPress from the site's own files:
  *   src/data/content.json   hero, intro texts, showcases, testimonials
  *   src/data/brand.json     business details (address, phone, socials, video)
- *   src/content/services    service order
+ *   src/content/services    services: title, order, featured image, details, page text and galleries
  *   src/assets/images       every image those files refer to
  *
  *   wp eval-file wordpress/seed.php <project-root> [overwrite]
@@ -72,15 +72,15 @@ function fire_seed_fields(int $post_id, array $fields, bool $overwrite): void
 }
 
 /** Creates a post by slug if it's missing (or updates it when overwriting), with featured image and fields. */
-function fire_seed_post(string $type, string $title, int $order, ?int $thumb, array $fields, bool $overwrite): void
+function fire_seed_post(string $type, string $title, int $order, ?int $thumb, array $fields, bool $overwrite, array $post = []): void
 {
-    $slug = sanitize_title($title);
+    $slug = $post['post_name'] ?? sanitize_title($title);
     $existing = get_page_by_path($slug, OBJECT, $type);
     if ($existing && !$overwrite) {
         WP_CLI::log("Kept existing $type: $slug");
         return;
     }
-    $data = ['post_type' => $type, 'post_name' => $slug, 'post_title' => $title, 'post_status' => 'publish', 'menu_order' => $order];
+    $data = $post + ['post_type' => $type, 'post_name' => $slug, 'post_title' => $title, 'post_status' => 'publish', 'menu_order' => $order];
     $id = $existing ? wp_update_post(['ID' => $existing->ID] + $data, true) : wp_insert_post($data, true);
     if (is_wp_error($id)) {
         WP_CLI::error($id->get_error_message());
@@ -148,13 +148,87 @@ foreach ($content['testimonials'] as $i => $testimonial) {
     ], $overwrite);
 }
 
-// Service order comes from the local service files; the services themselves are entered in WordPress.
-foreach (glob("$root/src/content/services/*.json") as $file) {
-    $data = json_decode(file_get_contents($file), true);
-    $service = get_page_by_path(basename($file, '.json'), OBJECT, 'service');
-    if ($service && isset($data['order']) && ($overwrite || (int) $service->menu_order === 0)) {
-        wp_update_post(['ID' => $service->ID, 'menu_order' => (int) $data['order']]);
+// Services: one per file in src/content/services, slug = file name.
+// The page content is built as the text/gallery sequence the service page reads:
+// intro text, gallery, text, gallery, closing text.
+
+/** Image paths in the service files are relative to the file ("../../assets/images/x.jpg"). */
+function fire_seed_service_image_path(string $path): string
+{
+    $pos = strpos($path, 'assets/images/');
+    return $pos === false ? $path : substr($path, $pos + strlen('assets/images/'));
+}
+
+function fire_seed_paragraphs(string $text): string
+{
+    $blocks = [];
+    foreach (preg_split('/\n{2,}/', trim($text)) as $paragraph) {
+        $blocks[] = "<!-- wp:paragraph -->\n<p>" . esc_html($paragraph) . "</p>\n<!-- /wp:paragraph -->";
     }
+    return implode("\n\n", $blocks);
+}
+
+function fire_seed_gallery(array $ids): string
+{
+    $images = '';
+    foreach ($ids as $id) {
+        [$src, $width, $height] = wp_get_attachment_image_src($id, 'large');
+        $images .= sprintf(
+            "<!-- wp:image {\"id\":%d,\"sizeSlug\":\"large\",\"linkDestination\":\"none\"} -->\n<figure class=\"wp-block-image size-large\"><img src=\"%s\" alt=\"\" width=\"%d\" height=\"%d\" class=\"wp-image-%d\"/></figure>\n<!-- /wp:image -->\n",
+            $id, esc_url($src), $width, $height, $id
+        );
+    }
+    return "<!-- wp:gallery {\"linkTo\":\"none\"} -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\">\n$images</figure>\n<!-- /wp:gallery -->";
+}
+
+/** Mirrors getLocalService() in src/lib/localContent.ts, so WordPress and the fallback render the same. */
+function fire_seed_service_content(array $data, callable $img): string
+{
+    $intro = implode("\n\n", $data['deepTextParagraphs'] ?? []);
+    if (!empty($data['contentBlocks'])) {
+        $texts = [$intro];
+        $galleries = [];
+        foreach ($data['contentBlocks'] as $block) {
+            if ($block['type'] === 'text') $texts[] = $block['text'];
+            if ($block['type'] === 'gallery') $galleries[] = $block['images'];
+        }
+    } else {
+        $images = $data['galleryImages'] ?? [];
+        $half = (int) ceil(count($images) / 2);
+        $texts = [$intro, $data['midText'] ?? ''];
+        $galleries = [array_slice($images, 0, $half), array_slice($images, $half)];
+    }
+    $closing = $data['finalText'] ?? ($texts[2] ?? '');
+
+    $parts = [];
+    foreach ([$texts[0] ?? '', $galleries[0] ?? [], $texts[1] ?? '', $galleries[1] ?? [], $closing] as $part) {
+        if (is_string($part) && trim($part) !== '') {
+            $parts[] = fire_seed_paragraphs($part);
+        } elseif (is_array($part) && $part) {
+            $parts[] = fire_seed_gallery(array_map(fn($path) => $img(fire_seed_service_image_path($path)), $part));
+        }
+    }
+    return implode("\n\n", $parts);
+}
+
+foreach (glob("$root/src/content/services/*.json") as $file) {
+    $data = fire_seed_json($file);
+    $slug = basename($file, '.json');
+    $order = (int) ($data['order'] ?? 0);
+    $existing = get_page_by_path($slug, OBJECT, 'service');
+    if ($existing && !$overwrite) {
+        // Keep the shop's content; only fill in an order if it has none.
+        if ($order && (int) $existing->menu_order === 0) {
+            wp_update_post(['ID' => $existing->ID, 'menu_order' => $order]);
+        }
+        WP_CLI::log("Kept existing service: $slug");
+        continue;
+    }
+    fire_seed_post('service', $data['title'], $order, $img(fire_seed_service_image_path($data['heroImage'])), [
+        'hero_tagline' => $data['heroTagline'] ?? '',
+        'description'  => $data['heroTagline'] ?? '',
+        'tint_color'   => $data['tintColor'] ?? '',
+    ], true, ['post_name' => $slug, 'post_content' => fire_seed_service_content($data, $img)]);
 }
 
 WP_CLI::success('Starter content seeded' . ($overwrite ? ' (overwrite)' : '') . '.');
