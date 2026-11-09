@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import brand from '../data/brand.json';
+import { demoMode, demoCredit } from '../lib/demo';
 
 interface Props {
 	title?: string;
@@ -15,13 +16,36 @@ const { title = brand.client } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content={brand.tagline} />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		{demoMode && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
 		<ClientRouter />
 	</head>
 	<body class="overflow-x-hidden">
 		<slot />
+
+		{demoMode && (
+			<div id="demo-badge" class="fixed bottom-4 left-4 z-[90] pointer-events-none rounded-full border border-white/10 bg-black/60 backdrop-blur-md px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-white/50 transition-opacity duration-500">
+				{demoCredit}
+			</div>
+		)}
+
+		<script>
+			// The floating badge steps aside over the contact form and the footer (which repeats the credit).
+			const hideBadgeOverContent = () => {
+				const badge = document.getElementById('demo-badge');
+				const targets = [...document.querySelectorAll('#contact-section, footer')];
+				if (!badge || targets.length === 0) return;
+				const visible = new Set<Element>();
+				const observer = new IntersectionObserver((entries) => {
+					entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
+					badge.style.opacity = visible.size > 0 ? '0' : '1';
+				});
+				targets.forEach((target) => observer.observe(target));
+			};
+			document.addEventListener('astro:page-load', hideBadgeOverContent);
+		</script>
 
 		<!-- Global Image Lightbox -->
 		<div id="image-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-md">

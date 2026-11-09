@@ -1,0 +1,17 @@
+---
+import Layout from "../layouts/Layout.astro";
+import NavBar from "../components/NavBar.astro";
+import Footer from "../components/Footer.astro";
+import brand from "../data/brand.json";
+---
+
+<Layout title={`Page not found | ${brand.client}`}>
+  <NavBar contactHref="/#contact-section" />
+  <main class="relative w-full bg-black text-white min-h-[100dvh] flex flex-col items-center justify-center text-center px-6">
+    <p class="text-xs font-mono uppercase tracking-[0.4em] text-white/40 mb-6">Error 404</p>
+    <h1 class="text-5xl md:text-8xl font-bold tracking-tighter uppercase mb-6">Wrong Turn.</h1>
+    <p class="text-white/60 font-light max-w-md mb-12">The page you're looking for has been moved, retired, or never left the shop.</p>
+    <a href="/" class="px-8 py-4 bg-white text-black rounded-lg hover:bg-yellow-500 transition-colors font-bold uppercase tracking-widest text-sm">Back to the showroom</a>
+  </main>
+  <Footer contactHref="/#contact-section" />
+</Layout>

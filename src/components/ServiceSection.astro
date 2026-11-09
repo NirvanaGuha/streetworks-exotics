@@ -37,6 +37,8 @@ const {
       width={1920}
       height={1080}
       inferSize={true}
+      widths={[640, 1080, 1600, 2400]}
+      sizes="100vw"
       class="service-bg absolute inset-0 w-full h-full object-cover opacity-60" 
     />
     <div class="absolute inset-0 mix-blend-color opacity-50" style={`background-color: ${tintColor};`}></div>
@@ -66,6 +68,8 @@ const {
                 width={800}
                 height={600}
                 inferSize={true}
+                widths={[320, 640]}
+                sizes="(min-width: 768px) 30vw, 60vw"
                 class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" 
               />
             </div>
@@ -80,6 +84,8 @@ const {
                 width={800}
                 height={600}
                 inferSize={true}
+                widths={[320, 640]}
+                sizes="(min-width: 768px) 30vw, 60vw"
                 class="h-full w-auto object-cover hover:scale-105 transition-transform duration-500" 
               />
             </div>

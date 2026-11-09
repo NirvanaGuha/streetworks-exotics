@@ -1,5 +1,23 @@
 ---
+import { fetchAPI } from "../lib/wp";
+import { demoCredit } from "../lib/demo";
+
+interface Props {
+  /** Pages without their own contact section link to the homepage's. */
+  contactHref?: string;
+}
+
+const { contactHref = "#contact-section" } = Astro.props;
 const currentYear = new Date().getFullYear();
+
+// Legal links appear once these pages are published in WordPress (rendered by src/pages/[page].astro).
+const data = await fetchAPI(`
+  query GetLegalPages {
+    privacy: page(id: "privacy-policy", idType: URI) { title uri status }
+    terms: page(id: "terms-of-service", idType: URI) { title uri status }
+  }
+`);
+const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status === "publish");
 ---
 
 <footer class="relative w-full bg-[#050505] border-t border-white/5 pt-12 pb-8 px-6 md:px-12 z-30">
@@ -10,19 +28,23 @@ const currentYear = new Date().getFullYear();
       <p class="text-white/40 text-xs font-mono uppercase tracking-[0.2em]">
         &copy; {currentYear} StreetWorks Exotics. All rights reserved.
       </p>
+      {demoCredit && <p class="text-white/30 text-[10px] font-mono uppercase tracking-[0.2em]">{demoCredit}</p>}
     </div>
 
     <nav class="flex flex-wrap justify-start gap-6 md:gap-10 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
-      <a href="#" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Home</a>
-      <a href="#services-master-container" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Services</a>
-      <a href="#" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Portfolio</a>
-      <a href="#contact-section" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Contact</a>
+      <a href="/" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Home</a>
+      <a href="/#services-master-container" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Services</a>
+      <a href="/#showcase-1" class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Portfolio</a>
+      <a href={contactHref} class="hover:text-yellow-500 hover:-translate-y-1 transition-all duration-300">Contact</a>
     </nav>
 
-    <div class="flex gap-6 text-xs font-light text-white/30 hover:text-white/70 transition-colors">
-      <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
-      <a href="/terms" class="hover:text-white transition-colors">Terms of Service</a>
-    </div>
+    {legalPages.length > 0 && (
+      <div class="flex gap-6 text-xs font-light text-white/30 hover:text-white/70 transition-colors">
+        {legalPages.map((page: any) => (
+          <a href={page.uri} class="hover:text-white transition-colors">{page.title}</a>
+        ))}
+      </div>
+    )}
 
   </div>
 </footer>

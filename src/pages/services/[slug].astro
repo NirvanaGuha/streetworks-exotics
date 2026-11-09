@@ -7,6 +7,7 @@ import ContactSection from "../../components/ContactSection.astro";
 import TextReveal from "../../components/TextReveal.astro";
 import Footer from "../../components/Footer.astro";
 import { fetchAPI, parseWPBlocks } from "../../lib/wp";
+import { getLocalService, getLocalServiceSlugs } from "../../lib/localContent";
 import { Image } from 'astro:assets';
 
 // Reviews Images
@@ -22,8 +23,11 @@ const defaultReviews = [
 ];
 
 export async function getStaticPaths() {
-    const data = await fetchAPI(`query GetServiceSlugs { services { nodes { slug } } }`);
-    return (data?.services?.nodes || []).map((entry: any) => ({ params: { slug: entry.slug } }));
+    const data = await fetchAPI(`query GetServiceSlugs { services(first: 100) { nodes { slug } } }`);
+    const slugs = data?.services?.nodes?.length
+        ? data.services.nodes.map((entry: any) => entry.slug)
+        : await getLocalServiceSlugs();
+    return slugs.map((slug: string) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
@@ -55,7 +59,6 @@ const data = await fetchAPI(`
 `, { variables: { id: slug } });
 
 const entry = data?.service;
-if (!entry) return Astro.redirect('/404');
 
 // The reviews track below is sized for three slides.
 const wpReviews = (data?.testimonials?.nodes || []).map((t: any) => ({
@@ -65,11 +68,11 @@ const wpReviews = (data?.testimonials?.nodes || []).map((t: any) => ({
 }));
 const reviews = wpReviews.length > 0 ? wpReviews : defaultReviews;
 
-const wpBlocks = parseWPBlocks(entry.content);
+const wpBlocks = parseWPBlocks(entry?.content);
 const texts = wpBlocks.filter((b: any) => b.type === 'text');
 const galleries = wpBlocks.filter((b: any) => b.type === 'gallery');
 
-const service = {
+const service = !entry ? await getLocalService(slug!) : {
     title: entry.title,
     heroTagline: entry.serviceDetails?.description || "",
     heroImage: entry.featuredImage?.node?.sourceUrl || "",
@@ -86,6 +89,7 @@ const service = {
     gallery2: galleries[1]?.images || [],
     textCta: texts[2]?.text || "Ready to get in touch?",
 };
+if (!service) throw new Error(`No service content for "${slug}" in WordPress or src/content/services.`);
 ---
 
 <Layout title={`${service.title} | StreetWorks Exotics`}>

@@ -13,6 +13,7 @@ import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
 import { fetchAPI, parseWPBlocks } from "../lib/wp";
+import { getLocalHomepageServices } from "../lib/localContent";
 
 // 1. Fetch Homepage Data from WordPress
 // Showcases, testimonials and services are their own post types (see wordpress/fire-headless),
@@ -89,27 +90,21 @@ const testimonialList = (data?.testimonials?.nodes || []).map((t: any) => ({
 }));
 
 // The homepage strip of each service reuses the first gallery from that service's page.
-const serviceList = (data?.services?.nodes || []).map((s: any) => ({
+const wpServices = (data?.services?.nodes || []).map((s: any) => ({
   title: s.title,
   tintColor: s.serviceDetails?.tintColor,
   description: s.serviceDetails?.description?.trim(),
   link: `/services/${s.slug}`,
-  backgroundImage: s.featuredImage,
-  gallery: {
-    nodes: (parseWPBlocks(s.content).find((b: any) => b.type === "gallery")?.images || [])
-      .map((img: any) => ({ sourceUrl: img.url })),
-  },
+  backgroundImage: s.featuredImage?.node?.sourceUrl,
+  galleryImages: (parseWPBlocks(s.content).find((b: any) => b.type === "gallery")?.images || []).map((img: any) => img.url),
 }));
+const serviceList = wpServices.length > 0 ? wpServices : await getLocalHomepageServices();
 
 // Image Imports (Local Fallbacks - Keeping these for safety)
 import bodyPaintScaledImg from "../assets/images/body-paint/body-and-paint-scaled.jpg";
 import maseratiGhibliImg from "../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg";
 import detomasoMangustaImg from "../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg";
 import isettaDeliveryImg from "../assets/images/body-paint/Isetta-Delivery.jpg";
-import isoGrifoNewNoseImg from "../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose.jpg";
-import isleroMetalShopImg from "../assets/images/coachwork/Lamborghini-Islero-out-of-metal-shop.jpg";
-import a3cCoachworkImg from "../assets/images/coachwork/A3C Coachwork.jpg";
-import lanciaFulviaImg from "../assets/images/coachwork/Lancia-Fulvia-Series-II-Coupe-coachwork-scaled-1.jpg";
 import isoGrifo4Img from "../assets/images/homepage/Restored-1967-Iso-Grifo-4.jpg";
 import isoGrifoEngineImg from "../assets/images/homepage/Restored-1967-Iso-Grifo-Engine.jpg";
 import isoGrifoBodyImg from "../assets/images/homepage/Restored-1967-Iso-Grifo-Body.jpg";
@@ -117,13 +112,6 @@ import jensenCv8Img from "../assets/images/homepage/Jensen-CV8-MKIII-10.jpg";
 import jensenCv8RestoredImg from "../assets/images/homepage/Jensen-CV8-MKIII-Restored.jpg";
 import jensenCv8InteriorImg from "../assets/images/homepage/Jensen-CV8-MKIII-Interior.jpg";
 import jensenCv8EngineImg from "../assets/images/homepage/Jensen-CV8-MKIII-Engine.jpg";
-import blue400GtRearImg from "../assets/images/body-paint/Blue-400GT-rear-scaled-1.jpg";
-import isoGrifoNewNose1Img from "../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose-1.jpg";
-import gt400InteriorImg from "../assets/images/interior/400-GT-interior-scaled-1.jpg";
-import lamborghiniV12CarbsImg from "../assets/images/mechanical/Lamborghini-V12-Sidedraft-Weber-Carburetors.jpg";
-import weldPromoImg from "../assets/images/fabrication/weld-promo-photo2.jpg";
-import maintenanceImg from "../assets/images/maintenance/Automobile-Service-and-Maintenance-in-Pewaukee.jpg";
-import detailingImg from "../assets/images/detailing/Automotive-Detailing-in-Pewaukee.jpg";
 
 const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangustaImg, isettaDeliveryImg];
 ---
@@ -140,7 +128,7 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
           <HeroSequence 
             headline={wp?.heroHeadline}
             tagline={wp?.heroTagline}
-            bgImgUrl={wp?.heroImage?.node?.sourceUrl}
+            bgImgUrl={wp?.heroImage?.node?.sourceUrl || isoGrifo4Img}
           />
         </div>
 
@@ -272,27 +260,13 @@ const defaultGalleryRow1 = [bodyPaintScaledImg, maseratiGhibliImg, detomasoMangu
             title={service.title}
             tintColor={service.tintColor}
             description={service.description}
-            bgImgUrl={service.backgroundImage?.node?.sourceUrl}
+            bgImgUrl={service.backgroundImage}
             serviceUrl={service.link}
             bookingUrl="#contact-section"
             galleryRow1={defaultGalleryRow1} // Row 1 remains brand-focused
-            galleryRow2={service.gallery?.nodes?.map(g => g.sourceUrl) || []}
+            galleryRow2={service.galleryImages}
           />
         ))}
-
-        {/* Fallback rendering if WP repeater is empty */}
-        {serviceList.length === 0 && (
-          <ServiceSection
-            title="Body & Paint"
-            tintColor="#800000"
-            description="Flawless surface preparation and period-correct color matching for a concours-quality finish."
-            bgImgUrl={blue400GtRearImg}
-            serviceUrl="/services/body-paint"
-            bookingUrl="#contact-section"
-            galleryRow1={defaultGalleryRow1}
-            galleryRow2={[]}
-          />
-        )}
       </div>
     </div>
 

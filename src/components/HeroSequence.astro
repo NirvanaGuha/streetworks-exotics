@@ -2,14 +2,16 @@
 import { Image } from 'astro:assets';
 import brand from '../data/brand.json';
 
+import type { ImageMetadata } from 'astro';
+
 interface Props {
-  bgImgUrl?: string;
+  bgImgUrl: string | ImageMetadata;
   headline?: string;
   tagline?: string;
 }
 
-const { 
-  bgImgUrl = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=3000&auto=format&fit=crop",
+const {
+  bgImgUrl,
   headline = brand.client,
   tagline = brand.tagline
 } = Astro.props;
@@ -24,6 +26,10 @@ const {
     width={1920}
     height={1080}
     inferSize={true}
+    widths={[640, 1080, 1600, 2400]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
     class="w-full h-full object-cover object-center opacity-100"
   />
   <div class="absolute inset-0 bg-black/40 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>

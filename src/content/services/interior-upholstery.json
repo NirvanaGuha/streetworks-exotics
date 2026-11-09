@@ -1,0 +1,25 @@
+{
+  "order": 5,
+  "title": "Interior & Upholstery",
+  "heroTagline": "Bespoke Cabins Tailored to Perfection",
+  "description": "Hand-stitched leathers, period-accurate fabrics, and bespoke cabin restorations tailored to perfection.",
+  "heroImage": "../../assets/images/interior/400-GT-interior-scaled-1.jpg",
+  "tintColor": "#1e3a8a",
+  "deepTextTitle": "Tactile Authenticity",
+  "deepTextParagraphs": [
+    "The cabin is where the driver connects with the machine. We source the finest New Old Stock (NOS) materials, from correct Connolly leathers to Wilton wool carpets, ensuring every scent, texture, and stitch mirrors the day the car left the factory.",
+    "Our upholstery masters rebuild seat frames, re-foam bolsters to exact densities, and hand-stitch every panel. Whether restoring a minimalist racing bucket or a luxurious grand tourer cabin, the resulting environment is nothing short of a sensory masterpiece."
+  ],
+  "midText": "Tactile authenticity down to the very last hand-stitched seam.",
+  "finalText": "Step inside a cabin crafted for the absolute purist.",
+  "galleryImages": [
+    "../../assets/images/interior/Iso-Interiors.jpg",
+    "../../assets/images/interior/A3C Interior.jpg",
+    "../../assets/images/interior/Bizzarini.jpg",
+    "../../assets/images/interior/32-Hot-Rod-Custom-Interior.jpg",
+    "../../assets/images/interior/Ferrari-Upholstery-scaled-1.jpg",
+    "../../assets/images/interior/Islero-S-upholstery-scaled-1.jpg",
+    "../../assets/images/interior/Lamborghini-Countach.jpg",
+    "../../assets/images/interior/Jensen-CV8.jpg"
+  ]
+}

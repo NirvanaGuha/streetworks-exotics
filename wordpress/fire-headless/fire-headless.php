@@ -48,6 +48,21 @@ add_action('init', function () {
         'graphql_plural_name' => 'Showcases',
     ]);
 
+    // Contact form submissions from the front end. Read-only in the admin, never public.
+    register_post_type('enquiry', [
+        'label'           => 'Enquiries',
+        'labels'          => ['singular_name' => 'Enquiry'],
+        'public'          => false,
+        'show_ui'         => true,
+        'show_in_rest'    => false,
+        'show_in_graphql' => false,
+        'menu_icon'       => 'dashicons-email-alt',
+        'supports'        => ['title', 'editor'],
+        'capability_type' => 'post',
+        'capabilities'    => ['create_posts' => 'do_not_allow'],
+        'map_meta_cap'    => true,
+    ]);
+
     register_post_type('testimonial', $shared + [
         'label'               => 'Testimonials',
         'labels'              => ['singular_name' => 'Testimonial', 'add_new_item' => 'Add New Testimonial'],
@@ -133,3 +148,71 @@ add_action('acf/include_fields', function () {
         ],
     ] + $graphql('testimonialDetails'));
 });
+
+/**
+ * Contact form endpoint: POST /wp-json/fire/v1/enquiries
+ *
+ * Only the Astro server calls this. It must send the shared secret defined as
+ * FIRE_FORM_SECRET in wp-config.php (and WP_FORM_SECRET in the site's .env).
+ * Each enquiry is saved under Enquiries and emailed to the site admin address,
+ * or to the FIRE_ENQUIRY_RECIPIENT constant if it is defined.
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('fire/v1', '/enquiries', [
+        'methods'             => 'POST',
+        'permission_callback' => function (WP_REST_Request $request) {
+            $secret = defined('FIRE_FORM_SECRET') ? (string) FIRE_FORM_SECRET : '';
+            return $secret !== '' && hash_equals($secret, (string) $request->get_header('x-fire-form-secret'));
+        },
+        'args' => [
+            'name'    => ['type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_text_field'],
+            'email'   => ['type' => 'string', 'required' => true, 'format' => 'email', 'sanitize_callback' => 'sanitize_email'],
+            'message' => ['type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_textarea_field'],
+            'page'    => ['type' => 'string', 'required' => false, 'sanitize_callback' => 'esc_url_raw'],
+        ],
+        'callback' => 'fire_headless_create_enquiry',
+    ]);
+});
+
+function fire_headless_create_enquiry(WP_REST_Request $request)
+{
+    $name    = $request['name'];
+    $email   = $request['email'];
+    $message = $request['message'];
+    if ($name === '' || !is_email($email) || $message === '') {
+        return new WP_Error('fire_invalid_enquiry', 'Name, a valid email and a message are required.', ['status' => 400]);
+    }
+
+    $id = wp_insert_post([
+        'post_type'    => 'enquiry',
+        'post_status'  => 'private',
+        'post_title'   => sprintf('%s (%s)', $name, $email),
+        'post_content' => $message,
+        'meta_input'   => [
+            'enquiry_name'  => $name,
+            'enquiry_email' => $email,
+            'enquiry_page'  => (string) $request['page'],
+        ],
+    ], true);
+    if (is_wp_error($id)) {
+        return $id;
+    }
+
+    $to = defined('FIRE_ENQUIRY_RECIPIENT') ? FIRE_ENQUIRY_RECIPIENT : get_option('admin_email');
+    $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+    $body = "Name: $name\nEmail: $email\n" . ($request['page'] ? "Sent from: {$request['page']}\n" : '') . "\n$message\n";
+    $mailed = wp_mail($to, sprintf('[%s] New enquiry from %s', $site, $name), $body, ['Reply-To: ' . $name . ' <' . $email . '>']);
+    update_post_meta($id, 'enquiry_emailed', $mailed ? 'yes' : 'no');
+
+    // The enquiry is saved either way, so a mail failure doesn't lose the lead.
+    return new WP_REST_Response(['success' => true, 'emailed' => $mailed], 201);
+}
+
+add_filter('manage_enquiry_posts_columns', function ($columns) {
+    return ['cb' => $columns['cb'], 'title' => 'From', 'enquiry_emailed' => 'Emailed', 'date' => $columns['date']];
+});
+add_action('manage_enquiry_posts_custom_column', function ($column, $post_id) {
+    if ($column === 'enquiry_emailed') {
+        echo get_post_meta($post_id, 'enquiry_emailed', true) === 'yes' ? 'Yes' : 'No';
+    }
+}, 10, 2);

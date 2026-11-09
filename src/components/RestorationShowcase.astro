@@ -28,6 +28,8 @@ const { mainImgUrl, year, title, textId, gradientFrom, gradientTo, linkUrl, ctaC
             src={mainImgUrl as any} 
             alt={`${year} ${title}`}
             inferSize={typeof mainImgUrl === "string"}
+            widths={[640, 1080, 1600, 2400]}
+            sizes="100vw"
             class="showcase-bg w-full h-full object-cover scale-[1.05]" 
           />
           <div class="absolute inset-0 bg-black/50 bg-gradient-to-t from-black via-transparent to-black/80"></div>

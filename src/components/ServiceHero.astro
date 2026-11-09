@@ -41,6 +41,10 @@ const paraWordsArray = deepTextParagraphs.map((para) => para.split(" "));
                 width={bgImgWidth}
                 height={bgImgHeight}
                 inferSize={!bgImgWidth || !bgImgHeight}
+                widths={[640, 1080, 1600, 2400]}
+                sizes="100vw"
+                loading="eager"
+                fetchpriority="high"
                 class="absolute inset-0 w-full h-full object-cover opacity-80"
             />
             <div

@@ -1,0 +1,45 @@
+---
+// Plain WordPress pages (privacy policy, terms and the like) at /<slug>.
+import Layout from "../layouts/Layout.astro";
+import NavBar from "../components/NavBar.astro";
+import Footer from "../components/Footer.astro";
+import { fetchAPI } from "../lib/wp";
+import brand from "../data/brand.json";
+
+export async function getStaticPaths() {
+  const data = await fetchAPI(`
+    query GetPages {
+      pages(first: 100, where: { status: PUBLISH }) {
+        nodes { slug title content isFrontPage }
+      }
+    }
+  `);
+  return (data?.pages?.nodes || [])
+    .filter((page: any) => !page.isFrontPage)
+    .map((page: any) => ({ params: { page: page.slug }, props: { title: page.title, content: page.content } }));
+}
+
+const { title, content } = Astro.props;
+---
+
+<Layout title={`${title} | ${brand.client}`}>
+  <NavBar contactHref="/#contact-section" />
+  <main class="relative w-full bg-black text-white min-h-[100dvh] pt-40 pb-24 px-6 md:px-12">
+    <article class="max-w-3xl mx-auto">
+      <h1 class="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-12">{title}</h1>
+      <div class="wp-content" set:html={content} />
+    </article>
+  </main>
+  <Footer contactHref="/#contact-section" />
+</Layout>
+
+<style is:global>
+  .wp-content { color: rgb(255 255 255 / 0.75); font-weight: 300; line-height: 1.75; }
+  .wp-content > * + * { margin-top: 1.25em; }
+  .wp-content h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 2.5em; }
+  .wp-content h3 { color: #fff; font-size: 1.125rem; font-weight: 700; margin-top: 2em; }
+  .wp-content a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+  .wp-content ul { list-style: disc; padding-left: 1.5em; }
+  .wp-content ol { list-style: decimal; padding-left: 1.5em; }
+  .wp-content strong { color: #fff; font-weight: 600; }
+</style>

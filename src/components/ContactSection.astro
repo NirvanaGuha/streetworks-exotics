@@ -87,6 +87,11 @@ const directGoogleMapsLink = "https://www.google.com/maps/search/?api=1&query=St
                 <input name="email" type="email" placeholder="Email" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors" />
               </div>
               <textarea name="message" placeholder="Tell us about your project..." required rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-yellow-500 transition-colors resize-none"></textarea>
+              <!-- Spam trap: hidden from people, bots fill it in -->
+              <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+              </div>
+              <p id="form-error" role="alert" class="hidden text-sm text-red-400 -mb-2"></p>
               <button id="submit-btn" type="submit" class="w-full px-8 py-4 bg-white text-black rounded-lg hover:bg-yellow-500 transition-colors font-bold uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2">
                 <span>Send Message</span>
               </button>
@@ -137,26 +142,34 @@ const directGoogleMapsLink = "https://www.google.com/maps/search/?api=1&query=St
   const flipper = document.getElementById('form-flipper');
   const resetBtn = document.getElementById('reset-form');
   const submitBtn = document.getElementById('submit-btn');
+  const formError = document.getElementById('form-error');
+
+  const showError = (message: string) => {
+    if (!formError) return;
+    formError.textContent = message;
+    formError.classList.toggle('hidden', !message);
+  };
 
   if (form && flipper && submitBtn) {
     form.addEventListener('submit', async (e) => {
-      e.preventDefault(); 
-      
+      e.preventDefault();
+
       const formData = new FormData(form);
       const btnSpan = submitBtn.querySelector('span');
       if (btnSpan) btnSpan.innerText = 'Sending...';
       submitBtn.setAttribute('disabled', 'true');
+      showError('');
 
       try {
         const { data, error } = await actions.submitContactForm(formData);
-        
+
         if (!error && data?.success) {
           flipper.classList.add('is-flipped');
         } else {
-          alert('Submission failed: ' + (error?.message || 'Unknown error'));
+          showError(error?.message || "Sorry, your message didn't go through. Please try again.");
         }
       } catch (err) {
-        alert('An unexpected error occurred.');
+        showError("Sorry, your message didn't go through. Please check your connection and try again.");
       } finally {
         if (btnSpan) btnSpan.innerText = 'Send Message';
         submitBtn.removeAttribute('disabled');
