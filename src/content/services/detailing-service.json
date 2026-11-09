@@ -1,25 +1,41 @@
 {
   "order": 6,
   "title": "Detailing Service",
-  "heroTagline": "Uncompromising Preservation",
-  "description": "Museum-grade paint correction, preservation, and deep cleaning to elevate your vehicle's presentation.",
+  "heroTagline": "From Million-Dollar Masterpieces to Your Daily Driver",
+  "description": "From Million-Dollar Masterpieces to Your Daily Driver",
   "heroImage": "../../assets/images/detailing/Automotive-Detailing-in-Pewaukee.jpg",
-  "tintColor": "#800000",
-  "deepTextTitle": "The Final Polish",
-  "deepTextParagraphs": [
-    "Detailing a classic car is an exercise in preservation. We employ museum-grade paint correction techniques, carefully measuring clear coat depth and safely removing years of swirl marks and imperfections without jeopardizing original paintwork.",
-    "We utilize premium ceramic coatings and traditional carnauba waxes to seal and protect the finish. From deep engine bay cleaning to delicate leather conditioning, our detailing service elevates the presentation of your vehicle to concours standards."
-  ],
-  "midText": "Museum-grade preservation for the most demanding collectors.",
-  "finalText": "Experience the ultimate expression of automotive beauty.",
-  "galleryImages": [
-    "../../assets/images/body-paint/body-and-paint-scaled.jpg",
-    "../../assets/images/body-paint/Celeste-Chiaro-Maserati-Ghibli-SS.jpg",
-    "../../assets/images/body-paint/DeTomaso-Mangusta-Sunburst-Orange.jpg",
-    "../../assets/images/body-paint/Isetta-Delivery.jpg",
-    "../../assets/images/coachwork/Iso-Grifo-Series-I-Receiving-new-nose.jpg",
-    "../../assets/images/coachwork/Lamborghini-Islero-out-of-metal-shop.jpg",
-    "../../assets/images/coachwork/A3C Coachwork.jpg",
-    "../../assets/images/coachwork/Lancia-Fulvia-Series-II-Coupe-coachwork-scaled-1.jpg"
+  "tintColor": "#0ea5e9",
+  "deepTextTitle": "Detailing Service",
+  "deepTextParagraphs": [],
+  "contentBlocks": [
+    {
+      "type": "text",
+      "text": "Concours-Level Care for Every Vehicle\n\nStreetWorks Exotics is excited to bring its renowned, concours-level automobile detailing services to drivers across southeast Wisconsin. For years, we’ve been the trusted choice of collectors and celebrities who demand perfection for their multi-million-dollar Ferraris, Lamborghinis, and vintage Rolls-Royces—vehicles that regularly earn Best in Show at Pebble Beach and Amelia Island."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/homepage/Jensen-CV8-MKIII-10.jpg",
+        "../../assets/images/homepage/Jensen-CV8-MKIII-Engine.jpg",
+        "../../assets/images/homepage/Jensen-CV8-MKIII-Interior.jpg",
+        "../../assets/images/homepage/Jensen-CV8-MKIII-Restored.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Today, that same obsessive, no-compromise approach is available to anyone in Milwaukee, Waukesha, Brookfield, Mequon, and the surrounding communities—whether you drive a daily commuter, a family SUV, or a weekend sports car.\n\nPremium Detailing Services\n\nOur detailing goes far beyond a typical wash and wax. Using only the finest Swissvax, Gtechniq, and XPEL-certified products trusted on seven- and eight-figure cars, we offer paint correction that removes swirl marks and restores deep gloss, ceramic coatings with up to 10-year warranties, full interior rejuvenation with premium leather conditioning and odor elimination, and PPF (paint protection film) installation in our dust-free, climate-controlled booth. Every vehicle receives the same multi-stage decontamination, clay-bar treatment, and hand-polishing process we use on cars worth more than most homes."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/homepage/Restored-1967-Iso-Grifo-4.jpg",
+        "../../assets/images/homepage/Restored-1967-Iso-Grifo-Body.jpg",
+        "../../assets/images/homepage/Restored-1967-Iso-Grifo-Engine.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Why StreetWorks Is Different\n\nWhat makes StreetWorks detailing different is the level of care forged from working on irreplaceable classics and modern hypercars. We treat your Tesla, Porsche, or even your well-loved Jeep with the same reverence—because we know how much your car means to you. We document every step with high-resolution photos, protect sensitive surfaces with painter’s tape and plastic sheeting just like we do on a 250 GTO, and finish with a final inspection under dedicated LED lighting to guarantee flawless results."
+    }
   ]
 }

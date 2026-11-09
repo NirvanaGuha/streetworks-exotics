@@ -186,7 +186,7 @@ function fire_seed_service_content(array $data, callable $img): string
 {
     $intro = implode("\n\n", $data['deepTextParagraphs'] ?? []);
     if (!empty($data['contentBlocks'])) {
-        $texts = [$intro];
+        $texts = $intro !== '' ? [$intro] : [];
         $galleries = [];
         foreach ($data['contentBlocks'] as $block) {
             if ($block['type'] === 'text') $texts[] = $block['text'];

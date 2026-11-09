@@ -34,7 +34,7 @@ function splitBlocks(data: LocalService) {
     if (data.contentBlocks) {
         const texts = data.contentBlocks.flatMap((b) => (b.type === 'text' ? [b.text] : []));
         const galleries = data.contentBlocks.flatMap((b) => (b.type === 'gallery' ? [b.images] : []));
-        return { texts: [intro, ...texts], galleries };
+        return { texts: [intro, ...texts].filter(Boolean), galleries };
     }
     const images = data.galleryImages || [];
     const half = Math.ceil(images.length / 2);

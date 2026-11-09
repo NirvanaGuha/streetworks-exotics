@@ -2,11 +2,17 @@ import { defineConfig, envField } from 'astro/config';
 import tailwindv4 from '@tailwindcss/vite';
 
 import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 import { loadEnv } from 'vite';
 
 // WordPress images are optimized at build time, so their host must be allowed.
 const { PUBLIC_WP_GRAPHQL_URL, PUBLIC_SITE_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 const wpHost = PUBLIC_WP_GRAPHQL_URL ? new URL(PUBLIC_WP_GRAPHQL_URL).hostname : null;
+
+// Every image is generated at build time, so production builds swap Astro's on-demand
+// image endpoint (/_image) for one that returns 404: no image processing runs on request.
+// The dev server still needs the real endpoint to resize images as pages load.
+const isBuild = process.argv.includes('build');
 
 // https://astro.build/config
 // Pages are prerendered from WordPress at build time; the adapter only serves the
@@ -18,6 +24,7 @@ export default defineConfig({
     prefetch: true,
   image: {
       domains: wpHost ? [wpHost] : [],
+      ...(isBuild && { endpoint: { entrypoint: './src/lib/image-endpoint-disabled.ts' } }),
   },
   env: {
       schema: {
@@ -29,7 +36,8 @@ export default defineConfig({
       plugins: [tailwindv4()],
   },
 
-  adapter: node({
+  // Vercel sets VERCEL=1 in its builds; everywhere else the site runs as a Node server.
+  adapter: process.env.VERCEL ? vercel() : node({
     mode: 'standalone',
   }),
 });

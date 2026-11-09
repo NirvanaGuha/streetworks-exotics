@@ -1,6 +1,8 @@
 import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro:schema';
 import { WP_FORM_SECRET } from 'astro:env/server';
+import brand from '../data/brand.json';
+import { demoMode } from '../lib/demo';
 
 const WP_GRAPHQL_URL = import.meta.env.PUBLIC_WP_GRAPHQL_URL;
 
@@ -20,9 +22,12 @@ export const server = {
             }
 
             if (!WP_GRAPHQL_URL || !WP_FORM_SECRET) {
+                const { phone, email } = brand.business;
                 throw new ActionError({
                     code: 'SERVICE_UNAVAILABLE',
-                    message: "This form isn't connected yet. Please call or email us instead.",
+                    message: demoMode
+                        ? `This is a concept preview, so messages aren't sent yet. Please call ${phone} or email ${email}.`
+                        : `This form isn't connected yet. Please call ${phone} or email ${email}.`,
                 });
             }
 

@@ -59,8 +59,22 @@ node --env-file=.env dist/server/entry.mjs   # serve the production build
 | `PUBLIC_WP_GRAPHQL_URL` | WPGraphQL endpoint. Empty = local content only. |
 | `PUBLIC_SITE_URL` | Deployed address. Needed for absolute link-preview images and canonical URLs. |
 | `WP_FORM_SECRET` | Must match `FIRE_FORM_SECRET`. Read at runtime by the contact action. |
-| `PUBLIC_DEMO_MODE` | `true` for concept builds: `noindex`, robots.txt blocks search crawlers (link-preview bots stay allowed so DMs show a card), "Concept by" badge. Set `false` at launch. |
+| `PUBLIC_DEMO_MODE` | On unless set to `false`. Concept builds get: `noindex`, robots.txt blocks search crawlers (link-preview bots stay allowed so DMs show a card), "Concept by" badge. Set `false` at launch. |
 | `PUBLIC_DEMO_CREDIT` | Optional badge text. |
+
+## Deploying
+
+**Concept demo (no WordPress):** import the repo into Vercel and deploy. No environment variables are needed: without `PUBLIC_WP_GRAPHQL_URL` the site builds from the local content files, demo mode is on by default, and the contact form explains that it's a preview. Add `PUBLIC_SITE_URL` (the Vercel URL) so link previews have absolute images.
+
+Before deploying, copy the latest WordPress content into those local files, so the demo shows exactly what WordPress has, and commit the result:
+
+```bash
+npm run snapshot
+```
+
+**Client site (with WordPress):** set `PUBLIC_WP_GRAPHQL_URL`, `WP_FORM_SECRET`, `PUBLIC_SITE_URL` and `PUBLIC_DEMO_MODE=false` in Vercel, then add a Vercel deploy hook and call it when WordPress publishes so the static pages rebuild.
+
+The Vercel adapter is picked automatically on Vercel; elsewhere the build runs as a Node server (`node --env-file=.env dist/server/entry.mjs`). Production builds disable Astro's on-demand image endpoint, since every image is generated at build time.
 
 ## New client checklist
 

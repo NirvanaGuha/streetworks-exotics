@@ -1,7 +1,7 @@
 {
     "_comment": "Starter content. The site falls back to this when WordPress has nothing, and wordpress/seed.php loads it into a fresh WordPress. Image paths are relative to src/assets/images.",
     "hero": {
-        "headline": "StreetWorks Exotics",
+        "headline": "Streetworks Exotics™",
         "tagline": "Resurrecting Legends",
         "image": "homepage/Restored-1967-Iso-Grifo-4.jpg"
     },
@@ -119,7 +119,7 @@
             "Visit",
             "The Shop."
         ],
-        "text": "We believe the best way to start a build is a conversation. Stop by to see current restorations, meet the craftsmen, and discuss your vision.",
+        "text": "Have a question about our work? Wondering how we can restore your vehicle to its original glory? We’re happy to answer any questions you have.",
         "formHeading": "Can't make it in?",
         "formText": "Drop us a line and we'll reach out."
     }

@@ -1,25 +1,39 @@
 {
   "order": 2,
   "title": "Custom Welding & Fabrication",
-  "heroTagline": "Engineering Without Limits",
-  "description": "Bespoke metalwork and expert TIG/MIG welding for chassis repair, strengthening, and custom modifications.",
-  "heroImage": "../../assets/images/fabrication/weld-promo-photo2.jpg",
-  "tintColor": "#52525b",
-  "deepTextTitle": "Forged in Fire",
-  "deepTextParagraphs": [
-    "When replacement parts no longer exist, we build them. Our fabrication bay is equipped to reverse-engineer and manufacture obsolete components, utilizing advanced TIG and MIG welding techniques to ensure welds are structurally superior and aesthetically invisible.",
-    "From custom stainless steel header fabrication that breathes life into tuned engines to chassis strengthening for restomods, our bespoke metalwork bridges the gap between classic design and modern performance."
-  ],
-  "midText": "If a replacement part cannot be found, it must be forged.",
-  "finalText": "Engineering without limits. Let's build something bespoke.",
-  "galleryImages": [
-    "../../assets/images/fabrication/Custom-Welding-I.jpg",
-    "../../assets/images/fabrication/Custom-stainless-header-fabrication.compressed-scaled.jpg",
-    "../../assets/images/fabrication/Custom-Tooling.jpg",
-    "../../assets/images/fabrication/Welding-Tool.jpg",
-    "../../assets/images/fabrication/Custom-Welding-I.jpg",
-    "../../assets/images/fabrication/Custom-stainless-header-fabrication.compressed-scaled.jpg",
-    "../../assets/images/fabrication/Custom-Tooling.jpg",
-    "../../assets/images/fabrication/Welding-Tool.jpg"
+  "heroTagline": "Award-Winning Automotive Fabrication Experts",
+  "description": "Award-Winning Automotive Fabrication Experts",
+  "heroImage": "../../assets/images/wordpress/Custom-stainless-header-fabrication.compressed-scaled-1.jpg",
+  "tintColor": "#4b5563",
+  "deepTextTitle": "Custom Welding & Fabrication",
+  "deepTextParagraphs": [],
+  "contentBlocks": [
+    {
+      "type": "text",
+      "text": "Expertise You Can Trust\n\nAt StreetWorks, we don’t just weld metal—we create masterpieces. Our custom auto body fabrication specialists have decades of experience working on some of the most prestigious exotic and classic cars, ensuring that every piece we touch is crafted to perfection."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/fabrication/Custom-Tooling.jpg",
+        "../../assets/images/fabrication/Custom-Welding-I.jpg",
+        "../../assets/images/fabrication/weld-promo-photo2.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Unique Solutions for Unique Cars\n\nFrom interior to exterior, our team handles every panel and part with precision. If you need rare exotic car parts that you can’t find anywhere else, we’ve got you covered. Our custom metal fabricating starts with a design concept on paper and evolves into a wire mock-up, ensuring every detail is meticulously planned and executed.\n\nState-of-the-Art Equipment\n\nOur workshop is equipped with the latest technology and tools, including Pullmax machines, English Wheels, power hammers, and more. This enables us to deliver high-quality, precise results faster than traditional methods."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/wordpress/weld-promo-photo2-1.jpg",
+        "../../assets/images/fabrication/Welding-Tool.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Unmatched Quality and Authenticity\n\nWhen it comes to auto restoration, attention to authentic detail is paramount. Our team has proven expertise in restoring and fabricating parts for brands like Ferrari, Lamborghini, Bugatti, and Maserati. We ensure that every project meets the highest standards of quality and authenticity.\n\nWith extensive experience with everything from custom chassis fabrication for classic cars to welding car frame repair for luxury vehicles, StreetWorks treats every car like the most important car in our shop. Contact us today to discuss how our custom auto welding and fabrication services will get your car looking as good or better than when it first hit the road."
+    }
   ]
 }

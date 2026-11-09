@@ -1,25 +1,42 @@
 {
   "order": 5,
   "title": "Interior & Upholstery",
-  "heroTagline": "Bespoke Cabins Tailored to Perfection",
-  "description": "Hand-stitched leathers, period-accurate fabrics, and bespoke cabin restorations tailored to perfection.",
-  "heroImage": "../../assets/images/interior/400-GT-interior-scaled-1.jpg",
-  "tintColor": "#1e3a8a",
-  "deepTextTitle": "Tactile Authenticity",
-  "deepTextParagraphs": [
-    "The cabin is where the driver connects with the machine. We source the finest New Old Stock (NOS) materials, from correct Connolly leathers to Wilton wool carpets, ensuring every scent, texture, and stitch mirrors the day the car left the factory.",
-    "Our upholstery masters rebuild seat frames, re-foam bolsters to exact densities, and hand-stitch every panel. Whether restoring a minimalist racing bucket or a luxurious grand tourer cabin, the resulting environment is nothing short of a sensory masterpiece."
-  ],
-  "midText": "Tactile authenticity down to the very last hand-stitched seam.",
-  "finalText": "Step inside a cabin crafted for the absolute purist.",
-  "galleryImages": [
-    "../../assets/images/interior/Iso-Interiors.jpg",
-    "../../assets/images/interior/A3C Interior.jpg",
-    "../../assets/images/interior/Bizzarini.jpg",
-    "../../assets/images/interior/32-Hot-Rod-Custom-Interior.jpg",
-    "../../assets/images/interior/Ferrari-Upholstery-scaled-1.jpg",
-    "../../assets/images/interior/Islero-S-upholstery-scaled-1.jpg",
-    "../../assets/images/interior/Lamborghini-Countach.jpg",
-    "../../assets/images/interior/Jensen-CV8.jpg"
+  "heroTagline": "Luxury Car Upholstery and Interiors: It’s More Than Just Leather",
+  "description": "Luxury Car Upholstery and Interiors: It’s More Than Just Leather",
+  "heroImage": "../../assets/images/interior/Iso-Interiors.jpg",
+  "tintColor": "#78350f",
+  "deepTextTitle": "Interior & Upholstery",
+  "deepTextParagraphs": [],
+  "contentBlocks": [
+    {
+      "type": "text",
+      "text": "For more than twenty years, StreetWorks Exotics has been performing total vehicle restoration right here at our facility. All exotic and classic car interior restoration and trim work is done in the same place where the car is assembled. Our leatherwork meets the highest standards achievable."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/interior/32-Hot-Rod-Custom-Interior.jpg",
+        "../../assets/images/interior/400-GT-interior-scaled-1.jpg",
+        "../../assets/images/wordpress/A3C-Interior.jpg",
+        "../../assets/images/interior/Bizzarini.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "However, there’s more to exotic car interior restoration than leather. StreetWorks upholstery experts pay close attention to foam, webbing, seat frames, seat tracks, interior gauges, chrome, and hardware. We treat every automotive component we restore as though it is the car’s most important component, whether or not it’s visible."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/interior/Ferrari-Upholstery-scaled-1.jpg",
+        "../../assets/images/interior/Islero-S-upholstery-scaled-1.jpg",
+        "../../assets/images/interior/Jensen-CV8.jpg",
+        "../../assets/images/interior/Lamborghini-Countach.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "We pride ourselves on uncompromising attention to detail. Whether you’re searching for hot rod interior upholstery or other high-end foreign or classic car interior restoration, choose StreetWorks to ensure your car’s interior is as flawless as the outside."
+    }
   ]
 }

@@ -1,25 +1,43 @@
 {
   "order": 3,
   "title": "Mechanical & Electrical",
-  "heroTagline": "The Heartbeat of the Machine",
-  "description": "Precision engine rebuilds and modern wiring solutions hidden gracefully beneath vintage aesthetics.",
-  "heroImage": "../../assets/images/mechanical/Lamborghini-V12-Sidedraft-Weber-Carburetors.jpg",
-  "tintColor": "#14532d",
-  "deepTextTitle": "Symphony of Engineering",
-  "deepTextParagraphs": [
-    "A restoration is only as good as its heart. Our mechanical department specializes in the complete teardown and rebuilding of complex powerplants, from flat-sixes to quad-cam V12s. We meticulously balance rotating assemblies, tune sidedraft Weber carburetors, and optimize drivability.",
-    "Simultaneously, we address the notorious gremlins of vintage electrical systems. We build bespoke wiring harnesses utilizing modern, reliable core materials, all while wrapping them in period-correct loom tape so the engine bay remains visually authentic."
-  ],
-  "midText": "Where raw vintage power meets modern, uncompromising reliability.",
-  "finalText": "Let us rebuild the heartbeat of your exotic.",
-  "galleryImages": [
-    "../../assets/images/mechanical/Weber-II-2-scaled-1.jpg",
-    "../../assets/images/mechanical/Electrical-components-restored-to-the-highest-level-of-detail.jpg",
-    "../../assets/images/mechanical/Lamborghini-Countach-AC-Condenser.jpg",
-    "../../assets/images/mechanical/Lamborghini-V12-engine-on-test-stand.jpg",
-    "../../assets/images/mechanical/Bosch-Alt-I-scaled-1.jpg",
-    "../../assets/images/mechanical/Engine-Work.jpg",
-    "../../assets/images/mechanical/Ford-Engine.jpg",
-    "../../assets/images/mechanical/QV5000-Downdraft-Countach.jpg"
+  "heroTagline": "Raising The Bar For Exotic Car Repair",
+  "description": "Raising The Bar For Exotic Car Repair",
+  "heroImage": "../../assets/images/mechanical/Ford-Engine.jpg",
+  "tintColor": "#b45309",
+  "deepTextTitle": "Mechanical & Electrical",
+  "deepTextParagraphs": [],
+  "contentBlocks": [
+    {
+      "type": "text",
+      "text": "We have all heard the horror stories of an exotic car repair gone wrong. Over the years, we have encountered many clients reeling after a botched job from another high-end car repair shop. It breaks our hearts as much as it breaks yours. That’s why, throughout the past decade, StreetWorks added the tools, manpower, and knowledge to handle all aspects of the restoration in-house."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/wordpress/1964-A3C-2.jpg",
+        "../../assets/images/mechanical/Bosch-Alt-I-scaled-1.jpg",
+        "../../assets/images/mechanical/Electrical-components-restored-to-the-highest-level-of-detail.jpg",
+        "../../assets/images/mechanical/Engine-Work.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Complete Engine Services\n\nOur expert team can handle everything from minor exotic car tune-ups to full classic car engine rebuilding. We specialize in bringing engines back to life with historically accurate parts or modern upgrades.\n\n• Engine Rebuilds: Restore your engine to its original glory with exact replica parts or modern equivalents.\n\n• Performance Upgrades: Boost your car’s performance with high-compression pistons, special cam grinds, and more.\n\n• New Engine Installs: Need a brand new engine? We’ve got you covered."
+    },
+    {
+      "type": "gallery",
+      "images": [
+        "../../assets/images/mechanical/Lamborghini-Countach-AC-Condenser.jpg",
+        "../../assets/images/mechanical/Lamborghini-V12-engine-on-test-stand.jpg",
+        "../../assets/images/mechanical/Lamborghini-V12-Sidedraft-Weber-Carburetors.jpg",
+        "../../assets/images/mechanical/QV5000-Downdraft-Countach.jpg",
+        "../../assets/images/mechanical/Weber-II-2-scaled-1.jpg"
+      ]
+    },
+    {
+      "type": "text",
+      "text": "Expert Electrical Repairs\n\nStreetWorks is your trusted exotic car mechanic with advanced diagnostic equipment to troubleshoot and fix any computer-controlled system in your vehicle. You can feel confident that we’ll repair your car efficiently and completely.\n\n• Comprehensive Assessment and Diagnostics: We identify and resolve issues swiftly with state-of-the-art equipment. When rebuilding an engine, we start with the basics. Do we have a sound foundation, and if not, what do we need to do to correct it? From magnafluxing to final assembly, we will review every aspect of the build to ensure a finely tuned masterpiece upon completion.\n\n• Electrical System Repairs: The electrical system on an exotic can be one of the most complex and problematic parts during a restoration. Every restoration we do receives a new wire harness using modern high-temperature wire with new correct terminals. You won’t find melted wires and loose connections on any car from StreetWorks. From ECU tuning to programmable electronic ignition, we handle it all.\n\n• Brake Replacement: Nothing is more dangerous than a beautiful-looking restoration with brake system problems. To prevent that scenario, we always use stainless steel brake components whenever possible.\n\nContact StreetWorks and hear your car’s engine purr like it was born to do!"
+    }
   ]
 }

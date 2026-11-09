@@ -1,8 +1,11 @@
 ---
 import { getBusiness } from "../lib/business";
 import { content } from "../lib/localContent";
+import { demoMode } from "../lib/demo";
 
 const business = await getBusiness();
+// A concept build without WordPress can't deliver messages, so say so up front.
+const formIsPreview = demoMode && !import.meta.env.PUBLIC_WP_GRAPHQL_URL;
 const { contact } = content;
 
 const socialIcons: Record<string, { label: string; path: string }> = {
@@ -84,7 +87,7 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
             <h3 class="text-3xl font-serif italic mb-2">{contact.formHeading}</h3>
             <p class="text-white/50 font-light mb-8">{contact.formText}</p>
             
-            <form id="contact-form" class="flex flex-col gap-6">
+            <form id="contact-form" class="flex flex-col gap-6" data-preview={formIsPreview ? `This is a concept preview, so messages aren't sent yet. Please call ${business.phone} or email ${business.email}.` : undefined}>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input name="name" type="text" placeholder="Name" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
                 <input name="email" type="email" placeholder="Email" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
@@ -95,6 +98,9 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
                 <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
               </div>
               <p id="form-error" role="alert" class="hidden text-sm text-red-400 -mb-2"></p>
+              {formIsPreview && (
+                <p class="text-xs text-white/40 font-mono uppercase tracking-[0.15em] -mt-2 order-last">Preview only: messages aren't sent yet</p>
+              )}
               <button id="submit-btn" type="submit" class="w-full px-8 py-4 bg-white text-black rounded-lg hover:bg-accent hover:text-accent-contrast transition-colors font-bold uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2">
                 <span>Send Message</span>
               </button>
@@ -147,15 +153,24 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
   const submitBtn = document.getElementById('submit-btn');
   const formError = document.getElementById('form-error');
 
-  const showError = (message: string) => {
+  // "Not connected yet" is information, not a failure, so it isn't shown in red.
+  const showError = (message: string, isNotice = false) => {
     if (!formError) return;
     formError.textContent = message;
     formError.classList.toggle('hidden', !message);
+    formError.classList.toggle('text-red-400', !isNotice);
+    formError.classList.toggle('text-white/70', isNotice);
   };
 
   if (form && flipper && submitBtn) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      // Concept builds have no server to send to; explain instead of trying.
+      if (form.dataset.preview) {
+        showError(form.dataset.preview, true);
+        return;
+      }
 
       const formData = new FormData(form);
       const btnSpan = submitBtn.querySelector('span');
@@ -169,7 +184,7 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
         if (!error && data?.success) {
           flipper.classList.add('is-flipped');
         } else {
-          showError(error?.message || "Sorry, your message didn't go through. Please try again.");
+          showError(error?.message || "Sorry, your message didn't go through. Please try again.", error?.code === 'SERVICE_UNAVAILABLE');
         }
       } catch (err) {
         showError("Sorry, your message didn't go through. Please check your connection and try again.");
