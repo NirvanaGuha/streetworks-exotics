@@ -1,45 +1,57 @@
 ---
+import { parseTextBlocks } from "../lib/storyText";
+
 interface Props {
   id: string;
   gradientFrom: string;
   gradientTo: string;
   text: string;
+  // "statement": one big line or two. "article": headings over smaller body copy.
+  // Defaults to article when the text has a heading.
+  variant?: "statement" | "article";
 }
 
 const { id, gradientFrom, gradientTo, text } = Astro.props;
+const blocks = parseTextBlocks(text);
+const variant = Astro.props.variant ?? (blocks.some((block) => block.kind === "heading") ? "article" : "statement");
 
-// Split text by double newlines into distinct paragraphs/blocks
-const blocks = text.split("\n\n").filter(block => block.trim().length > 0);
-
-// Dynamically adjust overall container text size based on total character length
-const textLength = text.length;
+// Statements scale with their length; article copy has a fixed heading and body size.
 let sizeClasses = "text-3xl md:text-5xl lg:text-[3.5rem]"; // Default (Short text)
-
-if (textLength > 600) {
+if (text.length > 600) {
   sizeClasses = "text-xl md:text-2xl lg:text-3xl"; // Very long structured text
-} else if (textLength > 400) {
+} else if (text.length > 400) {
   sizeClasses = "text-2xl md:text-3xl lg:text-4xl"; // Medium-long structured text
 }
+
+const blockClass = (kind: string) => {
+  if (variant === "statement") return kind === "bullet" ? "pl-4 md:pl-8 -indent-4 md:-indent-8" : "";
+  if (kind === "heading") return "text-[1.75rem] sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-tight leading-[0.95] mb-1 md:mb-3";
+  const body = "text-lg md:text-2xl lg:text-[1.65rem] font-normal tracking-normal leading-relaxed";
+  return kind === "bullet" ? `${body} pl-4 md:pl-8 -indent-4 md:-indent-8` : body;
+};
 ---
 
-<div class="max-w-5xl mx-auto w-full text-left">
+<div class="text-fit max-w-5xl mx-auto w-full text-left">
   <div
     id={id}
-    class={`text-reveal-gradient ${sizeClasses} font-bold tracking-tight leading-snug md:leading-[1.1] flex flex-col gap-6 md:gap-10`}
+    class:list={[
+      "text-reveal-gradient flex flex-col",
+      variant === "statement"
+        ? `${sizeClasses} font-bold tracking-tight leading-snug md:leading-[1.1] gap-6 md:gap-10`
+        : "gap-4 md:gap-6",
+    ]}
     style={`
-      background-image: linear-gradient(to right, ${gradientFrom} 0%, ${gradientTo} 50%, ${gradientFrom} 100%); 
+      background-image: linear-gradient(to right, ${gradientFrom} 0%, ${gradientTo} 50%, ${gradientFrom} 100%);
     `}
   >
     {blocks.map((block) => {
-      const isBullet = block.startsWith("•");
-      const words = block.split(" ");
-      
+      const Tag = block.kind === "heading" ? "h2" : "p";
       return (
-        <p class={isBullet ? "pl-4 md:pl-8 -indent-4 md:-indent-8" : ""}>
-          {words.map((word) => (
+        <Tag class={blockClass(block.kind)}>
+          {block.text.split(" ").map((word) => (
             <span class="reveal-word opacity-20">{word} </span>
           ))}
-        </p>
+        </Tag>
       );
     })}
   </div>

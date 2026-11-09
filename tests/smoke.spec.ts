@@ -171,3 +171,30 @@ test('service pages play every section, the reviews and the closing line', async
         for (const layer of peaks) expect(layer.peak, `${route} ${layer.kind} layer becomes visible`).toBeGreaterThan(0.5);
     }
 });
+
+test('service text screens and gallery images fit the screen', async ({ page }) => {
+    for (const route of PAGES.filter((p) => p.startsWith('/services/'))) {
+        await page.goto(route);
+        const overflow = await page.evaluate(() => {
+            const problems: string[] = [];
+            document.querySelectorAll<HTMLElement>('#master-pin-container .text-fit').forEach((box, i) => {
+                const rect = box.getBoundingClientRect(); // after any fit-to-screen scaling
+                if (rect.height > window.innerHeight) problems.push(`text screen ${i} is ${Math.round(rect.height)}px tall`);
+            });
+            document.querySelectorAll<HTMLElement>('#master-pin-container .gallery-zoomable').forEach((image, i) => {
+                if (image.offsetHeight > window.innerHeight * 0.8) problems.push(`gallery image ${i} is ${image.offsetHeight}px tall`);
+            });
+            return problems;
+        });
+        expect(overflow, route).toEqual([]);
+    }
+});
+
+test('the footer Services link lands on the first service', async ({ page }) => {
+    await page.goto('/portfolio/');
+    await page.locator('footer a[href="/#services"]').click();
+    await expect(page).toHaveURL(/\/#services$/);
+    await expect
+        .poll(async () => Number(await page.locator('.service-slide').first().evaluate((el) => getComputedStyle(el).opacity)), { timeout: 8_000 })
+        .toBeGreaterThan(0.9);
+});

@@ -8,6 +8,7 @@ import TextReveal from "../../components/TextReveal.astro";
 import Footer from "../../components/Footer.astro";
 import { fetchAPI } from "../../lib/wp";
 import { getLocalService, getLocalServiceSlugs, getLocalTestimonials } from "../../lib/localContent";
+import { hasHeading, splitTextScreens } from "../../lib/storyText";
 import { Image } from 'astro:assets';
 import brand from "../../data/brand.json";
 
@@ -82,10 +83,23 @@ const service = !entry ? await getLocalService(slug!) : {
 if (!service) throw new Error(`No service content for "${slug}" in WordPress or src/content/services.`);
 
 // The page plays as a pinned story: every section in order, then the reviews, then a closing
-// line. A final text section becomes that closing line.
+// line. Long text sections play as several screens so nothing runs off the frame, and a
+// final text section ends the story (its last screen after the reviews).
+type StorySection =
+    | { type: "text"; text: string; variant: "statement" | "article" }
+    | { type: "gallery"; images: any[] };
+const toScreens = (text: string): StorySection[] => {
+    const variant = hasHeading(text) || text.length > 400 ? "article" : "statement";
+    return splitTextScreens(text).map((screen) => ({ type: "text", text: screen, variant }));
+};
+const storySections: StorySection[] = service.sections.flatMap((section: any) =>
+    section.type === "text" ? toScreens(section.text) : [section]
+);
 const last = service.sections.at(-1);
-const closingText = service.sections.length > 1 && last?.type === "text" ? last.text : "Ready to get in touch?";
-const storySections = closingText === last?.text ? service.sections.slice(0, -1) : service.sections;
+const endsWithText = service.sections.length > 1 && last?.type === "text";
+const closing = endsWithText
+    ? (storySections.pop() as Extract<StorySection, { type: "text" }>)
+    : { type: "text" as const, text: "Ready to get in touch?", variant: "statement" as const };
 
 // Long quotes step down a size so they fit short laptop and phone screens.
 const quoteSize = (quote: string) =>
@@ -118,13 +132,11 @@ const quoteSize = (quote: string) =>
             {storySections.map((section, i) =>
                 section.type === "text" ? (
                     <div data-story="text" class="absolute inset-0 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black" style={`z-index: ${20 + i};`}>
-                        <TextReveal id={`section-${i}-reveal`} text={section.text} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
+                        <TextReveal id={`section-${i}-reveal`} text={section.text} variant={section.variant} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
                     </div>
                 ) : (
-                    <div data-story="gallery" class="absolute inset-0 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden" style={`z-index: ${20 + i};`}>
-                        <div class="w-full">
-                            <ServiceGallery images={section.images} accentColor={service.tintColor} />
-                        </div>
+                    <div data-story="gallery" class="absolute inset-0 w-full h-full opacity-0 invisible bg-black overflow-hidden" style={`z-index: ${20 + i};`}>
+                        <ServiceGallery images={section.images} accentColor={service.tintColor} />
                     </div>
                 )
             )}
@@ -160,7 +172,7 @@ const quoteSize = (quote: string) =>
 
             {/* Last layer: closing line */}
             <div data-story="closing" class="absolute inset-0 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black" style={`z-index: ${21 + storySections.length};`}>
-                <TextReveal id="closing-reveal" text={closingText} gradientFrom="#ffffff" gradientTo={service.tintColor} />
+                <TextReveal id="closing-reveal" text={closing.text} variant={closing.variant} gradientFrom="#ffffff" gradientTo={service.tintColor} />
             </div>
 
         </div>
@@ -178,8 +190,23 @@ const quoteSize = (quote: string) =>
 
         gsap.registerPlugin(ScrollTrigger);
 
+        // Text screens are split to fit at build time; this catches what's left over (a short
+        // phone screen, one very long paragraph) by scaling the copy down to the frame.
+        const fitText = () => {
+            document.querySelectorAll<HTMLElement>("#master-pin-container .text-fit").forEach((box) => {
+                const layer = box.parentElement!;
+                const styles = getComputedStyle(layer);
+                const room = layer.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom) - 48;
+                const scale = Math.min(1, room / box.offsetHeight);
+                box.style.transform = scale < 1 ? `scale(${scale.toFixed(3)})` : "";
+            });
+        };
+        ScrollTrigger.addEventListener("refreshInit", fitText);
+
         const initAnimations = () => {
             ScrollTrigger.getAll().forEach(t => t.kill());
+            fitText();
+            document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
             // 1. Master timeline, built first and then pinned to a scroll length that fits it
             const masterTl = gsap.timeline();
@@ -206,10 +233,17 @@ const quoteSize = (quote: string) =>
                 if (kind === "text") revealText(layer, 2, true);
 
                 if (kind === "gallery") {
-                    // Columns drift in opposite directions to "scroll through" the gallery during an extended hold
+                    // Columns drift in opposite directions to "scroll through" the gallery during an
+                    // extended hold: each travels exactly far enough to show every image in full.
+                    // On phones the columns are stacked, so both scroll up together.
+                    const left = layer.querySelector<HTMLElement>(".gallery-col-left")!;
+                    const right = layer.querySelector<HTMLElement>(".gallery-col-right")!;
+                    const frame = layer.querySelector<HTMLElement>(".service-gallery-wrapper")!;
+                    const travel = (col: HTMLElement) => Math.max(0, col.offsetTop + col.offsetHeight - frame.clientHeight);
+                    const stacked = () => window.matchMedia("(max-width: 767px)").matches;
                     masterTl.to(layer, { autoAlpha: 1, duration: 1 });
-                    masterTl.to(layer.querySelector(".gallery-col-left"), { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
-                    masterTl.to(layer.querySelector(".gallery-col-right"), { yPercent: 40, duration: 6, ease: "none" }, "<");
+                    masterTl.fromTo(left, { y: 0 }, { y: () => -travel(stacked() ? right : left), duration: 6, ease: "none" }, "-=0.5");
+                    masterTl.fromTo(right, { y: () => (stacked() ? 0 : -travel(right)) }, { y: () => (stacked() ? -travel(right) : 0), duration: 6, ease: "none" }, "<");
                     masterTl.to(layer, { autoAlpha: 0, duration: 1 });
                 }
 
