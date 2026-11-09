@@ -38,7 +38,7 @@ Plugins (all free): **WPGraphQL**, **Advanced Custom Fields**, **WPGraphQL for A
 | Address, phone, email, directions link, hero video, social links | Pages → Home → *Business Details* |
 | Featured restorations (homepage and `/portfolio`) | **Showcases** — featured image, year, intro, link, accent colour, 3 gallery images |
 | Reviews (homepage and service pages, first three) | **Testimonials** — title is the name, featured image is the photo |
-| Services (pages, nav, homepage strip) | **Services** — featured image, *Service Details*, and page content (text + gallery blocks) |
+| Services (pages, nav, homepage strip) | **Services** — featured image, *Service Details*, and page content. Write it as normal blocks: paragraphs, headings and lists become text sections; each gallery (or run of image blocks) becomes a gallery section. Any number of sections, in order; a final text section becomes the closing line after the reviews. |
 | Privacy policy / terms | Pages with slugs `privacy-policy` / `terms-of-service`; footer links appear once published |
 | Contact form submissions | **Enquiries** (read-only) |
 
@@ -97,11 +97,19 @@ Known limit: the reviews slider is sized for three testimonials.
 - **Preloader:** shown once per browser session on the homepage, until the hero image and fonts are ready (0.7–2.5s). It fades on its own after 3.5s if JavaScript fails.
 - **Link previews:** every page has Open Graph/Twitter tags with a 1200×630 image cut from its hero.
 
+## Checks
+
+- **Client leak check** runs after every build (`postbuild`): it fails if the output contains details of any other client listed in `scripts/client-fingerprints.json`. Add each new client there.
+- **Smoke tests** (`npm run test:smoke`, after a build) open every built page in desktop Chrome and an iPhone-sized WebKit (Safari's engine): status, console errors, broken images, sideways overflow, clipped headings, every service section playing, the contact form, 404, robots.txt, link-preview tags, the preloader and reduced motion. First run: `npx playwright install chromium webkit`.
+- **CI** (`.github/workflows/ci.yml`) runs the build, leak check and smoke tests on every push to `main` and on pull requests.
+
+Requires Node 22.22 or newer (Astro 7).
+
 ## Project map
 
 - `src/pages/index.astro` — homepage story; `src/pages/portfolio.astro` — all showcases; `src/pages/services/[slug].astro` — service pages; `src/pages/[page].astro` — plain WordPress pages; `src/pages/404.astro`
 - `src/data/brand.json` — identity, colours, business details; `src/data/content.json` — starter/fallback content
-- `src/lib/wp.ts` — GraphQL client and Gutenberg block parsing; `src/lib/localContent.ts` — local fallbacks; `src/lib/business.ts` — business details (WordPress over brand.json); `src/lib/assets.ts` — image paths to Astro images; `src/lib/demo.ts` — demo mode
+- `src/lib/wp.ts` — GraphQL client (service content arrives as structured `sections` from the plugin, built with WordPress's own block parser); `src/lib/localContent.ts` — local fallbacks; `src/lib/business.ts` — business details (WordPress over brand.json); `src/lib/assets.ts` — image paths to Astro images; `src/lib/demo.ts` — demo mode
 - `src/actions/index.ts` — contact form action
 - `src/utils/animations.ts` — shared GSAP timelines
 - `wordpress/` — content model plugin and seed script

@@ -4,6 +4,7 @@
  * src/data/content.json. Shapes match what the pages build from WordPress.
  */
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import type { ImageMetadata } from 'astro';
 import content from '../data/content.json';
 import { asset } from './assets';
 
@@ -29,19 +30,28 @@ export function getServiceStripImages() {
 
 type LocalService = CollectionEntry<'services'>['data'];
 
-function splitBlocks(data: LocalService) {
-    const intro = data.deepTextParagraphs.join('\n\n');
+/**
+ * A service's page content as ordered text/gallery sections, matching the WordPress
+ * `sections` field. Also reads the older layout (intro paragraphs, gallery images split
+ * around a mid text, then a final text).
+ */
+function serviceSections(data: LocalService) {
+    const text = (value?: string) => (value?.trim() ? [{ type: 'text' as const, text: value }] : []);
+    const gallery = (images: ImageMetadata[]) => (images.length ? [{ type: 'gallery' as const, images }] : []);
+    const intro = text(data.deepTextParagraphs.join('\n\n'));
+
     if (data.contentBlocks) {
-        const texts = data.contentBlocks.flatMap((b) => (b.type === 'text' ? [b.text] : []));
-        const galleries = data.contentBlocks.flatMap((b) => (b.type === 'gallery' ? [b.images] : []));
-        return { texts: [intro, ...texts].filter(Boolean), galleries };
+        return [
+            ...intro,
+            ...data.contentBlocks.flatMap((block) =>
+                block.type === 'text' ? text(block.text) : block.type === 'gallery' ? gallery(block.images) : []
+            ),
+            ...text(data.finalText),
+        ];
     }
     const images = data.galleryImages || [];
     const half = Math.ceil(images.length / 2);
-    return {
-        texts: [intro, data.midText || ''],
-        galleries: [images.slice(0, half), images.slice(half)],
-    };
+    return [...intro, ...gallery(images.slice(0, half)), ...text(data.midText), ...gallery(images.slice(half)), ...text(data.finalText)];
 }
 
 async function getOrderedServices() {
@@ -62,7 +72,6 @@ export async function getLocalService(slug: string) {
     const entry = await getEntry('services', slug);
     if (!entry) return null;
     const { data } = entry;
-    const { texts, galleries } = splitBlocks(data);
     return {
         title: data.title,
         heroTagline: data.heroTagline,
@@ -72,11 +81,7 @@ export async function getLocalService(slug: string) {
         tintColor: data.tintColor || '#ffffff',
         deepTextTitle: data.title,
         deepTextParagraphs: [] as string[],
-        text1: texts[0] || '',
-        gallery1: galleries[0] || [],
-        text2: texts[1] || '',
-        gallery2: galleries[1] || [],
-        textCta: data.finalText || texts[2] || 'Ready to get in touch?',
+        sections: serviceSections(data),
     };
 }
 
@@ -88,6 +93,6 @@ export async function getLocalHomepageServices() {
         description: data.description,
         link: `/services/${id}`,
         backgroundImage: data.heroImage,
-        galleryImages: splitBlocks(data).galleries[0] || [],
+        galleryImages: serviceSections(data).find((section) => section.type === 'gallery')?.images || [],
     }));
 }

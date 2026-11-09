@@ -149,8 +149,7 @@ foreach ($content['testimonials'] as $i => $testimonial) {
 }
 
 // Services: one per file in src/content/services, slug = file name.
-// The page content is built as the text/gallery sequence the service page reads:
-// intro text, gallery, text, gallery, closing text.
+// The page content is built from the file's sections, in order.
 
 /** Image paths in the service files are relative to the file ("../../assets/images/x.jpg"). */
 function fire_seed_service_image_path(string $path): string
@@ -181,32 +180,34 @@ function fire_seed_gallery(array $ids): string
     return "<!-- wp:gallery {\"linkTo\":\"none\"} -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\">\n$images</figure>\n<!-- /wp:gallery -->";
 }
 
-/** Mirrors getLocalService() in src/lib/localContent.ts, so WordPress and the fallback render the same. */
+/**
+ * The service's sections in page order, as block markup (mirrors serviceSections() in
+ * src/lib/localContent.ts, so WordPress and the fallback render the same).
+ */
 function fire_seed_service_content(array $data, callable $img): string
 {
-    $intro = implode("\n\n", $data['deepTextParagraphs'] ?? []);
+    $sections = [];
+    $text = fn($value) => trim((string) $value) !== '' ? [['text', $value]] : [];
+    $gallery = fn(array $images) => $images ? [['gallery', $images]] : [];
+
+    $sections = array_merge($sections, $text(implode("\n\n", $data['deepTextParagraphs'] ?? [])));
     if (!empty($data['contentBlocks'])) {
-        $texts = $intro !== '' ? [$intro] : [];
-        $galleries = [];
         foreach ($data['contentBlocks'] as $block) {
-            if ($block['type'] === 'text') $texts[] = $block['text'];
-            if ($block['type'] === 'gallery') $galleries[] = $block['images'];
+            if ($block['type'] === 'text') $sections = array_merge($sections, $text($block['text']));
+            if ($block['type'] === 'gallery') $sections = array_merge($sections, $gallery($block['images']));
         }
     } else {
         $images = $data['galleryImages'] ?? [];
         $half = (int) ceil(count($images) / 2);
-        $texts = [$intro, $data['midText'] ?? ''];
-        $galleries = [array_slice($images, 0, $half), array_slice($images, $half)];
+        $sections = array_merge($sections, $gallery(array_slice($images, 0, $half)), $text($data['midText'] ?? ''), $gallery(array_slice($images, $half)));
     }
-    $closing = $data['finalText'] ?? ($texts[2] ?? '');
+    $sections = array_merge($sections, $text($data['finalText'] ?? ''));
 
     $parts = [];
-    foreach ([$texts[0] ?? '', $galleries[0] ?? [], $texts[1] ?? '', $galleries[1] ?? [], $closing] as $part) {
-        if (is_string($part) && trim($part) !== '') {
-            $parts[] = fire_seed_paragraphs($part);
-        } elseif (is_array($part) && $part) {
-            $parts[] = fire_seed_gallery(array_map(fn($path) => $img(fire_seed_service_image_path($path)), $part));
-        }
+    foreach ($sections as [$type, $value]) {
+        $parts[] = $type === 'text'
+            ? fire_seed_paragraphs($value)
+            : fire_seed_gallery(array_map(fn($path) => $img(fire_seed_service_image_path($path)), $value));
     }
     return implode("\n\n", $parts);
 }

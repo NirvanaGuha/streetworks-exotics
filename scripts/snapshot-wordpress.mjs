@@ -33,36 +33,6 @@ async function query(q) {
     return json.data;
 }
 
-// Same rules as parseWPBlocks() in src/lib/wp.ts: text between galleries becomes one text block.
-function decode(text) {
-    return text
-        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
-        .replace(/&(amp|quot|lt|gt|nbsp|apos);/gi, (m) => ({ '&amp;': '&', '&quot;': '"', '&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&apos;': "'" })[m.toLowerCase()]);
-}
-function cleanText(html) {
-    let text = html.replace(/<(p|h[1-6]|blockquote|div)[^>]*>/gi, '\n\n').replace(/<li[^>]*>/gi, '\n• ');
-    text = decode(text.replace(/<[^>]*>?/gm, ''));
-    return text.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
-}
-function parseBlocks(html) {
-    const blocks = [];
-    const galleryRegex = /<figure[^>]*wp-block-gallery[\s\S]+?<\/figure>\s*<\/figure>/gi;
-    let last = 0;
-    let match;
-    const pushText = (chunk) => {
-        const text = cleanText(chunk);
-        if (text.length > 5) blocks.push({ type: 'text', text });
-    };
-    while ((match = galleryRegex.exec(html)) !== null) {
-        pushText(html.slice(last, match.index));
-        const images = [...match[0].matchAll(/<img[^>]*src="([^"]+)"/gi)].map((m) => m[1]);
-        if (images.length) blocks.push({ type: 'gallery', images });
-        last = galleryRegex.lastIndex;
-    }
-    pushText(html.slice(last));
-    return blocks;
-}
-
 // Local image index: exact file name (case-insensitive) -> path relative to src/assets/images
 const localImages = new Map();
 async function indexImages(dir) {
@@ -96,7 +66,7 @@ await indexImages(ASSETS);
 const data = await query(`{
   page(id: "/", idType: URI) { homepageSettings { heroHeadline heroTagline introText1 introText2 introText3 } }
   services(first: 100, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
-    nodes { slug title menuOrder content featuredImage { node { sourceUrl } } serviceDetails { description tintColor } }
+    nodes { slug title menuOrder sections { type text images { url } } featuredImage { node { sourceUrl } } serviceDetails { description tintColor } }
   }
 }`);
 
@@ -104,10 +74,11 @@ for (const service of data.services.nodes) {
     const file = path.join(SERVICES, `${service.slug}.json`);
     const previous = existsSync(file) ? JSON.parse(await readFile(file, 'utf8')) : {};
     const contentBlocks = [];
-    for (const block of parseBlocks(service.content || '')) {
-        contentBlocks.push(block.type === 'gallery'
-            ? { type: 'gallery', images: await Promise.all(block.images.map(async (u) => servicePath(await localImage(u)))) }
-            : block);
+    // The plugin's `sections` field: ordered text and gallery sections (see wordpress/fire-headless).
+    for (const section of service.sections || []) {
+        contentBlocks.push(section.type === 'gallery'
+            ? { type: 'gallery', images: await Promise.all(section.images.map(async (img) => servicePath(await localImage(img.url)))) }
+            : { type: 'text', text: section.text });
     }
     const tagline = (service.serviceDetails?.description || '').trim();
     const heroUrl = service.featuredImage?.node?.sourceUrl;

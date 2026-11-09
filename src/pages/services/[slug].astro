@@ -6,7 +6,7 @@ import ServiceGallery from "../../components/ServiceGallery.astro";
 import ContactSection from "../../components/ContactSection.astro";
 import TextReveal from "../../components/TextReveal.astro";
 import Footer from "../../components/Footer.astro";
-import { fetchAPI, parseWPBlocks } from "../../lib/wp";
+import { fetchAPI } from "../../lib/wp";
 import { getLocalService, getLocalServiceSlugs, getLocalTestimonials } from "../../lib/localContent";
 import { Image } from 'astro:assets';
 import brand from "../../data/brand.json";
@@ -28,7 +28,11 @@ const data = await fetchAPI(`
   query GetServiceBySlug($id: ID!) {
     service(id: $id, idType: SLUG) {
       title
-      content
+      sections {
+        type
+        text
+        images { url width height alt }
+      }
       featuredImage {
         node {
           sourceUrl
@@ -60,10 +64,6 @@ const wpReviews = (data?.testimonials?.nodes || []).map((t: any) => ({
 }));
 const reviews = wpReviews.length > 0 ? wpReviews : defaultReviews;
 
-const wpBlocks = parseWPBlocks(entry?.content);
-const texts = wpBlocks.filter((b: any) => b.type === 'text');
-const galleries = wpBlocks.filter((b: any) => b.type === 'gallery');
-
 const service = !entry ? await getLocalService(slug!) : {
     title: entry.title,
     heroTagline: entry.serviceDetails?.description || "",
@@ -72,16 +72,20 @@ const service = !entry ? await getLocalService(slug!) : {
     heroImageHeight: entry.featuredImage?.node?.mediaDetails?.height || 1080,
     tintColor: entry.serviceDetails?.tintColor || "#ffffff",
     deepTextTitle: entry.title || "",
-    deepTextParagraphs: [], 
-    
-    // Ordered Slots
-    text1: texts[0]?.text || "",
-    gallery1: galleries[0]?.images || [],
-    text2: texts[1]?.text || "",
-    gallery2: galleries[1]?.images || [],
-    textCta: texts[2]?.text || "Ready to get in touch?",
+    deepTextParagraphs: [] as string[],
+    sections: (entry.sections || []).map((section: any) =>
+        section.type === "gallery"
+            ? { type: "gallery" as const, images: section.images.map((img: any) => ({ url: img.url, width: img.width || 1200, height: img.height || 800 })) }
+            : { type: "text" as const, text: section.text as string }
+    ),
 };
 if (!service) throw new Error(`No service content for "${slug}" in WordPress or src/content/services.`);
+
+// The page plays as a pinned story: every section in order, then the reviews, then a closing
+// line. A final text section becomes that closing line.
+const last = service.sections.at(-1);
+const closingText = service.sections.length > 1 && last?.type === "text" ? last.text : "Ready to get in touch?";
+const storySections = closingText === last?.text ? service.sections.slice(0, -1) : service.sections;
 
 // Long quotes step down a size so they fit short laptop and phone screens.
 const quoteSize = (quote: string) =>
@@ -110,40 +114,23 @@ const quoteSize = (quote: string) =>
                 />
             </div>
 
-            {/* Layer 2: Text 1 */}
-            {service.text1 && (
-                <div id="layer-text1" class="absolute inset-0 z-20 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
-                    <TextReveal id="text1-reveal" text={service.text1} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
-                </div>
-            )}
-
-            {/* Layer 3: Gallery 1 */}
-            {service.gallery1.length > 0 && (
-                <div id="layer-gallery1" class="absolute inset-0 z-30 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden">
-                    <div class="w-full">
-                        <ServiceGallery images={service.gallery1} accentColor={service.tintColor} />
+            {/* Layers 2…n: the service's sections, in page order */}
+            {storySections.map((section, i) =>
+                section.type === "text" ? (
+                    <div data-story="text" class="absolute inset-0 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black" style={`z-index: ${20 + i};`}>
+                        <TextReveal id={`section-${i}-reveal`} text={section.text} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
                     </div>
-                </div>
-            )}
-
-            {/* Layer 4: Text 2 */}
-            {service.text2 && (
-                <div id="layer-text2" class="absolute inset-0 z-40 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
-                    <TextReveal id="text2-reveal" text={service.text2} gradientFrom="#ffffff" gradientTo={service.tintColor || "#94a3b8"} />
-                </div>
-            )}
-
-            {/* Layer 5: Gallery 2 */}
-            {service.gallery2.length > 0 && (
-                <div id="layer-gallery2" class="absolute inset-0 z-50 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden">
-                    <div class="w-full">
-                        <ServiceGallery images={service.gallery2} accentColor={service.tintColor} />
+                ) : (
+                    <div data-story="gallery" class="absolute inset-0 w-full h-full opacity-0 invisible bg-black flex flex-col items-center justify-center overflow-hidden" style={`z-index: ${20 + i};`}>
+                        <div class="w-full">
+                            <ServiceGallery images={section.images} accentColor={service.tintColor} />
+                        </div>
                     </div>
-                </div>
+                )
             )}
 
             {/* Layer 6: Reviews */}
-            <div id="layer-reviews" class="absolute inset-0 z-60 w-full h-full opacity-0 invisible bg-black flex items-center">
+            <div id="layer-reviews" data-story="reviews" class="absolute inset-0 w-full h-full opacity-0 invisible bg-black flex items-center" style={`z-index: ${20 + storySections.length};`}>
                 <div class="absolute inset-0 w-full h-full pointer-events-none z-20">
                     <div class="absolute top-0 left-0 w-full h-24 md:h-32 bg-gradient-to-b from-black to-transparent"></div>
                     <div class="absolute bottom-0 left-0 w-full h-24 md:h-32 bg-gradient-to-t from-black to-transparent"></div>
@@ -171,12 +158,10 @@ const quoteSize = (quote: string) =>
                 </div>
             </div>
 
-            {/* Layer 7: Text CTA */}
-            {service.textCta && (
-                <div id="layer-cta" class="absolute inset-0 z-70 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black">
-                    <TextReveal id="cta-reveal" text={service.textCta} gradientFrom="#ffffff" gradientTo={service.tintColor} />
-                </div>
-            )}
+            {/* Last layer: closing line */}
+            <div data-story="closing" class="absolute inset-0 w-full h-full opacity-0 invisible flex flex-col items-center justify-center px-6 md:px-12 pt-16 bg-black" style={`z-index: ${21 + storySections.length};`}>
+                <TextReveal id="closing-reveal" text={closingText} gradientFrom="#ffffff" gradientTo={service.tintColor} />
+            </div>
 
         </div>
 
@@ -196,18 +181,8 @@ const quoteSize = (quote: string) =>
         const initAnimations = () => {
             ScrollTrigger.getAll().forEach(t => t.kill());
 
-            // 1. MASTER TIMELINE WITH PINNING
-            const masterTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: "#master-pin-container",
-                    start: "top top",
-                    end: "+=1500%", // Increased scroll depth to account for longer gallery holds
-                    pin: true,
-                    scrub: 1,
-                    anticipatePin: 1,
-                    invalidateOnRefresh: true,
-                },
-            });
+            // 1. Master timeline, built first and then pinned to a scroll length that fits it
+            const masterTl = gsap.timeline();
 
             // A. Hero Animation
             masterTl.to({}, { duration: 1 }); // hold hero
@@ -216,69 +191,50 @@ const quoteSize = (quote: string) =>
             }
             masterTl.to("#layer-hero", { autoAlpha: 0, duration: 1 }); // fade out to black
 
-            // B. Text 1
-            if (document.getElementById("layer-text1")) {
-                masterTl.to("#layer-text1", { autoAlpha: 1, duration: 1 });
-                masterTl.to("#text1-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
-                masterTl.to("#text1-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
-                masterTl.to({}, { duration: 2 }); // hold text
-                masterTl.to("#layer-text1", { autoAlpha: 0, duration: 1 }); // fade to black
-            }
+            const revealText = (layer: Element, hold: number, fadeOut: boolean) => {
+                const reveal = layer.querySelector(".text-reveal-gradient");
+                masterTl.to(layer, { autoAlpha: 1, duration: 1 });
+                masterTl.to(layer.querySelectorAll(".reveal-word"), { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
+                if (reveal) masterTl.to(reveal, { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
+                masterTl.to({}, { duration: hold }); // hold text
+                if (fadeOut) masterTl.to(layer, { autoAlpha: 0, duration: 1 }); // fade to black
+            };
 
-            // C. Gallery 1 - Scroll-linked movement
-            const gal1 = document.getElementById("layer-gallery1");
-            if (gal1) {
-                const left = gal1.querySelector(".gallery-col-left");
-                const right = gal1.querySelector(".gallery-col-right");
-                
-                masterTl.to(gal1, { autoAlpha: 1, duration: 1 });
-                
-                // Animate columns to "scroll through" the gallery during an extended hold
-                masterTl.to(left, { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
-                masterTl.to(right, { yPercent: 40, duration: 6, ease: "none" }, "<");
-                
-                masterTl.to(gal1, { autoAlpha: 0, duration: 1 });
-            }
+            // B. Each section, then the reviews, then the closing line
+            document.querySelectorAll("#master-pin-container [data-story]").forEach((layer) => {
+                const kind = (layer as HTMLElement).dataset.story;
+                if (kind === "text") revealText(layer, 2, true);
 
-            // D. Text 2
-            if (document.getElementById("layer-text2")) {
-                masterTl.to("#layer-text2", { autoAlpha: 1, duration: 1 });
-                masterTl.to("#text2-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
-                masterTl.to("#text2-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
-                masterTl.to({}, { duration: 2 }); // hold text
-                masterTl.to("#layer-text2", { autoAlpha: 0, duration: 1 }); // fade to black
-            }
+                if (kind === "gallery") {
+                    // Columns drift in opposite directions to "scroll through" the gallery during an extended hold
+                    masterTl.to(layer, { autoAlpha: 1, duration: 1 });
+                    masterTl.to(layer.querySelector(".gallery-col-left"), { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
+                    masterTl.to(layer.querySelector(".gallery-col-right"), { yPercent: 40, duration: 6, ease: "none" }, "<");
+                    masterTl.to(layer, { autoAlpha: 0, duration: 1 });
+                }
 
-            // E. Gallery 2 - Scroll-linked movement
-            const gal2 = document.getElementById("layer-gallery2");
-            if (gal2) {
-                const left = gal2.querySelector(".gallery-col-left");
-                const right = gal2.querySelector(".gallery-col-right");
-                
-                masterTl.to(gal2, { autoAlpha: 1, duration: 1 });
-                
-                // Animate columns to "scroll through" the gallery during an extended hold
-                masterTl.to(left, { yPercent: -40, duration: 6, ease: "none" }, "-=0.5");
-                masterTl.to(right, { yPercent: 40, duration: 6, ease: "none" }, "<");
-                
-                masterTl.to(gal2, { autoAlpha: 0, duration: 1 });
-            }
+                if (kind === "reviews") {
+                    masterTl.to(layer, { autoAlpha: 1, duration: 1 });
+                    masterTl.to("#reviews-track-master", { x: () => "-200vw", duration: 10, ease: "none" }); // Slower review scroll
+                    masterTl.to({}, { duration: 2 }); // hold end
+                    masterTl.to(layer, { autoAlpha: 0, duration: 1 }); // fade to black
+                }
 
-            // F. Reviews
-            if (document.getElementById("layer-reviews")) {
-                masterTl.to("#layer-reviews", { autoAlpha: 1, duration: 1 });
-                masterTl.to("#reviews-track-master", { x: () => "-200vw", duration: 10, ease: "none" }); // Slower review scroll
-                masterTl.to({}, { duration: 2 }); // hold end
-                masterTl.to("#layer-reviews", { autoAlpha: 0, duration: 1 }); // fade to black
-            }
+                if (kind === "closing") revealText(layer, 3, false);
+            });
 
-            // G. Text CTA
-            if (document.getElementById("layer-cta")) {
-                masterTl.to("#layer-cta", { autoAlpha: 1, duration: 1 });
-                masterTl.to("#cta-reveal .reveal-word", { opacity: 1, duration: 2, stagger: { amount: 1.5 } }, "-=0.5");
-                masterTl.to("#cta-reveal", { backgroundPosition: "-200% 0%", duration: 2.5, ease: "none" }, "-=2.0");
-                masterTl.to({}, { duration: 3 }); // hold text
-            }
+            // About a third of a screen of scrolling per second of timeline: the original five-section
+            // story (49s) was pinned for 1500%.
+            ScrollTrigger.create({
+                animation: masterTl,
+                trigger: "#master-pin-container",
+                start: "top top",
+                end: `+=${Math.round(masterTl.duration() * 30.6)}%`,
+                pin: true,
+                scrub: 1,
+                anticipatePin: 1,
+                invalidateOnRefresh: true,
+            });
 
             ScrollTrigger.refresh();
         };

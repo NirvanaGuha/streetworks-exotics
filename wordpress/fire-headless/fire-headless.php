@@ -238,3 +238,123 @@ add_action('manage_enquiry_posts_custom_column', function ($column, $post_id) {
         echo get_post_meta($post_id, 'enquiry_emailed', true) === 'yes' ? 'Yes' : 'No';
     }
 }, 10, 2);
+
+/**
+ * Service page content as ordered sections for the front end: { type: "text" | "gallery", text, images }.
+ * Built with WordPress's own block parser, so the site never has to pattern-match HTML.
+ * Consecutive text blocks (paragraphs, headings, lists, quotes) form one text section;
+ * each gallery block, or run of single image blocks, forms one gallery section.
+ * Groups and columns are flattened into their contents.
+ */
+const FIRE_HEADLESS_TEXT_BLOCKS = ['core/paragraph', 'core/heading', 'core/list', 'core/quote', 'core/pullquote', 'core/preformatted', 'core/verse'];
+
+function fire_headless_block_text(array $block): string
+{
+    $html = wptexturize(render_block($block)); // curly quotes and dashes, as WordPress shows them
+    $html = preg_replace('/<li[^>]*>/i', "\n\n• ", $html);
+    $html = preg_replace('/<\/(p|h[1-6]|blockquote|pre|li)>|<br\s*\/?>/i', "\n\n", $html);
+    $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = preg_replace("/[ \t]+/", ' ', $text);
+    $text = preg_replace("/ *\n */", "\n", $text);
+    return trim(preg_replace("/\n{3,}/", "\n\n", $text));
+}
+
+function fire_headless_block_image(array $block): ?array
+{
+    $id = (int) ($block['attrs']['id'] ?? 0);
+    if ($id) {
+        $src = wp_get_attachment_image_src($id, 'full');
+        if ($src) {
+            return [
+                'url'    => $src[0],
+                'width'  => (int) $src[1],
+                'height' => (int) $src[2],
+                'alt'    => (string) get_post_meta($id, '_wp_attachment_image_alt', true),
+            ];
+        }
+    }
+    // Images without a library ID (e.g. pasted URLs): read them from the markup.
+    if (preg_match('/<img[^>]+src="([^"]+)"/i', $block['innerHTML'] ?? '', $m)) {
+        return ['url' => $m[1], 'width' => 0, 'height' => 0, 'alt' => ''];
+    }
+    return null;
+}
+
+function fire_headless_flatten_blocks(array $blocks): array
+{
+    $flat = [];
+    foreach ($blocks as $block) {
+        $name = $block['blockName'];
+        if (in_array($name, ['core/group', 'core/columns', 'core/column', 'core/cover'], true)) {
+            array_push($flat, ...fire_headless_flatten_blocks($block['innerBlocks'] ?? []));
+        } elseif ($name !== null || trim(wp_strip_all_tags($block['innerHTML'] ?? '')) !== '') {
+            $flat[] = $block;
+        }
+    }
+    return $flat;
+}
+
+function fire_headless_service_sections(string $content): array
+{
+    $sections = [];
+    $append = function (string $type, $value) use (&$sections) {
+        $last = count($sections) - 1;
+        if ($last >= 0 && $sections[$last]['type'] === $type) {
+            if ($type === 'text') {
+                $sections[$last]['text'] .= "\n\n" . $value;
+            } else {
+                array_push($sections[$last]['images'], ...$value);
+            }
+            return;
+        }
+        $sections[] = $type === 'text'
+            ? ['type' => 'text', 'text' => $value, 'images' => []]
+            : ['type' => 'gallery', 'text' => null, 'images' => $value];
+    };
+
+    foreach (fire_headless_flatten_blocks(parse_blocks($content)) as $block) {
+        $name = $block['blockName'];
+        if ($name === 'core/gallery') {
+            $images = array_values(array_filter(array_map('fire_headless_block_image', $block['innerBlocks'] ?? [])));
+            if ($images) {
+                // A gallery block always starts its own section, even right after another.
+                $sections[] = ['type' => 'gallery', 'text' => null, 'images' => $images];
+            }
+        } elseif ($name === 'core/image') {
+            $image = fire_headless_block_image($block);
+            if ($image) $append('gallery', [$image]);
+        } elseif ($name === null || in_array($name, FIRE_HEADLESS_TEXT_BLOCKS, true)) {
+            $text = fire_headless_block_text($block);
+            if ($text !== '') $append('text', $text);
+        }
+    }
+    return $sections;
+}
+
+add_action('graphql_register_types', function () {
+    register_graphql_object_type('ServiceSectionImage', [
+        'description' => 'An image in a service page gallery section.',
+        'fields'      => [
+            'url'    => ['type' => 'String'],
+            'width'  => ['type' => 'Int'],
+            'height' => ['type' => 'Int'],
+            'alt'    => ['type' => 'String'],
+        ],
+    ]);
+    register_graphql_object_type('ServiceSection', [
+        'description' => 'A text or gallery section of a service page, in page order.',
+        'fields'      => [
+            'type'   => ['type' => 'String', 'description' => '"text" or "gallery"'],
+            'text'   => ['type' => 'String', 'description' => 'Plain text; paragraphs separated by blank lines, list items start with "• ".'],
+            'images' => ['type' => ['list_of' => 'ServiceSectionImage']],
+        ],
+    ]);
+    register_graphql_field('Service', 'sections', [
+        'type'        => ['list_of' => 'ServiceSection'],
+        'description' => 'The page content as ordered text and gallery sections.',
+        'resolve'     => function ($service) {
+            $post = get_post($service->databaseId);
+            return $post ? fire_headless_service_sections($post->post_content) : [];
+        },
+    ]);
+});

@@ -1,0 +1,21 @@
+{
+    "_comment": "Details that identify each client this template has been built for. After a build, scripts/check-client-leaks.mjs fails if any client other than the current one (brand.json \"client\") appears in the output. When you start a new client, keep the old entries and add one for the new client.",
+    "clients": [
+        {
+            "client": "StreetWorks Exotics",
+            "fingerprints": [
+                "StreetWorks",
+                "Streetworks",
+                "streetworksexotics.com",
+                "streetworkshotrods",
+                "streetworks_exotics",
+                "262-547-0052",
+                "2625470052",
+                "600 Hickory St",
+                "Pewaukee",
+                "Backhaus",
+                "Ds0gTPLmRuA"
+            ]
+        }
+    ]
+}

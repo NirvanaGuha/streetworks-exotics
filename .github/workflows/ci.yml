@@ -1,0 +1,39 @@
+# Builds the site from its local content (no WordPress), fails on another client's details
+# in the output (postbuild leak check), then runs the browser smoke tests in Chrome and WebKit.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Build (includes the client leak check)
+        run: npm run build
+
+      - name: Smoke tests
+        run: npx playwright test
+
+      - name: Keep test traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7

@@ -14,6 +14,16 @@ const wpHost = PUBLIC_WP_GRAPHQL_URL ? new URL(PUBLIC_WP_GRAPHQL_URL).hostname :
 // The dev server still needs the real endpoint to resize images as pages load.
 const isBuild = process.argv.includes('build');
 
+// The server only trusts the Host header for these domains (otherwise it assumes localhost),
+// and form posts from any other origin are rejected as cross-site. So list where the site
+// runs: its own domain, Vercel's deployment URLs on Vercel, and localhost for local testing.
+const site = PUBLIC_SITE_URL ? new URL(PUBLIC_SITE_URL) : null;
+const allowedDomains = [
+  ...(site ? [{ hostname: site.hostname, protocol: site.protocol.replace(':', '') }] : []),
+  ...(process.env.VERCEL ? [{ hostname: '**.vercel.app', protocol: 'https' }] : []),
+  ...(!site && !process.env.VERCEL ? [{ hostname: 'localhost' }, { hostname: '127.0.0.1' }] : []),
+];
+
 // https://astro.build/config
 // Pages are prerendered from WordPress at build time; the adapter only serves the
 // contact form action on demand.
@@ -21,10 +31,16 @@ export default defineConfig({
     // Deployed address, used for canonical URLs and link-preview images.
     site: PUBLIC_SITE_URL || undefined,
     output: 'static',
+    // Astro 7 strips whitespace between inline elements by default (JSX rules); keep the
+    // HTML-aware spacing the templates were written for, e.g. "{year} {label}".
+    compressHTML: true,
     prefetch: true,
   image: {
       domains: wpHost ? [wpHost] : [],
       ...(isBuild && { endpoint: { entrypoint: './src/lib/image-endpoint-disabled.ts' } }),
+  },
+  security: {
+      allowedDomains,
   },
   env: {
       schema: {

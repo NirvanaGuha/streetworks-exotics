@@ -13,7 +13,7 @@ import ReviewsSection from "../components/ReviewsSection.astro";
 import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
-import { fetchAPI, parseWPBlocks } from "../lib/wp";
+import { fetchAPI } from "../lib/wp";
 import { content, getLocalHomepageServices, getServiceStripImages } from "../lib/localContent";
 import { asset } from "../lib/assets";
 import { getShowcases } from "../lib/showcases";
@@ -47,7 +47,7 @@ const data = await fetchAPI(`
       nodes {
         slug
         title
-        content
+        sections { type images { url } }
         featuredImage { node { sourceUrl } }
         serviceDetails { description tintColor }
       }
@@ -80,7 +80,7 @@ const wpServices = (data?.services?.nodes || []).map((s: any) => ({
   description: s.serviceDetails?.description?.trim(),
   link: `/services/${s.slug}`,
   backgroundImage: s.featuredImage?.node?.sourceUrl,
-  galleryImages: (parseWPBlocks(s.content).find((b: any) => b.type === "gallery")?.images || []).map((img: any) => img.url),
+  galleryImages: (s.sections?.find((section: any) => section.type === "gallery")?.images || []).map((img: any) => img.url),
 }));
 const serviceList = wpServices.length > 0 ? wpServices : await getLocalHomepageServices();
 
