@@ -17,7 +17,11 @@ const isBuild = process.argv.includes('build');
 // The server only trusts the Host header for these domains (otherwise it assumes localhost),
 // and form posts from any other origin are rejected as cross-site. So list where the site
 // runs: its own domain, Vercel's deployment URLs on Vercel, and localhost for local testing.
-const site = PUBLIC_SITE_URL ? new URL(PUBLIC_SITE_URL) : null;
+// On Vercel the project's production address is the default, so a deploy with no settings
+// still gets absolute link-preview images (chat apps can't show a relative or localhost one).
+const siteUrl = PUBLIC_SITE_URL
+  || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '');
+const site = siteUrl ? new URL(siteUrl) : null;
 const allowedDomains = [
   ...(site ? [{ hostname: site.hostname, protocol: site.protocol.replace(':', '') }] : []),
   ...(process.env.VERCEL ? [{ hostname: '**.vercel.app', protocol: 'https' }] : []),
@@ -29,7 +33,7 @@ const allowedDomains = [
 // contact form action on demand.
 export default defineConfig({
     // Deployed address, used for canonical URLs and link-preview images.
-    site: PUBLIC_SITE_URL || undefined,
+    site: siteUrl || undefined,
     output: 'static',
     // Astro 7 strips whitespace between inline elements by default (JSX rules); keep the
     // HTML-aware spacing the templates were written for, e.g. "{year} {label}".

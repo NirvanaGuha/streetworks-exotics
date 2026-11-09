@@ -83,10 +83,19 @@ test('robots.txt matches demo mode', async ({ page, request }) => {
     else expect(body).not.toMatch(/Disallow: \/\n/);
 });
 
-test('pages carry link-preview tags', async ({ page }) => {
+test('pages carry link-preview tags', async ({ page, request }) => {
     await page.goto('/');
     for (const property of ['og:title', 'og:description', 'og:image', 'og:url']) {
         await expect(page.locator(`meta[property="${property}"]`)).toHaveAttribute('content', /.+/);
+    }
+    // Chat apps only show a preview image from an absolute URL on the site itself.
+    const url = new URL(await page.locator('meta[property="og:url"]').getAttribute('content') ?? '');
+    const image = new URL(await page.locator('meta[property="og:image"]').getAttribute('content') ?? '');
+    expect(image.origin).toBe(url.origin);
+    if (process.env.PUBLIC_SITE_URL) {
+        // Built for a known address (CI builds for the test server): the image must load there.
+        expect(url.origin).toBe(new URL(process.env.PUBLIC_SITE_URL).origin);
+        expect((await request.get(image.href)).status()).toBe(200);
     }
 });
 

@@ -57,14 +57,14 @@ node --env-file=.env dist/server/entry.mjs   # serve the production build
 | Variable | Purpose |
 | --- | --- |
 | `PUBLIC_WP_GRAPHQL_URL` | WPGraphQL endpoint. Empty = local content only. |
-| `PUBLIC_SITE_URL` | Deployed address. Needed for absolute link-preview images and canonical URLs. |
+| `PUBLIC_SITE_URL` | Deployed address, used for link-preview images and canonical URLs. On Vercel it defaults to the project's production URL; set it once the site has its own domain. |
 | `WP_FORM_SECRET` | Must match `FIRE_FORM_SECRET`. Read at runtime by the contact action. |
 | `PUBLIC_DEMO_MODE` | On unless set to `false`. Concept builds get: `noindex`, robots.txt blocks search crawlers (link-preview bots stay allowed so DMs show a card), "Concept by" badge. Set `false` at launch. |
 | `PUBLIC_DEMO_CREDIT` | Optional badge text. |
 
 ## Deploying
 
-**Concept demo (no WordPress):** import the repo into Vercel and deploy. No environment variables are needed: without `PUBLIC_WP_GRAPHQL_URL` the site builds from the local content files, demo mode is on by default, and the contact form explains that it's a preview. Add `PUBLIC_SITE_URL` (the Vercel URL) so link previews have absolute images.
+**Concept demo (no WordPress):** import the repo into Vercel and deploy. No environment variables are needed: without `PUBLIC_WP_GRAPHQL_URL` the site builds from the local content files, demo mode is on by default, and the contact form explains that it's a preview. Link previews use the project's production URL (`<project>.vercel.app`); share that address, since the per-deploy URLs sit behind a Vercel login.
 
 Before deploying, copy the latest WordPress content into those local files, so the demo shows exactly what WordPress has, and commit the result:
 

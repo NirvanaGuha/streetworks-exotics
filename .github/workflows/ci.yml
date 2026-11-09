@@ -11,6 +11,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Build for the test server's address, so the smoke tests can check that link-preview
+    # tags point at the site and that the preview image loads.
+    env:
+      PUBLIC_SITE_URL: http://127.0.0.1:4380
     steps:
       - uses: actions/checkout@v4
 
