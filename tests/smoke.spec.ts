@@ -241,6 +241,16 @@ test('posts and case studies reveal every block', async ({ page }) => {
     }
 });
 
+// An import that picks up a page's content twice repeats every section heading.
+test('no article repeats a section heading', () => {
+    for (const route of ARTICLES) {
+        const html = readFileSync(path.join(CLIENT_DIR, route, 'index.html'), 'utf8');
+        const headings = [...html.matchAll(/<h[23] class="article-reveal article-h[23]"[^>]*>([\s\S]*?)<\/h[23]>/g)].map((m) => m[1].replace(/<span class="article-chapter-number"[^>]*>\d+<\/span>/, '').replace(/<[^>]+>/g, '').trim());
+        const repeated = headings.filter((heading, i) => headings.indexOf(heading) !== i);
+        expect(repeated, route).toEqual([]);
+    }
+});
+
 test('article photos fit the screen', async ({ page }) => {
     for (const route of ARTICLES) {
         await page.goto(route);
