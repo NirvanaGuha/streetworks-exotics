@@ -7,7 +7,7 @@ WordPress (admin + content) ──WPGraphQL──▶ Astro build ──▶ stati
                          ◀──REST (contact form)── Astro server action
 ```
 
-- **Pages** are prerendered at build time from WordPress. Publishing in WordPress needs a rebuild to show up (a deploy hook does this in hosting).
+- **Pages** are prerendered at build time from WordPress. Saving a change in WordPress starts a rebuild on its own (see *Automatic rebuilds*); it shows on the site a minute or two later.
 - **Contact form** is the only thing that runs on demand: an Astro Action posts to WordPress, which saves an *Enquiry* and emails the shop.
 - **Fallbacks:** with no WordPress URL set, or WordPress unreachable in development, the site renders from `src/content/services` and the built-in defaults. A **production build fails** if WordPress can't be reached, so a bad build never replaces the live site with placeholder content.
 
@@ -85,7 +85,15 @@ Before deploying, copy the latest WordPress content (services, posts, case studi
 npm run snapshot
 ```
 
-**Client site (with WordPress):** set `PUBLIC_WP_GRAPHQL_URL`, `WP_FORM_SECRET`, `PUBLIC_SITE_URL` and `PUBLIC_DEMO_MODE=false` in Vercel, then add a Vercel deploy hook and call it when WordPress publishes so the static pages rebuild.
+**Client site (with WordPress):** set `PUBLIC_WP_GRAPHQL_URL`, `WP_FORM_SECRET`, `PUBLIC_SITE_URL` and `PUBLIC_DEMO_MODE=false` in Vercel, then set up automatic rebuilds.
+
+**Automatic rebuilds.** In Vercel, open the project's Settings → Git → Deploy Hooks, create a hook for the `main` branch, and put its address in the client's `wp-config.php`:
+
+```bash
+wp config set FIRE_DEPLOY_HOOK_URL "https://api.vercel.com/v1/integrations/deploy/..." --type=constant
+```
+
+From then on the plugin (`wordpress/fire-headless/rebuild.php`) starts a build whenever something the site shows changes: a post, case study, service, page, showcase, testimonial or Site Settings is published, edited while live, unpublished, trashed or deleted; a live post's fields are saved; a photo's alt text or caption changes; a category or tag is added, renamed or removed. Drafts, autosaves and form enquiries don't. Changes made together share one build: the first starts it, and any in the next 20 seconds wait and start one more, so the last edit is always included (that follow-up runs on WP-Cron, which the build's own requests to WordPress set off). If the host can't be reached, the call is tried again after 1, 2 and 3 minutes. Editors also get **Rebuild site** in the admin bar, which starts a build at once and shows when the last one was requested and whether it worked. Without the constant nothing is sent, which is what local and demo WordPress installs want. The address is a secret: anyone who has it can start builds, so keep it out of the repo.
 
 The Vercel adapter is picked automatically on Vercel; elsewhere the build runs as a Node server (`node --env-file=.env dist/server/entry.mjs`). Production builds disable Astro's on-demand image endpoint, since every image is generated at build time.
 
@@ -99,7 +107,7 @@ Everything client-specific lives in data files and images; the components don't 
    **`src/content/posts/*.json`** and **`src/content/case-studies/*.json`**: the blog and case studies, also written by `npm run snapshot` (after importing the client's old posts, see WordPress setup). Delete the previous client's files; with none, the blog and case study pages are simply empty. The listing headings and labels are in `content.json` (`journal`, `caseStudies`, `labels`).
 4. **`src/assets/images/`**: the client's photos, referred to by path from the JSON files (post and case study photos in `articles/`).
 5. **`public/favicon.svg`** and **`favicon.ico`**.
-6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET`, then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, Site Settings, showcases, testimonials, services (with their text and gallery blocks), posts and case studies, and uploads every image they use. Tested on a brand-new WordPress.
+6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET` (and `FIRE_DEPLOY_HOOK_URL` once the site is on Vercel), then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, Site Settings, showcases, testimonials, services (with their text and gallery blocks), posts and case studies, and uploads every image they use. Tested on a brand-new WordPress.
 7. **`.env`**: the client's GraphQL URL and form secret, and `PUBLIC_DEMO_MODE=true` until launch.
 8. Build, then search the output for the previous client's name and phone number. Nothing should turn up.
 
@@ -140,6 +148,7 @@ Everything client-specific lives in data files and images; the components don't 
 - Keep WordPress and the plugins updated.
 - Use a long random `FIRE_FORM_SECRET` (`openssl rand -hex 24`).
 - Serve WordPress over HTTPS.
+- Keep `FIRE_DEPLOY_HOOK_URL` in `wp-config.php` only. If it leaks, delete the hook in Vercel and create a new one.
 
 **Dependencies**
 - `npm audit` lists advisories in the Vercel adapter's build tooling (`@vercel/nft`, `@vercel/routing-utils`) and esbuild's dev server (Windows only). None of that code runs when the site handles a visitor. The only fix npm offers is downgrading the adapter three major versions, so they're left until the adapter updates.
@@ -162,4 +171,4 @@ Requires Node 22.22 or newer (Astro 7).
 - `src/actions/index.ts` — contact form action
 - `vercel.json` — security headers
 - `src/utils/animations.ts` — shared GSAP timelines
-- `wordpress/` — content model plugin (`fire-headless/articles.php` turns post content into typed blocks and back; `site-settings.php` and `site-settings.json` the Site Settings screen; `security.php` the WordPress hardening), seed script and the post importer
+- `wordpress/` — content model plugin (`fire-headless/articles.php` turns post content into typed blocks and back; `site-settings.php` and `site-settings.json` the Site Settings screen; `security.php` the WordPress hardening; `rebuild.php` the automatic rebuilds), seed script and the post importer
