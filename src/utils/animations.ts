@@ -203,12 +203,19 @@ export function revealOnScroll(selector: string) {
 }
 
 /**
- * Article heroes (components/ArticleHero.astro): the photo pushes in slowly and the title
- * lifts away as the page scrolls past.
+ * Article heroes (components/ArticleHero.astro): the title and details rise in, and the
+ * photo pushes in slowly inside its frame as the page scrolls past.
  */
 export function createArticleHeroTimeline(hero: HTMLElement) {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tl = gsap.timeline({ scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true } });
-    if (!reduceMotion) tl.to(hero.querySelector(".article-hero-image"), { scale: 1.12, yPercent: 8, ease: "none" }, 0);
-    tl.to(hero.querySelector(".article-hero-copy"), { autoAlpha: 0, y: reduceMotion ? 0 : -60, ease: "none" }, 0);
+    const copy = hero.querySelector(".article-hero-copy");
+    if (copy) gsap.from(copy.children, { autoAlpha: 0, y: reduceMotion ? 0 : 30, duration: 0.9, stagger: 0.08, ease: "power3.out" });
+    const frame = hero.querySelector(".article-hero-frame");
+    if (frame && !reduceMotion) {
+        gsap.fromTo(frame.querySelector(".article-hero-image"), { scale: 1 }, {
+            scale: 1.1,
+            ease: "none",
+            scrollTrigger: { trigger: frame, start: "top bottom", end: "bottom top", scrub: true },
+        });
+    }
 }

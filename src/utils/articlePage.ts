@@ -1,5 +1,5 @@
 /**
- * Scroll animations for post and case study pages: the hero lifts away and the content and
+ * Animations for post and case study pages: the hero's title rises in and the content and
  * cards rise in. Imported by both page templates; the module runs once, so it registers one
  * listener however the visitor moves between them.
  */

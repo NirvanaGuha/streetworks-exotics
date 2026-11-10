@@ -1,0 +1,166 @@
+---
+// A long read's table of contents: its chapters (h2) and the sections inside them (h3),
+// each linking to its heading. Closed to start; opens and closes without JavaScript.
+// ArticleBody places it after the lead paragraph.
+import { content } from "../lib/localContent";
+
+export interface ContentsEntry {
+  id: string;
+  html: string;
+  level: number;
+  // Chapter number, matching the one beside the heading.
+  n?: string;
+}
+
+interface Props {
+  entries: ContentsEntry[];
+}
+
+const { entries } = Astro.props;
+// Sections indent under chapters when the article has both.
+const nested = entries.some((entry) => entry.level === 2);
+const { labels } = content;
+---
+
+<details class="article-reveal article-contents">
+  <summary>
+    <span class="article-contents-label">{labels.contents}</span>
+    <span class="article-contents-count">{entries.length} {labels.sections}</span>
+    <span class="article-contents-icon" aria-hidden="true"></span>
+  </summary>
+  <ol>
+    {entries.map((entry) => (
+      <li class:list={[nested && entry.level > 2 && "is-sub"]}>
+        <a href={`#${entry.id}`}>
+          {entry.n && <span class="article-contents-n">{entry.n}</span>}
+          <span set:html={entry.html} />
+        </a>
+      </li>
+    ))}
+  </ol>
+</details>
+
+<style>
+  .article-contents {
+    max-width: var(--column, 42rem);
+    margin: 3rem auto 0;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    border-bottom: 1px solid rgb(255 255 255 / 0.12);
+    interpolate-size: allow-keywords;
+  }
+  /* Where the browser can, the list slides open rather than appearing at once. */
+  .article-contents::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size 0.45s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.45s allow-discrete;
+  }
+  .article-contents[open]::details-content {
+    block-size: auto;
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.35rem 0;
+    cursor: pointer;
+    list-style: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:focus-visible {
+    outline: 2px solid var(--article-accent);
+    outline-offset: 4px;
+  }
+  .article-contents-label {
+    color: #fff;
+    font-weight: 700;
+  }
+  .article-contents-count {
+    color: rgb(255 255 255 / 0.45);
+  }
+  /* A plus that turns into a minus. */
+  .article-contents-icon {
+    position: relative;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .article-contents-icon::before,
+  .article-contents-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1.5px;
+    background: var(--article-accent);
+    transition: transform 0.3s;
+  }
+  .article-contents-icon::after {
+    transform: rotate(90deg);
+  }
+  .article-contents[open] .article-contents-icon::after {
+    transform: rotate(0deg);
+  }
+
+  ol {
+    padding-bottom: 1.5rem;
+  }
+  li a {
+    display: flex;
+    gap: 1.1rem;
+    padding: 0.55rem 0;
+    color: rgb(255 255 255 / 0.75);
+    text-decoration: none;
+    font-size: 1rem;
+    line-height: 1.45;
+    transition: color 0.2s;
+  }
+  li a:hover {
+    color: var(--article-accent);
+  }
+  .article-contents-n {
+    flex-shrink: 0;
+    width: 1.6rem;
+    padding-top: 0.2rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--article-accent);
+  }
+  li.is-sub a {
+    padding: 0.35rem 0 0.35rem 2.7rem;
+    font-size: 0.9rem;
+    color: rgb(255 255 255 / 0.5);
+  }
+  @media (min-width: 768px) {
+    li a {
+      font-size: 1.05rem;
+    }
+  }
+</style>
+
+<script>
+  // Contents links glide to their heading, stopping clear of the fixed navigation bar.
+  const initContents = () => {
+    document.querySelectorAll<HTMLAnchorElement>(".article-contents a").forEach((link) => {
+      link.onclick = (event) => {
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (!target) return;
+        event.preventDefault();
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const top = target.getBoundingClientRect().top + window.scrollY - 110;
+        window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+        history.replaceState(history.state, "", link.hash);
+      };
+    });
+  };
+  document.addEventListener("astro:page-load", initContents);
+</script>

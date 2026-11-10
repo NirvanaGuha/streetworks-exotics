@@ -238,6 +238,38 @@ test('article photos fit the screen', async ({ page }) => {
     }
 });
 
+test('article titles sit above their photo, not on it', async ({ page }) => {
+    for (const route of ARTICLES) {
+        await page.goto(route);
+        const gap = await page.evaluate(() => {
+            const frame = document.querySelector('.article-hero-frame');
+            const copy = document.querySelector('.article-hero-copy');
+            return frame && copy ? frame.getBoundingClientRect().top - copy.getBoundingClientRect().bottom : 0;
+        });
+        expect(gap, route).toBeGreaterThanOrEqual(0);
+    }
+});
+
+test('the table of contents opens and jumps to its headings', async ({ page }) => {
+    const route = ARTICLES.find((r) => r.includes('duesenberg'))!;
+    await page.goto(route);
+    const contents = page.locator('.article-contents');
+    await contents.locator('summary').scrollIntoViewIfNeeded();
+    await contents.locator('summary').click();
+    await expect(contents).toHaveAttribute('open', '');
+    // Wait for the list to finish sliding open, so the page below has settled.
+    await expect
+        .poll(() => contents.evaluate((el) => el.getBoundingClientRect().bottom - el.querySelector('ol')!.getBoundingClientRect().bottom))
+        .toBeGreaterThanOrEqual(0);
+    const link = contents.locator('a').nth(3);
+    const hash = await link.getAttribute('href');
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`${hash}$`));
+    await expect
+        .poll(async () => page.locator(hash!).evaluate((el) => Math.round(el.getBoundingClientRect().top)), { timeout: 8_000 })
+        .toBeLessThan(200);
+});
+
 test('old post addresses redirect to their new pages', async ({ page }) => {
     expect(REDIRECTS.length).toBeGreaterThan(0);
     await page.goto(REDIRECTS[0]);

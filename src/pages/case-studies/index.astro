@@ -7,16 +7,12 @@ import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
 import { getCaseStudies, imageProps } from "../../lib/articles";
 import { content } from "../../lib/localContent";
-import { phoneSize } from "../../lib/fit";
+import { columnSize, phoneSize } from "../../lib/fit";
 import brand from "../../data/brand.json";
 
 const caseStudies = await getCaseStudies();
 const { labels } = content;
 const total = String(caseStudies.length).padStart(2, "0");
-
-// Names with a long word step down a size, so no word breaks.
-const nameSize = (name: string) =>
-  Math.max(...name.split(/\s+/).map((word) => word.length)) > 8 ? "text-4xl md:text-[2.6rem] lg:text-5xl" : "text-4xl md:text-5xl lg:text-6xl";
 ---
 
 <Layout title={`${labels.caseStudies} | ${brand.client}`} description={content.caseStudies.intro} image={caseStudies[0]?.image?.src}>
@@ -33,7 +29,7 @@ const nameSize = (name: string) =>
       {caseStudies.map((study, i) => (
         <li class="listing-reveal">
           <a href={study.href} class="group grid md:grid-cols-12 gap-8 md:gap-12 items-end">
-            <div class:list={["relative overflow-hidden rounded-xl bg-[#111] aspect-[4/3] md:aspect-[16/11] md:col-span-7", i % 2 === 1 && "md:order-2"]}>
+            <div class:list={["overflow-hidden rounded-xl bg-[#111] aspect-[4/3] md:aspect-[16/11] md:col-span-7", i % 2 === 1 && "md:order-2"]}>
               {study.image && (
                 <Image
                   {...imageProps(study.image)}
@@ -44,15 +40,14 @@ const nameSize = (name: string) =>
                   class="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]"
                 />
               )}
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-              <span class="absolute top-5 left-5 md:top-7 md:left-7 font-mono text-xs tracking-[0.3em] text-white/80">
-                {String(i + 1).padStart(2, "0")} / {total}
-              </span>
             </div>
 
             <div class="md:col-span-5 flex flex-col gap-4 md:pb-4">
-              {study.year && <span class="font-mono text-xs md:text-sm tracking-[0.4em] uppercase text-accent">{study.year}</span>}
-              <h2 class:list={["font-heading font-bold tracking-tighter uppercase leading-[0.9] group-hover:text-accent transition-colors duration-300 [overflow-wrap:anywhere]", nameSize(study.vehicle || study.title)]}>
+              <span class="flex items-center gap-4 font-mono text-xs md:text-sm tracking-[0.4em] uppercase">
+                <span class="text-white/50">{String(i + 1).padStart(2, "0")} / {total}</span>
+                {study.year && <span class="text-accent">{study.year}</span>}
+              </span>
+              <h2 class:list={["font-heading font-bold tracking-tighter uppercase leading-[0.9] group-hover:text-accent transition-colors duration-300 [overflow-wrap:anywhere]", columnSize(study.vehicle || study.title)]}>
                 {study.vehicle || study.title}
               </h2>
               {study.vehicle && <p class="font-serif italic text-xl md:text-2xl leading-snug text-white/70">{study.title}</p>}

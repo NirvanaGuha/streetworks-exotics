@@ -67,28 +67,29 @@ const filters = [...counts.values()].filter((category) => category.count > 1).so
     )}
 
     {caseStudies.length > 0 && (
-      <section class="relative w-full overflow-hidden border-t border-white/10">
-        <a href="/case-studies" class="group relative block min-h-[70svh] md:min-h-[80svh]">
-          {caseStudies[0].image && (
-            <Image
-              {...imageProps(caseStudies[0].image)}
-              alt=""
-              widths={[640, 1080, 1600, 2400]}
-              sizes="100vw"
-              loading="lazy"
-              class="absolute inset-0 w-full h-full object-cover opacity-50 transition-transform duration-[1.5s] ease-out group-hover:scale-[1.03]"
-            />
-          )}
-          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/70"></div>
-          <div class="relative max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32 min-h-[70svh] md:min-h-[80svh] flex flex-col justify-end">
+      <section class="w-full border-t border-white/10">
+        <a href="/case-studies" class="group block max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28 lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+          <div class="lg:col-span-6">
             <p class="text-accent font-mono text-xs md:text-sm tracking-[0.5em] uppercase mb-6">{labels.caseStudies}</p>
-            <h2 class:list={["font-heading sm:text-6xl md:text-8xl font-bold tracking-tighter uppercase leading-[0.85] max-w-4xl", phoneSize(content.caseStudies.heading)]}>{content.caseStudies.heading}</h2>
+            <h2 class:list={["font-heading sm:text-6xl md:text-7xl lg:text-6xl font-bold tracking-tighter uppercase leading-[0.85] group-hover:text-accent transition-colors duration-300", phoneSize(content.caseStudies.heading)]}>{content.caseStudies.heading}</h2>
             <p class="mt-6 max-w-xl text-lg md:text-xl text-white/70 font-light leading-relaxed">{content.caseStudies.intro}</p>
-            <span class="mt-10 inline-flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase font-bold text-accent">
+            <span class="mt-8 md:mt-10 inline-flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase font-bold text-accent">
               {caseStudies.length} {labels.caseStudies}
               <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </span>
           </div>
+          {caseStudies[0].image && (
+            <div class="mt-10 lg:mt-0 lg:col-span-6 overflow-hidden rounded-xl bg-[#111] aspect-[4/3] lg:aspect-[16/11]">
+              <Image
+                {...imageProps(caseStudies[0].image)}
+                alt=""
+                widths={[640, 1080, 1600, 2200]}
+                sizes="(min-width: 1280px) 600px, (min-width: 1024px) 50vw, 100vw"
+                loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]"
+              />
+            </div>
+          )}
         </a>
       </section>
     )}
