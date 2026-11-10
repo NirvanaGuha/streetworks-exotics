@@ -3,6 +3,12 @@ import { getBusiness } from "../lib/business";
 import { content, fill } from "../lib/site";
 import { demoMode } from "../lib/demo";
 
+interface Props {
+  /** What the message box starts with, e.g. the part an enquiry is about. */
+  message?: string;
+}
+
+const { message } = Astro.props;
 const business = await getBusiness();
 // A concept build without WordPress can't deliver messages, so say so up front.
 const formIsPreview = demoMode && !import.meta.env.PUBLIC_WP_GRAPHQL_URL;
@@ -102,7 +108,7 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
                 <input name="name" type="text" placeholder={form.namePlaceholder} required maxlength="100" autocomplete="name" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
                 <input name="email" type="email" placeholder={form.emailPlaceholder} required maxlength="254" autocomplete="email" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
               </div>
-              <textarea name="message" placeholder={form.messagePlaceholder} required maxlength="5000" rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors resize-none"></textarea>
+              <textarea name="message" placeholder={form.messagePlaceholder} required maxlength="5000" rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors resize-none">{message}</textarea>
               <!-- Spam trap: hidden from people, bots fill it in -->
               <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
                 <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>

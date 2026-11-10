@@ -1,0 +1,20 @@
+{
+  "order": 1,
+  "title": "Gear Shift Gate",
+  "fits": "De Tomaso Mangusta",
+  "description": "",
+  "images": [
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-gear-shift-gate-1.jpg",
+      "alt": "Polished gear shift gate for a De Tomaso Mangusta"
+    },
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-gear-shift-gate-2.jpg",
+      "alt": "Two De Tomaso Mangusta gear shift gates, one unfinished and one polished"
+    },
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-gear-shift-gate-3.jpg",
+      "alt": "Two polished De Tomaso Mangusta gear shift gates"
+    }
+  ]
+}

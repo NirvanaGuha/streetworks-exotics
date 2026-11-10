@@ -11,6 +11,8 @@
  *   /<slug>               a post or case study with that slug -> /blog/<slug>, /case-studies/<slug>
  *   /<slug>               a service with that slug, or whose slug starts with it -> /services/<slug>
  *   /category/..., /tag/..., /author/..., /blog/page/N, /page/N  -> /blog
+ *   /product/<slug>       a part with that slug, or whose slug starts with it -> /parts/<slug>
+ *   /product-category/..., /product-tag/..., /shop, other products  -> /parts (when the new site has parts)
  *   /feed, /sitemap_index.xml, /*-sitemap.xml  -> /rss.xml, /sitemap.xml
  *
  * Anything else (an About page, a shop, job adverts) goes to the homepage and is listed at
@@ -89,7 +91,7 @@ async function archivePaths() {
     return out;
 }
 
-// WooCommerce: product and product category pages (SEO plugins often leave them out of the
+// WooCommerce: product, product category and product tag pages (SEO plugins often leave them out of the
 // sitemaps), and the shop's own pages when the old site has them.
 async function shopPaths() {
     const out = [];
@@ -101,7 +103,9 @@ async function shopPaths() {
     const categories = await getJson(`${source}/wp-json/wc/store/v1/products/categories?per_page=100`);
     out.push(...categories.filter((category) => category.count > 0).map((category) => category.permalink));
     if (!out.length) return [];
-    for (const name of ['/shop', '/cart', '/checkout', '/my-account']) if (await get(`${source}${name}/`)) out.push(`${source}${name}`);
+    // Tags come without their address; WooCommerce's default is /product-tag/<slug>.
+    const tags = (await getJson(`${source}/wp-json/wc/store/v1/products/tags?per_page=100`)).filter((tag) => tag.count > 0).map((tag) => `/product-tag/${tag.slug}`);
+    for (const name of [...tags, '/shop', '/cart', '/checkout', '/my-account']) if (await get(`${source}${name}/`)) out.push(`${source}${name}`);
     return out.filter((url) => url?.startsWith(source)).map((url) => url.slice(source.length));
 }
 
@@ -110,14 +114,19 @@ const targets = new Map();
 for (const slug of await slugs(path.join(ROOT, 'src/content/posts'))) targets.set(slug, `/blog/${slug}`);
 for (const slug of await slugs(path.join(ROOT, 'src/content/case-studies'))) targets.set(slug, `/case-studies/${slug}`);
 const services = await slugs(path.join(ROOT, 'src/content/services'));
+const parts = await slugs(path.join(ROOT, 'src/content/parts'));
 // Addresses the new site serves itself, so they never redirect.
-const own = new Set(['/', '/blog', '/case-studies', '/portfolio', '/rss.xml', '/sitemap.xml', '/robots.txt', '/llms.txt']);
+const own = new Set(['/', '/blog', '/case-studies', '/portfolio', ...(parts.length ? ['/parts'] : []), '/rss.xml', '/sitemap.xml', '/robots.txt', '/llms.txt']);
 
 function destination(oldPath) {
     if (/^\/(feed|comments\/feed)$/.test(oldPath)) return '/rss.xml';
     if (/\.xml$/.test(oldPath)) return '/sitemap.xml';
     if (/^\/(category|tag|author)\//.test(oldPath) || /^(\/blog)?\/page\/\d+$/.test(oldPath)) return '/blog';
     const slug = oldPath.split('/').pop();
+    if (parts.length && /^\/(product|product-category|product-tag|shop)(\/|$)/.test(oldPath)) {
+        const part = oldPath.startsWith('/product/') && (parts.find((name) => name === slug) || parts.find((name) => name.startsWith(`${slug}-`)));
+        return part ? `/parts/${part}` : '/parts';
+    }
     if (targets.has(slug)) return targets.get(slug);
     const service = services.find((name) => name === slug) || services.find((name) => name.startsWith(`${slug}-`));
     return service ? `/services/${service}` : null;

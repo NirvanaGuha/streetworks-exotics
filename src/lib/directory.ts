@@ -5,9 +5,10 @@
 import { fetchAPI } from './wp';
 import { getCaseStudies, getPosts, type Article } from './articles';
 import { getPages } from './pages';
+import { getParts, type Part } from './parts';
 import { getLocalService, getLocalServiceSlugs } from './localContent';
 import { describe } from './storyText';
-import { brand, content } from './site';
+import { brand, content, fill } from './site';
 
 export type Entry = { path: string; title: string; description: string; modified?: string };
 export type ServiceEntry = Entry & { slug: string };
@@ -49,9 +50,16 @@ export const articleEntry = (article: Article): Entry => ({
     modified: article.modified || article.date,
 });
 
+export const partEntry = (part: Part): Entry => ({
+    path: part.href,
+    title: part.seo.title || part.name,
+    description: part.seo.description || fill(content.parts.partDescription, { part: part.name, shop: brand.shortName }),
+    modified: part.modified,
+});
+
 /** Every page, the main sections first. */
 export async function getEntries(): Promise<Entry[]> {
-    const [posts, caseStudies, pages] = await Promise.all([getPosts(), getCaseStudies(), getPages()]);
+    const [posts, caseStudies, pages, parts] = await Promise.all([getPosts(), getCaseStudies(), getPages(), getParts()]);
     const newest = (list: Article[]) => list.map((article) => article.modified || article.date).sort().at(-1);
     return [
         { path: '/', title: `${brand.client} | ${brand.tagline}`, description: brand.description, modified: newest([...posts, ...caseStudies]) },
@@ -61,6 +69,8 @@ export async function getEntries(): Promise<Entry[]> {
         ...caseStudies.map(articleEntry),
         ...(posts.length ? [{ path: '/blog', title: content.journal.heading, description: content.journal.intro, modified: newest(posts) }] : []),
         ...posts.map(articleEntry),
+        ...(parts.length ? [{ path: '/parts', title: content.labels.parts, description: content.parts.intro, modified: parts.map((part) => part.modified).filter(Boolean).sort().at(-1) }] : []),
+        ...parts.map(partEntry),
         ...pages.map((page) => ({ path: `/${page.slug}`, title: page.seo.title || page.title, description: page.seo.description, modified: page.modified })),
     ];
 }

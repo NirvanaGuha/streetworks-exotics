@@ -1,0 +1,20 @@
+{
+  "order": 2,
+  "title": "Exhaust Header Heatshields",
+  "fits": "De Tomaso Mangusta",
+  "description": "",
+  "images": [
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-exhaust-header-heatshields-1.jpg",
+      "alt": "Exhaust header heatshield for a De Tomaso Mangusta on its wooden forming buck"
+    },
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-exhaust-header-heatshields-2.jpg",
+      "alt": "De Tomaso Mangusta exhaust header heatshield on its forming buck, from the front"
+    },
+    {
+      "src": "../../assets/images/parts/de-tomaso-mangusta-exhaust-header-heatshields-3.jpg",
+      "alt": "De Tomaso Mangusta exhaust header heatshield beside its wooden forming buck"
+    }
+  ]
+}

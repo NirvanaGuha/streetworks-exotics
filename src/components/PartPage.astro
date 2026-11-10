@@ -1,0 +1,111 @@
+---
+// A part: its photos beside its name, the car it's for and the enquiry button, then other
+// parts. Nothing is sold online, so the button leads to the contact form, started with a
+// message naming the part.
+import Layout from "../layouts/Layout.astro";
+import NavBar from "./NavBar.astro";
+import PartCard from "./PartCard.astro";
+import ZoomableImage from "./ZoomableImage.astro";
+import ContactSection from "./ContactSection.astro";
+import Footer from "./Footer.astro";
+import { aspect } from "../lib/articles";
+import type { Part } from "../lib/parts";
+import { getBusiness } from "../lib/business";
+import { brand, content, fill } from "../lib/site";
+import { partEntry } from "../lib/directory";
+import { breadcrumbs } from "../lib/schema";
+
+interface Props {
+  part: Part;
+  // Other parts to show after this one.
+  others: Part[];
+}
+
+const { part, others } = Astro.props;
+const { labels } = content;
+const business = await getBusiness();
+const [photo, ...morePhotos] = part.images;
+const paragraphs = part.description.split(/\n{2,}/).filter(Boolean);
+const { description } = partEntry(part);
+---
+
+<Layout
+  title={`${part.seo.title || part.name} | ${brand.client}`}
+  description={description}
+  image={part.seo.image || photo?.src}
+  schema={(page) => [breadcrumbs(page, [{ name: brand.shortName, path: "/" }, { name: labels.parts, path: "/parts" }, { name: part.name }])]}
+>
+  <NavBar />
+
+  <main class="parts-page relative w-full bg-black text-white">
+    <section class="max-w-7xl mx-auto px-6 md:px-12 pt-32 md:pt-44 pb-24 md:pb-32 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+      <div class="lg:col-span-7 flex flex-col gap-4 md:gap-6">
+        {photo && (
+          <ZoomableImage
+            src={photo.src}
+            width={photo.width}
+            height={photo.height}
+            alt={photo.alt || part.name}
+            accentColor="var(--brand-accent)"
+            class=""
+            widths={[640, 1080, 1600]}
+            sizes="(min-width: 1280px) 680px, (min-width: 1024px) 56vw, 100vw"
+            style={`aspect-ratio: ${aspect(photo)};`}
+          />
+        )}
+        {morePhotos.length > 0 && (
+          <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {morePhotos.map((image) => (
+              <ZoomableImage
+                src={image.src}
+                width={image.width}
+                height={image.height}
+                alt={image.alt || part.name}
+                accentColor="var(--brand-accent)"
+                widths={[480, 800]}
+                sizes="(min-width: 1280px) 330px, (min-width: 1024px) 28vw, 50vw"
+                class="aspect-[4/3]"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="lg:col-span-5 lg:sticky lg:top-32 flex flex-col items-start gap-6">
+        <a href="/parts" class="inline-flex items-center gap-3 font-mono text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/50 hover:text-accent transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path></svg>
+          {labels.parts}
+        </a>
+        <div class="flex flex-col gap-4">
+          {part.fits && <p class="font-mono text-xs md:text-sm tracking-[0.4em] uppercase text-accent">{part.fits}</p>}
+          <h1 class="font-heading text-4xl xl:text-5xl font-bold tracking-tighter uppercase leading-[0.95] [overflow-wrap:anywhere]">{part.title}</h1>
+        </div>
+        {paragraphs.map((paragraph) => <p class="text-lg text-white/70 font-light leading-relaxed">{paragraph}</p>)}
+
+        <div class="w-full mt-2 pt-8 border-t border-white/10 flex flex-col items-start gap-6">
+          <p class="font-serif italic text-3xl md:text-4xl leading-none">{labels.priceOnRequest}</p>
+          <a href="#contact-section" class="px-8 py-4 bg-accent text-accent-contrast rounded-full hover:bg-white transition-colors font-bold uppercase tracking-widest text-sm shadow-lg shadow-accent/20">
+            {labels.askAboutPart}
+          </a>
+          <a href={business.phoneHref} class="text-sm text-white/60 hover:text-accent transition-colors">{fill(labels.orCall, { phone: business.phone })}</a>
+        </div>
+      </div>
+    </section>
+
+    {others.length > 0 && (
+      <section class="w-full border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
+          <h2 class="font-mono text-xs md:text-sm tracking-[0.45em] uppercase text-accent mb-10 md:mb-14">{labels.moreParts}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+            {others.map((other) => (
+              <div class="listing-reveal"><PartCard part={other} as="h3" /></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <ContactSection message={fill(content.parts.enquiry, { part: part.name })} />
+  </main>
+  <Footer />
+</Layout>

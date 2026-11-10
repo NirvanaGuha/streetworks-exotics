@@ -1,0 +1,39 @@
+---
+// Every part in its "Order", as a grid of cards.
+import Layout from "../layouts/Layout.astro";
+import NavBar from "./NavBar.astro";
+import PartCard from "./PartCard.astro";
+import ContactSection from "./ContactSection.astro";
+import Footer from "./Footer.astro";
+import type { Part } from "../lib/parts";
+import { brand, content } from "../lib/site";
+import { phoneSize } from "../lib/fit";
+
+interface Props {
+  parts: Part[];
+}
+
+const { parts } = Astro.props;
+const { labels } = content;
+---
+
+<Layout title={`${labels.parts} | ${brand.client}`} description={content.parts.intro} image={parts[0]?.images[0]?.src}>
+  <NavBar />
+
+  <main class="parts-page relative w-full bg-black text-white">
+    <header class="max-w-7xl mx-auto px-6 md:px-12 pt-40 md:pt-48 pb-16 md:pb-24">
+      <p class="text-accent font-mono text-xs md:text-sm tracking-[0.5em] uppercase mb-6">{labels.parts}</p>
+      <h1 class:list={["font-heading sm:text-6xl md:text-8xl lg:text-[8rem] font-bold tracking-tighter uppercase leading-[0.85]", phoneSize(content.parts.heading)]}>{content.parts.heading}</h1>
+      <p class="mt-8 max-w-xl text-lg md:text-2xl text-white/60 font-light leading-relaxed">{content.parts.intro}</p>
+    </header>
+
+    <section class="max-w-7xl mx-auto px-6 md:px-12 pb-28 md:pb-40 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 md:gap-y-20">
+      {parts.map((part, i) => (
+        <div class="listing-reveal"><PartCard part={part} eager={i < 3} /></div>
+      ))}
+    </section>
+
+    <ContactSection />
+  </main>
+  <Footer />
+</Layout>

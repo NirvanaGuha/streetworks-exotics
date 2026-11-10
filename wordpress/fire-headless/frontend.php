@@ -37,7 +37,7 @@ function fire_headless_public_path(): string
     }
     if (is_singular()) {
         $post = get_queried_object();
-        $prefix = ['post' => '/blog/', 'case_study' => '/case-studies/', 'service' => '/services/', 'page' => '/'];
+        $prefix = ['post' => '/blog/', 'case_study' => '/case-studies/', 'service' => '/services/', 'part' => '/parts/', 'page' => '/'];
         if ($post instanceof WP_Post && isset($prefix[$post->post_type])) {
             return $prefix[$post->post_type] . $post->post_name;
         }

@@ -5,6 +5,7 @@
  *   src/data/brand.json     business details (address, phone, socials, video)
  *   both of those           Site Settings: colours, fonts, labels, headings, logos (site-settings.json)
  *   src/content/services    services: title, order, featured image, details, page text and galleries
+ *   src/content/parts       parts: title, order, the car they fit, description and photos
  *   src/assets/images       every image those files refer to
  *
  *   wp eval-file wordpress/seed.php <project-root> [overwrite]
@@ -72,11 +73,18 @@ function fire_seed_fields(int $post_id, array $fields, bool $overwrite): void
     }
 }
 
+/** The post of this type with this slug. (get_page_by_path alone also returns an image that shares the slug.) */
+function fire_seed_find(string $slug, string $type): ?WP_Post
+{
+    $post = get_page_by_path($slug, OBJECT, $type);
+    return $post && $post->post_type === $type ? $post : null;
+}
+
 /** Creates a post by slug if it's missing (or updates it when overwriting), with featured image and fields. */
 function fire_seed_post(string $type, string $title, int $order, ?int $thumb, array $fields, bool $overwrite, array $post = []): void
 {
     $slug = $post['post_name'] ?? sanitize_title($title);
-    $existing = get_page_by_path($slug, OBJECT, $type);
+    $existing = fire_seed_find($slug, $type);
     if ($existing && !$overwrite) {
         WP_CLI::log("Kept existing $type: $slug");
         return;
@@ -260,7 +268,7 @@ foreach (glob("$root/src/content/services/*.json") as $file) {
     $data = fire_seed_json($file);
     $slug = basename($file, '.json');
     $order = (int) ($data['order'] ?? 0);
-    $existing = get_page_by_path($slug, OBJECT, 'service');
+    $existing = fire_seed_find($slug, 'service');
     if ($existing && !$overwrite) {
         // Keep the shop's content; only fill in an order if it has none.
         if ($order && (int) $existing->menu_order === 0) {
@@ -295,7 +303,7 @@ foreach ($article_types as $type => $dir) {
     foreach (glob("$dir/*.json") as $file) {
         $data = fire_seed_json($file);
         $slug = basename($file, '.json');
-        if (get_page_by_path($slug, OBJECT, $type) && !$overwrite) {
+        if (fire_seed_find($slug, $type) && !$overwrite) {
             WP_CLI::log("Kept existing $type: $slug");
             continue;
         }
@@ -310,7 +318,7 @@ foreach ($article_types as $type => $dir) {
             'post_content' => wp_slash(fire_headless_article_markup(fire_seed_article_blocks($data['blocks'], $img))),
         ]);
         if ($type === 'post' && !empty($data['categories'])) {
-            $post = get_page_by_path($slug, OBJECT, 'post');
+            $post = fire_seed_find($slug, 'post');
             $ids = [];
             foreach ($data['categories'] as $category) {
                 $term = term_exists($category['slug'], 'category') ?: wp_insert_term($category['name'], 'category', ['slug' => $category['slug']]);
@@ -319,6 +327,28 @@ foreach ($article_types as $type => $dir) {
             wp_set_post_categories($post->ID, $ids);
         }
     }
+}
+
+// Parts: one per file in src/content/parts, slug = file name. The first image is the
+// featured image; up to three more fill Photo 2 to 4.
+foreach (glob("$root/src/content/parts/*.json") as $file) {
+    $data = fire_seed_json($file);
+    $slug = basename($file, '.json');
+    $photos = [];
+    foreach ($data['images'] ?? [] as $image) {
+        $id = $img(fire_seed_service_image_path($image['src']));
+        if (!empty($image['alt']) && get_post_meta($id, '_wp_attachment_image_alt', true) === '') {
+            update_post_meta($id, '_wp_attachment_image_alt', $image['alt']);
+        }
+        $photos[] = $id;
+    }
+    fire_seed_post('part', $data['title'], (int) ($data['order'] ?? 0), $photos[0] ?? null, [
+        'fits'        => $data['fits'] ?? '',
+        'description' => $data['description'] ?? '',
+        'photo_2'     => $photos[1] ?? null,
+        'photo_3'     => $photos[2] ?? null,
+        'photo_4'     => $photos[3] ?? null,
+    ] + fire_seed_seo_fields($data), $overwrite, ['post_name' => $slug]);
 }
 
 WP_CLI::success('Starter content seeded' . ($overwrite ? ' (overwrite)' : '') . '.');

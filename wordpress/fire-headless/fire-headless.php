@@ -17,7 +17,7 @@ require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/site-settings.php';
 
 /**
- * Post types. Showcases and Testimonials are ordered with "Order" (menu_order)
+ * Post types. Showcases, Testimonials and Parts are ordered with "Order" (menu_order)
  * in the Page Attributes box, which is what the front end sorts by.
  */
 add_action('init', function () {
@@ -78,6 +78,17 @@ add_action('init', function () {
         'supports'            => ['title', 'editor', 'thumbnail', 'excerpt', 'page-attributes'],
         'graphql_single_name' => 'CaseStudy',
         'graphql_plural_name' => 'CaseStudies',
+    ]);
+
+    // Parts sold on request: no prices and no checkout, each one leads to the contact form.
+    register_post_type('part', $shared + [
+        'label'               => 'Parts',
+        'labels'              => ['singular_name' => 'Part', 'add_new_item' => 'Add New Part'],
+        'description'         => 'Parts the shop sells on request. The title is the part, the featured image its main photo.',
+        'menu_icon'           => 'dashicons-admin-tools',
+        'supports'            => ['title', 'thumbnail', 'page-attributes'],
+        'graphql_single_name' => 'Part',
+        'graphql_plural_name' => 'Parts',
     ]);
 
     register_post_type('testimonial', $shared + [
@@ -191,6 +202,19 @@ add_action('acf/include_fields', function () {
     ] + $graphql('caseStudyDetails'));
 
     acf_add_local_field_group([
+        'key'      => 'group_part_details',
+        'title'    => 'Part Details',
+        'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'part']]],
+        'fields'   => [
+            ['key' => 'field_part_fits', 'name' => 'fits', 'label' => 'Fits', 'type' => 'text', 'instructions' => 'The car it is for, e.g. De Tomaso Mangusta. Shown above the part\'s name, and added to it in search results.'],
+            ['key' => 'field_part_description', 'name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'rows' => 4, 'instructions' => 'Optional, e.g. Sold as a set only. The page already says the price is on request.'],
+            $image('field_part_photo_2', 'photo_2', 'Photo 2', 'More photos, shown under the main one (the featured image).'),
+            $image('field_part_photo_3', 'photo_3', 'Photo 3'),
+            $image('field_part_photo_4', 'photo_4', 'Photo 4'),
+        ],
+    ] + $graphql('partDetails'));
+
+    acf_add_local_field_group([
         'key'      => 'group_article_details',
         'title'    => 'Byline',
         'position' => 'side',
@@ -213,6 +237,7 @@ add_action('acf/include_fields', function () {
             [['param' => 'post_type', 'operator' => '==', 'value' => 'post']],
             [['param' => 'post_type', 'operator' => '==', 'value' => 'case_study']],
             [['param' => 'post_type', 'operator' => '==', 'value' => 'service']],
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'part']],
             [['param' => 'post_type', 'operator' => '==', 'value' => 'page']],
         ],
         'fields'   => [

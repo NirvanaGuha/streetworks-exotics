@@ -1,0 +1,47 @@
+---
+// A part in a listing: its photo, the car it's for, its name, and "Price on request".
+import { Image } from "astro:assets";
+import { aspect, imageProps } from "../lib/articles";
+import type { Part } from "../lib/parts";
+import { content } from "../lib/site";
+
+interface Props {
+  part: Part;
+  // Heading level inside the listing.
+  as?: "h2" | "h3";
+  eager?: boolean;
+}
+
+const { part, as: Heading = "h2", eager = false } = Astro.props;
+const photo = part.images[0];
+---
+
+<a href={part.href} class="group block">
+  <div class="overflow-hidden rounded-xl bg-raised aspect-[4/3]">
+    {photo && (
+      <Image
+        {...imageProps(photo)}
+        alt={photo.alt || part.name}
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
+        loading={eager ? "eager" : "lazy"}
+        class:list={[
+          "w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.04]",
+          // Upright photos are shown whole; cropping one to the box would cut the part.
+          aspect(photo) >= 1 ? "object-cover" : "object-contain",
+        ]}
+      />
+    )}
+  </div>
+
+  <div class="mt-5 md:mt-6 flex flex-col gap-3">
+    {part.fits && <span class="font-mono text-[11px] md:text-xs tracking-[0.35em] uppercase text-accent">{part.fits}</span>}
+    <Heading class="font-heading font-bold uppercase tracking-tighter leading-[0.95] text-2xl md:text-[1.75rem] text-white group-hover:text-accent transition-colors duration-300 [overflow-wrap:anywhere]">
+      {part.title}
+    </Heading>
+    <span class="mt-1 inline-flex items-center gap-3 font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-white/50">
+      {content.labels.priceOnRequest}
+      <svg class="w-4 h-4 text-accent transition-transform duration-300 group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+    </span>
+  </div>
+</a>

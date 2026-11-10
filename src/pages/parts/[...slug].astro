@@ -1,0 +1,37 @@
+---
+// /parts lists every part and /parts/<slug> shows one. A site with no parts has neither page.
+import PartsListing from "../../components/PartsListing.astro";
+import PartPage from "../../components/PartPage.astro";
+import { getParts, type Part } from "../../lib/parts";
+
+export async function getStaticPaths() {
+  const parts = await getParts();
+  if (!parts.length) return [];
+  return [
+    { params: { slug: undefined }, props: { parts } },
+    // Each part is followed by the next three, wrapping around.
+    ...parts.map((part, i) => ({
+      params: { slug: part.slug },
+      props: { parts, part, others: [1, 2, 3].map((step) => parts[(i + step) % parts.length]).filter((other, at, list) => other !== part && list.indexOf(other) === at) },
+    })),
+  ];
+}
+
+const { parts, part, others = [] } = Astro.props as { parts: Part[]; part?: Part; others?: Part[] };
+---
+
+{part ? <PartPage part={part} others={others} /> : <PartsListing parts={parts} />}
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { revealOnScroll } from "../../utils/animations";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("astro:page-load", () => {
+    if (!document.querySelector(".parts-page")) return;
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+    revealOnScroll(".listing-reveal");
+  });
+</script>

@@ -1,0 +1,12 @@
+{
+  "order": 5,
+  "title": "Door Stops / Catches",
+  "fits": "Lamborghini Espada",
+  "description": "",
+  "images": [
+    {
+      "src": "../../assets/images/parts/lamborghini-espada-door-stops.jpg",
+      "alt": "Row of machined door stops for a Lamborghini Espada"
+    }
+  ]
+}

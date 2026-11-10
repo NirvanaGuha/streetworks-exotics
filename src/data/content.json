@@ -35,6 +35,11 @@
         "portfolio": "Portfolio",
         "caseStudies": "Case Studies",
         "caseStudy": "Case Study",
+        "parts": "Parts",
+        "priceOnRequest": "Price on request",
+        "askAboutPart": "Ask about this part",
+        "orCall": "or call {phone}",
+        "moreParts": "More parts",
         "journal": "News",
         "readStory": "Read the story",
         "nextCaseStudy": "Next case study",
@@ -80,6 +85,12 @@
     "caseStudies": {
         "heading": "The Restorations",
         "intro": "Every car arrives with a history. These are the full stories of how we brought them back, from the first teardown to the show lawn."
+    },
+    "parts": {
+        "heading": "The Parts Counter",
+        "intro": "Parts for Iso, De Tomaso, Maserati and Lamborghini classics. Call or send an enquiry for pricing and availability.",
+        "partDescription": "{part}. Contact {shop} for pricing and availability.",
+        "enquiry": "I'd like pricing and availability for: {part}."
     },
     "showcases": [
         {

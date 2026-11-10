@@ -27,7 +27,7 @@ function fire_headless_rebuild_url(): string
 /** Post types and taxonomies the site shows. Enquiries stay private, so they never rebuild. */
 function fire_headless_rebuild_post_types(): array
 {
-    return apply_filters('fire_headless_rebuild_post_types', ['post', 'page', 'service', 'showcase', 'case_study', 'testimonial', 'site_settings']);
+    return apply_filters('fire_headless_rebuild_post_types', ['post', 'page', 'service', 'showcase', 'case_study', 'testimonial', 'part', 'site_settings']);
 }
 function fire_headless_rebuild_taxonomies(): array
 {

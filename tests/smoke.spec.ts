@@ -21,6 +21,7 @@ const OLD_ADDRESSES: Record<string, string> = JSON.parse(readFileSync(path.join(
 // Files the site serves besides its pages.
 const FILES = ['/rss.xml', '/sitemap.xml', '/robots.txt', '/llms.txt'];
 const ARTICLES = PAGES.filter((route) => /^\/(blog|case-studies)\/[^/]+$/.test(route));
+const PARTS = PAGES.filter((route) => /^\/parts\/[^/]+$/.test(route));
 
 // Production's security headers (vercel.json), sent with every page the tests load, so a
 // resource the Content Security Policy would block in production fails here first.
@@ -426,6 +427,7 @@ test('every page has a title, description, canonical link and structured data', 
         expect(types, route).toContain('WebSite');
         if (/^\/(blog|case-studies)\/./.test(route)) expect(types, route).toContain('BlogPosting');
         if (route.startsWith('/services/')) expect(types, route).toContain('Service');
+        if (route.startsWith('/parts/')) expect(types, route).toContain('BreadcrumbList');
     }
 });
 
@@ -439,6 +441,34 @@ test('the sitemap, feed and llms.txt list exactly the pages that exist', async (
     const llms = await (await request.get('/llms.txt')).text();
     for (const [, href] of llms.matchAll(/\]\((https?:\/\/[^)]+)\)/g)) {
         expect([...PAGES, ...FILES], href).toContain(new URL(href).pathname);
+    }
+});
+
+test('parts are listed and linked, and each enquiry starts with the part named', async ({ page }) => {
+    test.skip(PARTS.length === 0, 'no parts on this site');
+    await page.goto('/parts');
+    const listed = await page.locator('main a[href^="/parts/"]').evaluateAll((links) => links.map((a) => a.getAttribute('href')));
+    expect(listed.sort()).toEqual(PARTS.slice().sort());
+    await expect(page.locator('#main-navbar a[href="/parts"]').first()).toBeAttached();
+    await expect(page.locator('footer a[href="/parts"]')).toBeVisible();
+    for (const route of PARTS) {
+        await page.goto(route);
+        // The heading is the part; the message also names the car it's for.
+        const part = (await page.locator('main h1').innerText()).trim().toLowerCase();
+        const message = (await page.locator('#contact-form textarea[name=message]').inputValue()).toLowerCase();
+        expect(message, route).toContain(part);
+        await expect(page.locator('main a[href="#contact-section"]'), route).toBeVisible();
+    }
+});
+
+test('the navigation bar fits its links at every width', async ({ page }) => {
+    for (const width of [768, 1024, 1280]) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.goto('/');
+        const boxes = await page.locator('#main-navbar > div:not(#nav-bg):not(#services-modal)').evaluateAll((groups) =>
+            groups.map((group) => group.getBoundingClientRect()).map((box) => ({ left: box.left, right: box.right })));
+        expect(boxes.length, `${width}px`).toBe(2);
+        expect(boxes[1].left - boxes[0].right, `${width}px: space between the links and the contact button`).toBeGreaterThanOrEqual(16);
     }
 });
 

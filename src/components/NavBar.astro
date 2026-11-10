@@ -1,6 +1,7 @@
 ---
 import { fetchAPI } from "../lib/wp";
 import { getLocalServiceLinks } from "../lib/localContent";
+import { getParts } from "../lib/parts";
 import { brand, content } from "../lib/site";
 
 interface Props {
@@ -28,7 +29,13 @@ const pageLinks = [
   { href: "/portfolio", label: content.labels.portfolio },
   { href: "/case-studies", label: content.labels.caseStudies },
   { href: "/blog", label: content.labels.journal },
+  ...((await getParts()).length ? [{ href: "/parts", label: content.labels.parts }] : []),
 ];
+// Four links fit the bar beside Services from tablet width; a fifth needs a laptop's (and
+// closer spacing there), so tablets get the menu button instead.
+const wide = pageLinks.length > 3;
+const inBar = wide ? "hidden lg:block" : "hidden md:block";
+const menuButton = wide ? "lg:hidden" : "md:hidden";
 ---
 
 <header
@@ -41,7 +48,7 @@ const pageLinks = [
   >
   </div>
 
-  <div class="flex items-center gap-8 md:gap-12 pointer-events-auto">
+  <div class:list={["flex items-center gap-8 pointer-events-auto", wide ? "xl:gap-12" : "md:gap-12"]}>
     <a
       href="/"
       class="font-heading text-lg md:text-2xl font-black tracking-tighter uppercase text-white drop-shadow-md hover:text-accent transition-colors"
@@ -51,7 +58,7 @@ const pageLinks = [
 
     <button
       id="services-open-btn"
-      class="hidden md:block font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"
+      class:list={[inBar, "font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"]}
     >
       {content.labels.services}
     </button>
@@ -59,7 +66,7 @@ const pageLinks = [
     {pageLinks.map((link) => (
       <a
         href={link.href}
-        class="hidden md:block font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"
+        class:list={[inBar, "whitespace-nowrap font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"]}
       >
         {link.label}
       </a>
@@ -67,11 +74,11 @@ const pageLinks = [
   </div>
 
   <div class="flex items-center gap-3 pointer-events-auto">
-  <!-- Phones: the Services and section links live in the full-screen menu -->
+  <!-- Narrow screens: the Services and section links live in the full-screen menu -->
   <button
     id="menu-open-btn"
     aria-label={content.labels.openMenu}
-    class="md:hidden w-11 h-11 flex items-center justify-center rounded-sm border border-white/20 bg-black/30 backdrop-blur-md text-white hover:text-accent transition-colors"
+    class:list={[menuButton, "w-11 h-11 flex items-center justify-center rounded-sm border border-white/20 bg-black/30 backdrop-blur-md text-white hover:text-accent transition-colors"]}
   >
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"></path></svg>
   </button>

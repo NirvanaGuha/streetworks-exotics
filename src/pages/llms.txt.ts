@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCaseStudies, getPosts } from '../lib/articles';
 import { articleEntry, getServiceEntries } from '../lib/directory';
+import { getParts } from '../lib/parts';
 import { getBusiness } from '../lib/business';
 import { brand, content } from '../lib/site';
 
@@ -14,7 +15,7 @@ export const GET: APIRoute = async ({ site, url }) => {
     // Brackets in a title would end the Markdown link early.
     const link = (title: string, path: string, note: string) => `- [${line(title).replace(/([[\]])/g, '\\$1')}](${new URL(path, base).href})${note ? `: ${line(note)}` : ''}`;
     const business = await getBusiness();
-    const [services, caseStudies, posts] = await Promise.all([getServiceEntries(), getCaseStudies(), getPosts()]);
+    const [services, caseStudies, posts, parts] = await Promise.all([getServiceEntries(), getCaseStudies(), getPosts(), getParts()]);
     const study = (article: (typeof caseStudies)[number]) =>
         [[article.year, article.vehicle].filter(Boolean).join(' '), article.recognition, articleEntry(article).description].filter(Boolean).join('. ');
 
@@ -32,6 +33,7 @@ export const GET: APIRoute = async ({ site, url }) => {
         '',
         ...services.map((service) => link(service.title, service.path, service.description)),
         ...(caseStudies.length ? ['', `## ${content.caseStudies.heading}`, '', ...caseStudies.map((article) => link(article.title, article.href, study(article)))] : []),
+        ...(parts.length ? ['', `## ${content.labels.parts}`, '', ...parts.map((part) => link(part.name, part.href, [part.description, content.labels.priceOnRequest].filter(Boolean).join(' ')))] : []),
         ...(posts.length ? ['', `## ${content.journal.heading}`, '', ...posts.map((article) => link(article.title, article.href, articleEntry(article).description))] : []),
         '',
         '## Optional',

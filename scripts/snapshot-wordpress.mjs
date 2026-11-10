@@ -6,13 +6,15 @@
  *   src/content/services/<slug>.json       title, order, tagline, tint, hero image, text and gallery blocks
  *   src/content/posts/<slug>.json          blog posts: title, date, categories, byline, photo, blocks
  *   src/content/case-studies/<slug>.json   case studies: the same plus order and the car's details
+ *   src/content/parts/<slug>.json          parts: title, order, the car they fit, description and photos
  *   src/data/content.json                  hero headline/tagline and the three intro texts
  *   src/data/site-settings.json            everything under Site Settings (colours, fonts, labels, headings, images)
  *
  * Images are matched to files already in src/assets/images by name; anything without an
  * exact match is downloaded from WordPress into src/assets/images/wordpress/ (post and case
- * study photos into src/assets/images/articles/, at most 2000px across to keep the repo small).
- * Post and case study files that WordPress no longer has are removed.
+ * study photos into src/assets/images/articles/ and part photos into src/assets/images/parts/,
+ * at most 2000px across to keep the repo small).
+ * Post, case study and part files that WordPress no longer has are removed.
  *
  *   node --env-file=.env scripts/snapshot-wordpress.mjs
  */
@@ -26,6 +28,7 @@ const ASSETS = path.join(ROOT, 'src/assets/images');
 const SERVICES = path.join(ROOT, 'src/content/services');
 const POSTS = path.join(ROOT, 'src/content/posts');
 const CASE_STUDIES = path.join(ROOT, 'src/content/case-studies');
+const PARTS = path.join(ROOT, 'src/content/parts');
 const CONTENT = path.join(ROOT, 'src/data/content.json');
 const SETTINGS = path.join(ROOT, 'src/data/site-settings.json');
 const SCHEMA = JSON.parse(await readFile(path.join(ROOT, 'wordpress/fire-headless/site-settings.json'), 'utf8'));
@@ -144,6 +147,16 @@ const plain = (html) => (html || '')
     .trim();
 const articleImage = async (url) => servicePath(await localImage(url, { folder: 'articles', maxSize: 2000 }));
 
+/** Removes the content files in a folder that WordPress no longer has. */
+async function removeOthers(dir, keep) {
+    for (const file of await readdir(dir)) {
+        if (file.endsWith('.json') && !keep.has(file)) {
+            await rm(path.join(dir, file));
+            console.log(`  removed ${path.basename(dir)}/${file} (no longer in WordPress)`);
+        }
+    }
+}
+
 async function writeArticles(nodes, dir, extra) {
     await mkdir(dir, { recursive: true });
     const keep = new Set();
@@ -177,12 +190,7 @@ async function writeArticles(nodes, dir, extra) {
         keep.add(`${node.slug}.json`);
         console.log(`${path.basename(dir)} ${node.slug}: ${blocks.length} blocks`);
     }
-    for (const file of await readdir(dir)) {
-        if (file.endsWith('.json') && !keep.has(file)) {
-            await rm(path.join(dir, file));
-            console.log(`  removed ${path.basename(dir)}/${file} (no longer in WordPress)`);
-        }
-    }
+    await removeOthers(dir, keep);
 }
 
 await writeArticles(articles.posts.nodes, POSTS, (node) => ({ categories: node.categories?.nodes || [] }));
@@ -190,6 +198,36 @@ await writeArticles(articles.caseStudies.nodes, CASE_STUDIES, (node) => ({
     order: node.menuOrder,
     ...Object.fromEntries(['vehicle', 'year', 'scope', 'recognition'].map((field) => [field, node.caseStudyDetails?.[field] || ''])),
 }));
+
+// Parts: the featured image first, then Photo 2 to 4.
+const PART_PHOTO = 'node { sourceUrl altText }';
+const parts = await query(`{
+  parts(first: 100) {
+    nodes { slug title menuOrder featuredImage { ${PART_PHOTO} } partDetails { fits description photo2 { ${PART_PHOTO} } photo3 { ${PART_PHOTO} } photo4 { ${PART_PHOTO} } } ${SEO} }
+  }
+}`);
+const partImage = async (url) => servicePath(await localImage(url, { folder: 'parts', maxSize: 2000 }));
+await mkdir(PARTS, { recursive: true });
+const keptParts = new Set();
+for (const part of parts.parts.nodes) {
+    const details = part.partDetails || {};
+    const images = [];
+    for (const photo of [part.featuredImage, details.photo2, details.photo3, details.photo4]) {
+        if (photo?.node?.sourceUrl) images.push({ src: await partImage(photo.node.sourceUrl), alt: photo.node.altText || '' });
+    }
+    const entry = {
+        order: part.menuOrder || undefined,
+        title: part.title,
+        fits: details.fits || '',
+        description: (details.description || '').trim(),
+        images,
+        ...(await seoEntry(part, partImage)),
+    };
+    await writeFile(path.join(PARTS, `${part.slug}.json`), JSON.stringify(entry, null, 2) + '\n');
+    keptParts.add(`${part.slug}.json`);
+    console.log(`parts ${part.slug}: ${images.length} photos`);
+}
+await removeOthers(PARTS, keptParts);
 
 const home = data.page?.homepageSettings;
 if (home) {

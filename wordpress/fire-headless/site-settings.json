@@ -239,6 +239,12 @@
           "type": "text"
         },
         {
+          "path": "content.labels.parts",
+          "label": "Parts link",
+          "type": "text",
+          "help": "Shown once there is at least one part."
+        },
+        {
           "path": "content.labels.contact",
           "label": "Contact button (phones)",
           "type": "text"
@@ -455,6 +461,56 @@
         {
           "path": "content.labels.moreStories",
           "label": "More stories heading",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "parts",
+      "title": "Parts",
+      "fields": [
+        {
+          "path": "content.parts.heading",
+          "label": "Parts heading",
+          "type": "text"
+        },
+        {
+          "path": "content.parts.intro",
+          "label": "Parts intro",
+          "type": "textarea",
+          "help": "Also the page's search description."
+        },
+        {
+          "path": "content.labels.priceOnRequest",
+          "label": "In place of a price",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.askAboutPart",
+          "label": "Enquiry button",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.orCall",
+          "label": "Phone link under the button",
+          "type": "text",
+          "help": "{phone} is replaced with the phone number."
+        },
+        {
+          "path": "content.parts.enquiry",
+          "label": "Message the enquiry form starts with",
+          "type": "textarea",
+          "help": "{part} is replaced with the part's name."
+        },
+        {
+          "path": "content.parts.partDescription",
+          "label": "Search description of a part without its own",
+          "type": "textarea",
+          "help": "{part} is replaced with the part's name and {shop} with the logo text."
+        },
+        {
+          "path": "content.labels.moreParts",
+          "label": "More parts heading",
           "type": "text"
         }
       ]

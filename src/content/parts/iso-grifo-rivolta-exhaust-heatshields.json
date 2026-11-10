@@ -1,0 +1,12 @@
+{
+  "order": 3,
+  "title": "Exhaust Heatshields",
+  "fits": "Iso Grifo / Rivolta",
+  "description": "",
+  "images": [
+    {
+      "src": "../../assets/images/parts/iso-grifo-rivolta-exhaust-heatshields.jpg",
+      "alt": "Pair of exhaust heatshields for the Iso Grifo and Rivolta"
+    }
+  ]
+}

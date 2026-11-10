@@ -83,4 +83,17 @@ const caseStudies = defineCollection({
     })
 });
 
-export const collections = { services, posts, caseStudies };
+// Parts the shop sells on request: the first image is the main photo.
+const parts = defineCollection({
+    loader: glob({ pattern: "**/*.json", base: "./src/content/parts" }),
+    schema: ({ image }) => z.object({
+        order: z.number().optional(),
+        title: z.string(),
+        fits: z.string().default(''),
+        description: z.string().default(''),
+        images: z.array(z.object({ src: image(), alt: z.string().default('') })).default([]),
+        seo: seo(image),
+    })
+});
+
+export const collections = { services, posts, caseStudies, parts };

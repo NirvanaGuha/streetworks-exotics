@@ -2,6 +2,7 @@
 import { fetchAPI } from "../lib/wp";
 import { demoCredit } from "../lib/demo";
 import { getBusiness } from "../lib/business";
+import { getParts } from "../lib/parts";
 import { brand, content } from "../lib/site";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 const { contactHref = "#contact-section" } = Astro.props;
 const currentYear = new Date().getFullYear();
 const business = await getBusiness();
+const hasParts = (await getParts()).length > 0;
 
 // Legal links appear once these pages are published in WordPress (rendered by src/pages/[page].astro).
 const data = await fetchAPI(`
@@ -40,6 +42,7 @@ const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status ===
       <a href="/portfolio" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.portfolio}</a>
       <a href="/case-studies" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.caseStudies}</a>
       <a href="/blog" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.journal}</a>
+      {hasParts && <a href="/parts" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.parts}</a>}
       <a href={contactHref} class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.contact}</a>
     </nav>
 
