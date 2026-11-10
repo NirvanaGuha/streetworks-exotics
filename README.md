@@ -72,6 +72,7 @@ node --env-file=.env dist/server/entry.mjs   # serve the production build
 | `PUBLIC_WP_GRAPHQL_URL` | WPGraphQL endpoint. Empty = local content only. |
 | `PUBLIC_SITE_URL` | Deployed address, used for link-preview images and canonical URLs. On Vercel it defaults to the project's production URL; set it once the site has its own domain. |
 | `WP_FORM_SECRET` | Must match `FIRE_FORM_SECRET`. Read at runtime by the contact action. |
+| `PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 ID (`G-…`). Loaded only when demo mode is off, so concept builds never count visits. Use the client's existing property so its history carries on. |
 | `PUBLIC_DEMO_MODE` | On unless set to `false`. Concept builds get: `noindex`, robots.txt blocks search crawlers (link-preview bots stay allowed so DMs show a card), "Concept by" badge. Set `false` at launch. |
 | `PUBLIC_DEMO_CREDIT` | Optional badge text. |
 
@@ -85,7 +86,7 @@ Before deploying, copy the latest WordPress content (services, posts, case studi
 npm run snapshot
 ```
 
-**Client site (with WordPress):** set `PUBLIC_WP_GRAPHQL_URL`, `WP_FORM_SECRET`, `PUBLIC_SITE_URL` and `PUBLIC_DEMO_MODE=false` in Vercel, then set up automatic rebuilds.
+**Client site (with WordPress):** set `PUBLIC_WP_GRAPHQL_URL`, `WP_FORM_SECRET`, `PUBLIC_SITE_URL`, `PUBLIC_GA_MEASUREMENT_ID` and `PUBLIC_DEMO_MODE=false` in Vercel, then set up automatic rebuilds. A business site needs Vercel's Pro plan (Hobby is for non-commercial use). The move from the old site is under *Going live*.
 
 **Automatic rebuilds.** In Vercel, open the project's Settings → Git → Deploy Hooks, create a hook for the `main` branch, and put its address in the client's `wp-config.php`:
 
@@ -96,6 +97,18 @@ wp config set FIRE_DEPLOY_HOOK_URL "https://api.vercel.com/v1/integrations/deplo
 From then on the plugin (`wordpress/fire-headless/rebuild.php`) starts a build whenever something the site shows changes: a post, case study, service, page, showcase, testimonial or Site Settings is published, edited while live, unpublished, trashed or deleted; a live post's fields are saved; a photo's alt text or caption changes; a category or tag is added, renamed or removed. Drafts, autosaves and form enquiries don't. Changes made together share one build: the first starts it, and any in the next 20 seconds wait and start one more, so the last edit is always included (that follow-up runs on WP-Cron, which the build's own requests to WordPress set off). If the host can't be reached, the call is tried again after 1, 2 and 3 minutes. Editors also get **Rebuild site** in the admin bar, which starts a build at once and shows when the last one was requested and whether it worked. Without the constant nothing is sent, which is what local and demo WordPress installs want. The address is a secret: anyone who has it can start builds, so keep it out of the repo.
 
 The Vercel adapter is picked automatically on Vercel; elsewhere the build runs as a Node server (`node --env-file=.env dist/server/entry.mjs`). Production builds disable Astro's on-demand image endpoint, since every image is generated at build time.
+
+## Going live
+
+The old site keeps running, untouched, until the domain moves, so going back is one DNS change.
+
+1. **WordPress at its own address**, such as `cms.example.com`: a new install next to the old site, filled with the seed and the post importer (see WordPress setup). Point `PUBLIC_WP_GRAPHQL_URL` at it and add `define('FIRE_PUBLIC_SITE_URL', 'https://example.com');` to its `wp-config.php`: its theme pages then redirect permanently to the same page on the site (`fire-headless/frontend.php`), so search engines never find a second copy. The admin, previews, GraphQL and the contact form work as before.
+2. **The old photos**: copy the old site's `wp-content/uploads` folder into the new install's without overwriting (`rsync -a --ignore-existing old/wp-content/uploads/ new/wp-content/uploads/`). The site forwards `/wp-content/uploads/…` to WordPress, so photos linked from other sites and image search keep working; `/wp-admin` and `/wp-login.php` are forwarded too (`src/lib/forwardToWordPress.ts`).
+3. **Test on the Vercel address**: an edit in WordPress shows a minute or two later, and an enquiry arrives by email.
+4. **Launch**: in Vercel set `PUBLIC_DEMO_MODE=false`, `PUBLIC_SITE_URL` (the bare domain) and `PUBLIC_GA_MEASUREMENT_ID`, and redeploy. Add the domain, plus `www` set to redirect to it. At the DNS host change only the bare domain and `www` records, to the values Vercel shows; leave the email records (MX, SPF, DKIM, DMARC) and the `cms` record alone.
+5. **Search Console**: verify the domain with a DNS TXT record (a verification tag in the old site's pages goes away with them) and submit `/sitemap.xml`. Over the next weeks, add any old address its Pages report lists as "Not found" to `src/data/redirects.json`.
+6. **Analytics**: in GA4's Realtime report, move between a few pages and check each shows once, with its own title.
+7. Keep the old install, and a backup, for about a month before retiring it.
 
 ## New client checklist
 
@@ -109,7 +122,7 @@ Everything client-specific lives in data files and images; the components don't 
 5. **`public/favicon.svg`** and **`favicon.ico`**.
 6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET` (and `FIRE_DEPLOY_HOOK_URL` once the site is on Vercel), then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, Site Settings, showcases, testimonials, services (with their text and gallery blocks), posts and case studies, and uploads every image they use. Tested on a brand-new WordPress.
 7. **`.env`**: the client's GraphQL URL and form secret, and `PUBLIC_DEMO_MODE=true` until launch.
-8. **Redirects**: `npm run redirects`, then point the addresses it lists (About, Careers, a shop) at the closest new page in `src/data/redirects.json`.
+8. **Redirects**: `npm run redirects`, then point the addresses it lists (About, Careers, shop products) at the closest new page in `src/data/redirects.json`.
 9. Build, then search the output for the previous client's name and phone number. Nothing should turn up.
 
 ## Behaviour notes
@@ -120,7 +133,7 @@ Everything client-specific lives in data files and images; the components don't 
 
 ## Search and AI search
 
-**Moving from the old site.** `src/data/redirects.json` lists every address the client's old WordPress site had (from its sitemaps, plus the category, tag, author, paged-archive, feed and sitemap addresses WordPress serves) and where it now goes. Each becomes a permanent 301 redirect on Vercel (and in the Node server), so links and rankings carry over. Build it with `npm run redirects` (it reads the old address from `wordpress/imports/*.json`, or pass it): posts, case studies and services match by slug, archives go to `/blog`, the feed to `/rss.xml`, sitemaps to `/sitemap.xml`, and anything else is listed for a hand-picked destination. Re-running keeps hand-made entries. A WordPress page at a redirected address isn't built until its entry is removed (the build says so).
+**Moving from the old site.** `src/data/redirects.json` lists every address the client's old WordPress site had (from its sitemaps, plus the category, tag, author, paged-archive, feed and sitemap addresses WordPress serves, and WooCommerce's product pages) and where it now goes. Each becomes a permanent 301 redirect on Vercel (and in the Node server), so links and rankings carry over. Build it with `npm run redirects` (it reads the old address from `wordpress/imports/*.json`, or pass it): posts, case studies and services match by slug, archives go to `/blog`, the feed to `/rss.xml`, sitemaps to `/sitemap.xml`, and anything else is listed for a hand-picked destination. Re-running keeps hand-made entries. A WordPress page at a redirected address isn't built until its entry is removed (the build says so).
 
 **On every page:** one address (no trailing slash; the slashed form redirects) with a matching canonical link; a title and description (the *Search & sharing* box, or the article's excerpt or the service's opening paragraph); `max-image-preview:large` and full-length snippets allowed for search and AI answers once live; and structured data (`src/lib/schema.ts`): the business (type from `brand.json`'s `business.schemaType`, address, phone, email, map, social profiles) and website everywhere, plus `BlogPosting` for posts and case studies (a case study is also about its car), `Service` for services, and breadcrumbs.
 
@@ -181,8 +194,9 @@ Requires Node 22.22 or newer (Astro 7).
 - `src/lib/site.ts` — Site Settings over the built-in values (`brand`, `content`); `src/lib/fonts.ts` — the font list; `src/lib/sanitize.ts` — HTML, link and colour cleaning
 - `src/lib/articles.ts` — posts and case studies (WordPress or local), in one shape
 - `src/lib/wp.ts` — GraphQL client (service content arrives as structured `sections` from the plugin, built with WordPress's own block parser); `src/lib/localContent.ts` — local fallbacks; `src/lib/business.ts` — business details (WordPress over brand.json); `src/lib/assets.ts` — image paths to Astro images; `src/lib/demo.ts` — demo mode
-- `src/lib/schema.ts` — structured data; `src/data/redirects.json` — old site addresses (`scripts/redirect-map.mjs`)
+- `src/lib/schema.ts` — structured data; `src/data/redirects.json` — old site addresses (`scripts/redirect-map.mjs`); `src/lib/forwardToWordPress.ts` — the WordPress admin and uploads, forwarded
+- `src/utils/analytics.ts` — Google Analytics, live site only
 - `src/actions/index.ts` — contact form action
 - `vercel.json` — security headers
 - `src/utils/animations.ts` — shared GSAP timelines
-- `wordpress/` — content model plugin (`fire-headless/articles.php` turns post content into typed blocks and back; `site-settings.php` and `site-settings.json` the Site Settings screen; `security.php` the WordPress hardening; `rebuild.php` the automatic rebuilds), seed script and the post importer
+- `wordpress/` — content model plugin (`fire-headless/articles.php` turns post content into typed blocks and back; `site-settings.php` and `site-settings.json` the Site Settings screen; `security.php` the WordPress hardening; `rebuild.php` the automatic rebuilds; `frontend.php` sends WordPress's own pages to the site), seed script and the post importer

@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/articles.php';
+require_once __DIR__ . '/frontend.php';
 require_once __DIR__ . '/rebuild.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/site-settings.php';

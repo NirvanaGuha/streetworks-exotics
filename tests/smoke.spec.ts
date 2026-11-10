@@ -389,6 +389,19 @@ test('every old site address redirects permanently to a page that exists', async
     }
 });
 
+test('the WordPress admin, login and uploads are forwarded to WordPress, or missing without it', async ({ request, baseURL }) => {
+    for (const address of ['/wp-admin', '/wp-admin/post.php?post=1', '/wp-login.php', '/wp-content/uploads/2019/05/photo.jpg']) {
+        const response = await request.get(address, { maxRedirects: 0 });
+        expect([301, 404], address).toContain(response.status());
+        if (response.status() === 301) {
+            const location = new URL(response.headers().location);
+            expect(location.origin, address).not.toBe(new URL(baseURL!).origin);
+            expect(location.pathname + location.search, address).toMatch(new RegExp(`${address.replace(/[.?]/g, '\\$&')}$`));
+        }
+    }
+    expect((await request.get('/wp-content/themes/old/style.css', { maxRedirects: 0 })).status()).toBe(404);
+});
+
 test('each page has one address: the slashed form redirects', async ({ request }) => {
     const response = await request.get('/blog/', { maxRedirects: 0 });
     expect(response.status()).toBe(301);

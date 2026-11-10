@@ -5,8 +5,8 @@
  * entry into a permanent 301 redirect on Vercel).
  *
  * The old addresses come from the old site's sitemaps and its public WordPress lists
- * (categories, tags, authors), plus the feed, sitemap and paged-archive addresses WordPress
- * always has. Each is matched to the new site by its last part:
+ * (categories, tags, authors, and WooCommerce products and their categories), plus the feed,
+ * sitemap and paged-archive addresses WordPress always has. Each is matched to the new site by its last part:
  *
  *   /<slug>               a post or case study with that slug -> /blog/<slug>, /case-studies/<slug>
  *   /<slug>               a service with that slug, or whose slug starts with it -> /services/<slug>
@@ -89,6 +89,22 @@ async function archivePaths() {
     return out;
 }
 
+// WooCommerce: product and product category pages (SEO plugins often leave them out of the
+// sitemaps), and the shop's own pages when the old site has them.
+async function shopPaths() {
+    const out = [];
+    for (let page = 1; ; page++) {
+        const products = await getJson(`${source}/wp-json/wc/store/v1/products?per_page=100&page=${page}`);
+        out.push(...products.map((product) => product.permalink));
+        if (products.length < 100) break;
+    }
+    const categories = await getJson(`${source}/wp-json/wc/store/v1/products/categories?per_page=100`);
+    out.push(...categories.filter((category) => category.count > 0).map((category) => category.permalink));
+    if (!out.length) return [];
+    for (const name of ['/shop', '/cart', '/checkout', '/my-account']) if (await get(`${source}${name}/`)) out.push(`${source}${name}`);
+    return out.filter((url) => url?.startsWith(source)).map((url) => url.slice(source.length));
+}
+
 const slugs = async (dir) => (existsSync(dir) ? (await readdir(dir)).filter((file) => file.endsWith('.json')).map((file) => file.slice(0, -5)) : []);
 const targets = new Map();
 for (const slug of await slugs(path.join(ROOT, 'src/content/posts'))) targets.set(slug, `/blog/${slug}`);
@@ -110,7 +126,7 @@ function destination(oldPath) {
 const existing = existsSync(OUT) && !refresh ? JSON.parse(await readFile(OUT, 'utf8')).redirects : {};
 const redirects = { ...existing };
 const unmatched = [];
-const found = [...new Set([...(await sitemapPaths()), ...(await archivePaths())])];
+const found = [...new Set([...(await sitemapPaths()), ...(await archivePaths()), ...(await shopPaths())])];
 for (const raw of found) {
     const oldPath = decodeURI(raw).replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
     if (own.has(oldPath) || oldPath in redirects) continue;

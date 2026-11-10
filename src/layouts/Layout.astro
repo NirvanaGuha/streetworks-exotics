@@ -35,6 +35,8 @@ const previewImage = await getImage({ src: shareImage, width: 1200, height: 630,
 const favicon = typeof brand.favicon === 'string' ? brand.favicon : brand.favicon.src;
 const previewImageUrl = new URL(previewImage.src, siteBase).href;
 const page: PageInfo = { url: canonicalUrl, image: previewImageUrl, site: new URL('/', siteBase).href };
+// Google Analytics on the live site only (utils/analytics.ts).
+const analytics = !demoMode && Boolean(import.meta.env.PUBLIC_GA_MEASUREMENT_ID);
 const structuredData = jsonLd([...siteNodes(await getBusiness(), page, brand.description), ...(schema?.(page) ?? [])]);
 
 // Feeds the brand colours and fonts used by Tailwind (see styles/global.css). Every value
@@ -76,6 +78,7 @@ const brandVars = `:root{--brand-accent:${colors.accent};--brand-accent-contrast
 		<meta name="theme-color" content={colors.background} />
 		<style is:inline set:html={brandVars}></style>
 		<ClientRouter />
+		{analytics && <script>import '../utils/analytics';</script>}
 	</head>
 	<body class="overflow-x-hidden">
 		<slot />
