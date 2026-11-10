@@ -17,13 +17,16 @@ interface Props {
   gradientTo: string;
   linkUrl?: string;
   ctaColor?: string;
+  // h3 under a section heading (service pages); h2 where the showcase is its own section.
+  headingLevel?: 2 | 3;
 }
 
 const {
-  mainImgUrl, eyebrow, title, textId, gradientFrom, gradientTo, linkUrl, ctaColor = "#ffffff",
+  mainImgUrl, eyebrow, title, textId, gradientFrom, gradientTo, linkUrl, ctaColor = "#ffffff", headingLevel = 3,
   titleClass = "text-5xl md:text-8xl lg:text-[7rem]",
   introClass = "text-3xl md:text-4xl lg:text-5xl",
 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
 ---
 
 <section class="relative w-full z-50">
@@ -46,7 +49,7 @@ const {
 
       <div class="relative z-10 px-6 md:px-12 w-full max-w-7xl mx-auto">
         <span class="text-accent font-mono text-xs md:text-sm tracking-[0.5em] uppercase drop-shadow-lg">{eyebrow}</span>
-        <h3 class:list={[titleClass, "font-bold tracking-tighter uppercase drop-shadow-xl leading-[0.8] mt-2"]}>{title}</h3>
+        <Heading class:list={[titleClass, "font-bold tracking-tighter uppercase drop-shadow-xl leading-[0.8] mt-2"]}>{title}</Heading>
       </div>
     </div>
   </div>

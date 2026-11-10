@@ -21,9 +21,10 @@ interface Props {
   linkUrl?: string;
   // Position on the page, from 0: sets the ids and the gradient.
   index: number;
+  headingLevel?: 2 | 3;
 }
 
-const { image, eyebrow, title, intro, gallery, linkUrl, index: i } = Astro.props;
+const { image, eyebrow, title, intro, gallery, linkUrl, index: i, headingLevel } = Astro.props;
 const [gradientFrom, gradientTo] = brand.showcaseGradients[i % brand.showcaseGradients.length];
 const accent = Astro.props.accentColor || brand.colors.accent;
 const src = (img: Img) => (img && typeof img === "object" && "url" in img ? img.url : img);
@@ -47,6 +48,7 @@ const introClass =
   <RestorationShowcase
     eyebrow={eyebrow}
     title={title}
+    headingLevel={headingLevel}
     titleClass={titleClass}
     introClass={introClass}
     mainImgUrl={src(image)}

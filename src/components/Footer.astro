@@ -29,10 +29,10 @@ const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status ===
     
     <div class="flex flex-col items-start gap-3">
       <span class="font-heading text-2xl font-bold tracking-tighter uppercase text-white">{brand.shortName}</span>
-      <p class="text-white/40 text-xs font-mono uppercase tracking-[0.2em]">
+      <p class="text-white/60 text-xs font-mono uppercase tracking-[0.2em]">
         &copy; {currentYear} {business.name}. All rights reserved.
       </p>
-      {demoCredit && <p class="text-white/30 text-[10px] font-mono uppercase tracking-[0.2em]">{demoCredit}</p>}
+      {demoCredit && <p class="text-white/50 text-[11px] font-mono uppercase tracking-[0.2em]">{demoCredit}</p>}
     </div>
 
     <nav class="flex flex-wrap justify-start gap-6 md:gap-10 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
