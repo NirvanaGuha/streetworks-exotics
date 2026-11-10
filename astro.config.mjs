@@ -54,6 +54,9 @@ export default defineConfig({
   },
   vite: {
       plugins: [tailwindv4()],
+      // Scripts ship as files, never inlined, so the Content Security Policy can allow
+      // scripts from this site only (see vercel.json).
+      build: { assetsInlineLimit: 0 },
   },
 
   // Vercel sets VERCEL=1 in its builds; everywhere else the site runs as a Node server.

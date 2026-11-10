@@ -4,15 +4,23 @@
     "wordmark": ["STREETWORKS", "EXOTICS"],
     "tagline": "Resurrecting Legends.",
     "description": "Award-winning classic and exotic car restoration in Pewaukee, Wisconsin: coachwork, mechanical, paint, interiors and concours preparation.",
+    "favicon": "/favicon.svg",
+    "shareImage": "homepage/Restored-1967-Iso-Grifo-4.jpg",
     "colors": {
         "accent": "#eab308",
-        "accentContrast": "#000000"
+        "accentContrast": "#000000",
+        "background": "#000000",
+        "surface": "#050505",
+        "raised": "#111111",
+        "text": "#ffffff",
+        "muted": "#222222",
+        "error": "#f87171"
     },
     "fonts": {
-        "heading": "'Archivo Variable', system-ui, sans-serif",
+        "heading": "Archivo",
         "headingStretch": "112%",
-        "body": "'Inter Variable', system-ui, sans-serif",
-        "serif": "'Instrument Serif', Georgia, serif"
+        "body": "Inter",
+        "serif": "Instrument Serif"
     },
     "introGradients": [
         ["#ff2a00", "#800000"],

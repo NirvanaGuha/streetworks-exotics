@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import brand from '../data/brand.json';
+import { brand, content } from '../lib/site';
 
 import type { ImageMetadata } from 'astro';
 import { getBusiness } from '../lib/business';
@@ -24,7 +24,7 @@ const { videoId } = await getBusiness();
 <div id="hero-bg-wrapper" class="absolute inset-0 w-full h-full z-10 will-change-opacity">
   <Image 
     src={bgImgUrl as any} 
-    alt="Cinematic Background" 
+    alt="" 
     width={1920}
     height={1080}
     inferSize={true}
@@ -56,7 +56,7 @@ const { videoId } = await getBusiness();
         ))}
       </mask>
     </defs>
-    <rect x="-100%" y="-100%" width="200%" height="200%" fill="#050505" mask="url(#text-mask)" />
+    <rect x="-100%" y="-100%" width="200%" height="200%" style="fill: var(--brand-surface)" mask="url(#text-mask)" />
   </svg>
 </div>
 
@@ -69,7 +69,7 @@ const { videoId } = await getBusiness();
   </p>
   
   {videoId && <div class="hero-stagger pointer-events-auto">
-    <button id="play-btn" type="button" aria-label="Play video" class="group relative flex items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white hover:scale-105 transition-all duration-500 cursor-pointer shadow-2xl">
+    <button id="play-btn" type="button" aria-label={content.labels.playVideo} class="group relative flex items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white hover:scale-105 transition-all duration-500 cursor-pointer shadow-2xl">
       <svg class="w-10 h-10 md:w-14 md:h-14 text-white group-hover:text-black transition-colors duration-500 translate-x-[2px] md:translate-x-[3px]" viewBox="0 0 24 24" fill="currentColor">
         <path d="M8 5v14l11-7z"/>
       </svg>
@@ -77,7 +77,7 @@ const { videoId } = await getBusiness();
   </div>}
 
   <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hero-stagger opacity-0">
-    <span class="text-[10px] uppercase tracking-[0.5em] font-light text-white/50">Scroll</span>
+    <span class="text-[10px] uppercase tracking-[0.5em] font-light text-white/50">{content.labels.scroll}</span>
     <div class="w-[1px] h-12 bg-white/10 overflow-hidden">
       <div class="w-full h-full bg-white origin-top animate-[scrolldown_2s_ease-in-out_infinite]"></div>
     </div>

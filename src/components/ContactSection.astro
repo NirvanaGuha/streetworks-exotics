@@ -1,12 +1,22 @@
 ---
 import { getBusiness } from "../lib/business";
-import { content } from "../lib/localContent";
+import { content, fill } from "../lib/site";
 import { demoMode } from "../lib/demo";
 
 const business = await getBusiness();
 // A concept build without WordPress can't deliver messages, so say so up front.
 const formIsPreview = demoMode && !import.meta.env.PUBLIC_WP_GRAPHQL_URL;
-const { contact } = content;
+const { contact, form, labels } = content;
+const details = { phone: business.phone, email: business.email };
+// What the form script shows, from Site Settings.
+const formMessages = JSON.stringify({
+  notConnected: fill(form.notConnected, details),
+  tooMany: form.tooMany,
+  failed: form.failed,
+  offline: form.offline,
+  send: form.send,
+  sending: form.sending,
+});
 
 const socialIcons: Record<string, { label: string; path: string }> = {
   instagram: { label: "Instagram", path: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" },
@@ -17,7 +27,7 @@ const socialIcons: Record<string, { label: string; path: string }> = {
 const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].label, url: s.url, icon: socialIcons[s.network].path }));
 ---
 
-<section id="contact-section" class="relative w-full min-h-screen bg-[#050505] text-white pt-32 pb-24 z-30">
+<section id="contact-section" class="relative w-full min-h-screen bg-surface text-white pt-32 pb-24 z-30">
   
   <div class="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
     
@@ -52,10 +62,10 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
 
       <div class="flex flex-wrap items-center gap-4">
         <a href={business.mapsUrl} target="_blank" rel="noopener noreferrer" class="px-8 py-4 bg-accent text-accent-contrast rounded-full hover:bg-white transition-colors font-bold uppercase tracking-widest text-sm shadow-lg shadow-accent/20">
-          Get Directions
+          {labels.getDirections}
         </a>
         <a href={business.phoneHref} class="px-8 py-4 border border-white/30 text-white rounded-full hover:bg-white hover:text-black transition-colors font-bold uppercase tracking-widest text-sm shadow-lg">
-          Call the Shop
+          {labels.callShop}
         </a>
       </div>
     </div>
@@ -63,7 +73,7 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
     <div class="flex flex-col justify-center">
       
       <div class="mb-16">
-        <h3 class="text-sm font-mono text-white/50 uppercase tracking-[0.3em] mb-6">Our Digital Garage</h3>
+        <h3 class="text-sm font-mono text-white/50 uppercase tracking-[0.3em] mb-6">{labels.digitalGarage}</h3>
         <div class="flex items-center gap-6">
           {socialLinks.map((social) => (
             <a 
@@ -79,7 +89,7 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
         </div>
       </div>
 
-      <div class="bg-[#111] border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl relative perspective-1000">
+      <div class="bg-raised border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl relative perspective-1000">
         <div id="form-flipper" class="w-full h-full transition-all duration-700 transform-style-3d">
           
           <!-- Front: The Form -->
@@ -87,34 +97,34 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
             <h3 class="text-3xl font-serif italic mb-2">{contact.formHeading}</h3>
             <p class="text-white/50 font-light mb-8">{contact.formText}</p>
             
-            <form id="contact-form" class="flex flex-col gap-6" data-preview={formIsPreview ? `This is a concept preview, so messages aren't sent yet. Please call ${business.phone} or email ${business.email}.` : undefined}>
+            <form id="contact-form" method="post" class="flex flex-col gap-6" data-preview={formIsPreview ? fill(form.previewMessage, details) : undefined} data-messages={formMessages}>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input name="name" type="text" placeholder="Name" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
-                <input name="email" type="email" placeholder="Email" required class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
+                <input name="name" type="text" placeholder={form.namePlaceholder} required maxlength="100" autocomplete="name" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
+                <input name="email" type="email" placeholder={form.emailPlaceholder} required maxlength="254" autocomplete="email" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors" />
               </div>
-              <textarea name="message" placeholder="Tell us about your project..." required rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors resize-none"></textarea>
+              <textarea name="message" placeholder={form.messagePlaceholder} required maxlength="5000" rows="4" class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors resize-none"></textarea>
               <!-- Spam trap: hidden from people, bots fill it in -->
               <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
                 <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
               </div>
-              <p id="form-error" role="alert" class="hidden text-sm text-red-400 -mb-2"></p>
+              <p id="form-error" role="alert" class="hidden text-sm text-danger -mb-2"></p>
               {formIsPreview && (
-                <p class="text-xs text-white/40 font-mono uppercase tracking-[0.15em] -mt-2 order-last">Preview only: messages aren't sent yet</p>
+                <p class="text-xs text-white/40 font-mono uppercase tracking-[0.15em] -mt-2 order-last">{form.previewNote}</p>
               )}
               <button id="submit-btn" type="submit" class="w-full px-8 py-4 bg-white text-black rounded-lg hover:bg-accent hover:text-accent-contrast transition-colors font-bold uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2">
-                <span>Send Message</span>
+                <span>{form.send}</span>
               </button>
             </form>
           </div>
 
           <!-- Back: Success Message -->
-          <div class="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center text-center p-8 bg-zinc-900 rounded-2xl border border-accent/30">
+          <div class="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center text-center p-8 bg-raised rounded-2xl border border-accent/30">
             <div class="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mb-6 text-accent">
               <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <h3 class="text-3xl font-serif italic mb-4">Message Sent!</h3>
-            <p class="text-white/70 font-light mb-8 max-w-xs mx-auto">Thanks for reaching out. We've received your inquiry and one of our specialists will get back to you shortly.</p>
-            <button id="reset-form" class="text-accent font-bold uppercase tracking-widest text-xs hover:text-white transition-colors">Send another message</button>
+            <h3 class="text-3xl font-serif italic mb-4">{form.successHeading}</h3>
+            <p class="text-white/70 font-light mb-8 max-w-xs mx-auto">{form.successText}</p>
+            <button id="reset-form" class="text-accent font-bold uppercase tracking-widest text-xs hover:text-white transition-colors">{form.sendAnother}</button>
           </div>
 
         </div>
@@ -147,36 +157,43 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
 <script>
   import { actions } from 'astro:actions';
 
-  const form = document.getElementById('contact-form') as HTMLFormElement;
-  const flipper = document.getElementById('form-flipper');
-  const resetBtn = document.getElementById('reset-form');
-  const submitBtn = document.getElementById('submit-btn');
-  const formError = document.getElementById('form-error');
-
   // "Not connected yet" is information, not a failure, so it isn't shown in red.
-  const showError = (message: string, isNotice = false) => {
+  const showError = (formError: HTMLElement | null, message: string, isNotice = false) => {
     if (!formError) return;
     formError.textContent = message;
     formError.classList.toggle('hidden', !message);
-    formError.classList.toggle('text-red-400', !isNotice);
+    formError.classList.toggle('text-danger', !isNotice);
     formError.classList.toggle('text-white/70', isNotice);
   };
 
-  if (form && flipper && submitBtn) {
-    form.addEventListener('submit', async (e) => {
+  // Runs on every page the visitor reaches, since the router swaps pages without reloading.
+  const initContactForm = () => {
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    const flipper = document.getElementById('form-flipper');
+    const resetBtn = document.getElementById('reset-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const formError = document.getElementById('form-error');
+    if (!form || !flipper || !submitBtn) return;
+    const messages = JSON.parse(form.dataset.messages || '{}');
+
+    // How long the visitor spent on the form: people take seconds, bots milliseconds.
+    const shownAt = performance.now();
+
+    form.onsubmit = async (e) => {
       e.preventDefault();
 
       // Concept builds have no server to send to; explain instead of trying.
       if (form.dataset.preview) {
-        showError(form.dataset.preview, true);
+        showError(formError, form.dataset.preview, true);
         return;
       }
 
       const formData = new FormData(form);
+      formData.set('elapsed', String(Math.round(performance.now() - shownAt)));
       const btnSpan = submitBtn.querySelector('span');
-      if (btnSpan) btnSpan.innerText = 'Sending...';
+      if (btnSpan) btnSpan.innerText = messages.sending;
       submitBtn.setAttribute('disabled', 'true');
-      showError('');
+      showError(formError, '');
 
       try {
         const { data, error } = await actions.submitContactForm(formData);
@@ -184,21 +201,24 @@ const socialLinks = business.socials.map((s) => ({ name: socialIcons[s.network].
         if (!error && data?.success) {
           flipper.classList.add('is-flipped');
         } else {
-          showError(error?.message || "Sorry, your message didn't go through. Please try again.", error?.code === 'SERVICE_UNAVAILABLE');
+          // The server sends a code; the words come from Site Settings.
+          const message = error?.code === 'SERVICE_UNAVAILABLE' ? messages.notConnected : error?.code === 'TOO_MANY_REQUESTS' ? messages.tooMany : messages.failed;
+          showError(formError, message, error?.code === 'SERVICE_UNAVAILABLE');
         }
       } catch (err) {
-        showError("Sorry, your message didn't go through. Please check your connection and try again.");
+        showError(formError, messages.offline);
       } finally {
-        if (btnSpan) btnSpan.innerText = 'Send Message';
+        if (btnSpan) btnSpan.innerText = messages.send;
         submitBtn.removeAttribute('disabled');
       }
-    });
-  }
+    };
 
-  if (resetBtn && flipper && form) {
-    resetBtn.addEventListener('click', () => {
-      flipper.classList.remove('is-flipped');
-      setTimeout(() => form.reset(), 500); 
-    });
-  }
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        flipper.classList.remove('is-flipped');
+        setTimeout(() => form.reset(), 500);
+      };
+    }
+  };
+  document.addEventListener('astro:page-load', initContactForm);
 </script>

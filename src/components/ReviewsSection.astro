@@ -6,7 +6,7 @@ import { getLocalTestimonials } from '../lib/localContent';
 interface Review {
   clientName: string;
   quote: string;
-  photo?: { sourceUrl: string } | string | ImageMetadata;
+  photo?: { sourceUrl: string; altText?: string } | string | ImageMetadata;
 }
 
 interface Props {
@@ -15,7 +15,6 @@ interface Props {
 
 const { dynamicReviews = [] } = Astro.props;
 
-// The track below is sized for three slides.
 const defaultReviews = getLocalTestimonials().map((t) => ({ clientName: t.name, quote: t.quote, photo: t.photo }));
 const reviews = dynamicReviews.length > 0 ? dynamicReviews : defaultReviews;
 
@@ -24,7 +23,7 @@ const quoteSize = (quote: string) =>
   quote.length > 320 ? "text-base md:text-xl lg:text-2xl" : quote.length > 160 ? "text-lg md:text-2xl lg:text-[1.75rem]" : "text-xl sm:text-2xl md:text-3xl lg:text-4xl";
 ---
 
-<section id="reviews-container" class="relative w-full h-[400dvh] z-[15] -mt-[100dvh]">
+<section id="reviews-container" class="relative w-full z-[15] -mt-[100dvh]" style={`height: ${(reviews.length + 1) * 100}dvh`}>
   
   <div class="sticky top-0 w-full h-[100dvh] overflow-hidden flex items-center pt-16 md:pt-0">
     
@@ -35,7 +34,7 @@ const quoteSize = (quote: string) =>
         <div class="absolute bottom-0 left-0 w-full h-24 md:h-32 bg-gradient-to-t from-black to-transparent"></div>
       </div>
 
-      <div id="reviews-track" class="flex w-[300vw] h-full items-center relative z-10">
+      <div id="reviews-track" class="flex h-full items-center relative z-10" style={`width: ${reviews.length * 100}vw`}>
         
         {reviews.map((review) => {
           const imgSource = typeof review.photo === 'string' ? review.photo : (review.photo as any)?.sourceUrl || (review.photo as any);
@@ -59,7 +58,7 @@ const quoteSize = (quote: string) =>
               <div class="w-full md:w-1/2 h-[25dvh] sm:h-[30dvh] md:h-[50dvh] max-w-xl rounded-xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 shrink-0">
                 <Image 
                   src={imgSource} 
-                  alt="Customer Review Image" 
+                  alt={(review.photo as any)?.altText || ""} 
                   width={1200}
                   height={900}
                   inferSize={true}

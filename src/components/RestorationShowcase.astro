@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import ZoomableImage from "./ZoomableImage.astro";
-import { content } from "../lib/localContent";
+import { content } from "../lib/site";
 
 interface Props {
   mainImgUrl: string | ImageMetadata;
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const {
-  mainImgUrl, eyebrow, title, textId, gradientFrom, gradientTo, linkUrl, ctaColor = "#ffffff", headingLevel = 3,
+  mainImgUrl, eyebrow, title, textId, gradientFrom, gradientTo, linkUrl, ctaColor = "var(--brand-text)", headingLevel = 3,
   titleClass = "text-5xl md:text-8xl lg:text-[7rem]",
   introClass = "text-3xl md:text-4xl lg:text-5xl",
 } = Astro.props;

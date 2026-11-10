@@ -5,6 +5,7 @@
  */
 import { fetchAPI } from './wp';
 import { getLocalShowcases } from './localContent';
+import { safeColor, safeUrl } from './sanitize';
 
 export async function getShowcases() {
     const data = await fetchAPI(`
@@ -34,8 +35,8 @@ export async function getShowcases() {
             title: s.title as string,
             year: (s.showcaseDetails?.year || '') as string,
             description: (s.showcaseDetails?.description || '') as string,
-            accentColor: s.showcaseDetails?.accentColor as string | undefined,
-            ctaLink: s.showcaseDetails?.ctaLink as string | undefined,
+            accentColor: safeColor(s.showcaseDetails?.accentColor) || undefined,
+            ctaLink: safeUrl(s.showcaseDetails?.ctaLink) || undefined,
             image: s.featuredImage.node.sourceUrl as string,
             gallery: [s.showcaseDetails?.galleryImage1, s.showcaseDetails?.galleryImage2, s.showcaseDetails?.galleryImage3]
                 .filter(Boolean)

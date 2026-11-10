@@ -6,8 +6,7 @@ import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
 import { Image } from "astro:assets";
 import { getShowcases } from "../lib/showcases";
-import { content } from "../lib/localContent";
-import brand from "../data/brand.json";
+import { brand, content } from "../lib/site";
 
 const showcases = await getShowcases();
 const { portfolio, labels } = content;
@@ -35,7 +34,7 @@ const { portfolio, labels } = content;
             class:list={["portfolio-card group block", i === 0 && "md:col-span-2", i % 2 === 0 && i > 0 && "md:mt-32"]}
             style={`--card-accent: ${build.accentColor || brand.colors.accent};`}
           >
-            <div class:list={["relative overflow-hidden rounded-xl bg-[#111]", i === 0 ? "aspect-[16/9]" : "aspect-[4/5]"]}>
+            <div class:list={["relative overflow-hidden rounded-xl bg-raised", i === 0 ? "aspect-[16/9]" : "aspect-[4/5]"]}>
               <Image
                 src={build.image as any}
                 alt={build.title}

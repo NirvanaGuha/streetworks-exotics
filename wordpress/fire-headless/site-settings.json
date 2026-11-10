@@ -1,0 +1,676 @@
+{
+  "_comment": "Every site-wide setting editable in WordPress (Site Settings). Read by the plugin to build the fields and by src/lib/site.ts to fetch them; each path is the value it replaces in src/data/brand.json or src/data/content.json.",
+  "sections": [
+    {
+      "key": "colors",
+      "title": "Colours",
+      "fields": [
+        {
+          "path": "brand.colors.accent",
+          "label": "Accent",
+          "type": "color",
+          "help": "Buttons, highlights, small headings above titles, links."
+        },
+        {
+          "path": "brand.colors.accentContrast",
+          "label": "Text on accent",
+          "type": "color",
+          "help": "Text on accent-coloured buttons. Pick something that reads clearly on the accent."
+        },
+        {
+          "path": "brand.colors.background",
+          "label": "Page background",
+          "type": "color"
+        },
+        {
+          "path": "brand.colors.surface",
+          "label": "Panels",
+          "type": "color",
+          "help": "Navigation bar, footer, contact section and article openings."
+        },
+        {
+          "path": "brand.colors.raised",
+          "label": "Cards and photo placeholders",
+          "type": "color",
+          "help": "Shown behind photos while they load, and on the form card."
+        },
+        {
+          "path": "brand.colors.text",
+          "label": "Text",
+          "type": "color",
+          "help": "Main text colour. Lighter shades of it are used for secondary text."
+        },
+        {
+          "path": "brand.colors.muted",
+          "label": "Text before it's revealed",
+          "type": "color",
+          "help": "The homepage statements fill in from this colour as you scroll."
+        },
+        {
+          "path": "brand.colors.error",
+          "label": "Error messages",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.0.0",
+          "label": "Homepage statement 1: top colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.0.1",
+          "label": "Homepage statement 1: bottom colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.1.0",
+          "label": "Homepage statement 2: top colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.1.1",
+          "label": "Homepage statement 2: bottom colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.2.0",
+          "label": "Homepage statement 3: top colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.introGradients.2.1",
+          "label": "Homepage statement 3: bottom colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.showcaseGradients.0.0",
+          "label": "Showcase intro 1: top colour",
+          "type": "color",
+          "help": "Showcases alternate between these two."
+        },
+        {
+          "path": "brand.showcaseGradients.0.1",
+          "label": "Showcase intro 1: bottom colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.showcaseGradients.1.0",
+          "label": "Showcase intro 2: top colour",
+          "type": "color"
+        },
+        {
+          "path": "brand.showcaseGradients.1.1",
+          "label": "Showcase intro 2: bottom colour",
+          "type": "color"
+        }
+      ]
+    },
+    {
+      "key": "fonts",
+      "title": "Fonts",
+      "fields": [
+        {
+          "path": "brand.fonts.heading",
+          "label": "Headings",
+          "type": "font",
+          "help": "Titles and display text.",
+          "choices": [
+            "Archivo",
+            "Oswald",
+            "Bebas Neue",
+            "Anton",
+            "Montserrat",
+            "Space Grotesk",
+            "Playfair Display"
+          ]
+        },
+        {
+          "path": "brand.fonts.headingStretch",
+          "label": "Heading width",
+          "type": "select",
+          "help": "Only Archivo has a width setting; other fonts ignore it.",
+          "choices": [
+            "100%",
+            "112%",
+            "125%"
+          ]
+        },
+        {
+          "path": "brand.fonts.body",
+          "label": "Body text",
+          "type": "font",
+          "choices": [
+            "Inter",
+            "Manrope",
+            "DM Sans",
+            "Lato",
+            "Montserrat"
+          ]
+        },
+        {
+          "path": "brand.fonts.serif",
+          "label": "Accent serif",
+          "type": "font",
+          "help": "Italic subtitles, quotes and taglines.",
+          "choices": [
+            "Instrument Serif",
+            "Playfair Display",
+            "Cormorant Garamond",
+            "Lora",
+            "DM Serif Display"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "identity",
+      "title": "Brand & SEO",
+      "fields": [
+        {
+          "path": "brand.client",
+          "label": "Business name in page titles",
+          "type": "text",
+          "help": "Shown after every page title in search results and browser tabs."
+        },
+        {
+          "path": "brand.shortName",
+          "label": "Logo text",
+          "type": "text",
+          "help": "The name in the navigation bar and footer."
+        },
+        {
+          "path": "brand.wordmark.0",
+          "label": "Big logo, line 1",
+          "type": "text",
+          "help": "The large cut-out logo on the homepage and the loading screen."
+        },
+        {
+          "path": "brand.wordmark.1",
+          "label": "Big logo, line 2",
+          "type": "text"
+        },
+        {
+          "path": "brand.tagline",
+          "label": "Homepage title tagline",
+          "type": "text",
+          "help": "Homepage title: “Business name | Tagline”."
+        },
+        {
+          "path": "brand.description",
+          "label": "Default description",
+          "type": "textarea",
+          "help": "Used in search results and link previews for pages without their own."
+        },
+        {
+          "path": "brand.shareImage",
+          "label": "Default link preview image",
+          "type": "image",
+          "help": "Shown when a page without its own photo is shared. 1200 × 630 works best."
+        },
+        {
+          "path": "brand.favicon",
+          "label": "Browser tab icon",
+          "type": "image",
+          "help": "Square, at least 64 × 64. SVG or PNG."
+        }
+      ]
+    },
+    {
+      "key": "navigation",
+      "title": "Navigation & footer",
+      "fields": [
+        {
+          "path": "content.labels.services",
+          "label": "Services menu",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.portfolio",
+          "label": "Portfolio link",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.caseStudies",
+          "label": "Case studies link",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.journal",
+          "label": "News link",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.contact",
+          "label": "Contact button (phones)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.getInTouch",
+          "label": "Contact button (larger screens)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.openMenu",
+          "label": "Menu button (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.close",
+          "label": "Close menu",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.home",
+          "label": "Footer: Home link",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.rightsReserved",
+          "label": "Footer: after the copyright",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "homepage",
+      "title": "Homepage",
+      "fields": [
+        {
+          "path": "content.labels.scroll",
+          "label": "Scroll hint",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.playVideo",
+          "label": "Play button (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.closeVideo",
+          "label": "Close video (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.awards.heading",
+          "label": "Awards heading",
+          "type": "text"
+        },
+        {
+          "path": "content.awards.headingAside",
+          "label": "Awards heading, second part",
+          "type": "text",
+          "help": "Set smaller after the heading."
+        },
+        {
+          "path": "content.awards.text",
+          "label": "Awards text",
+          "type": "textarea"
+        },
+        {
+          "path": "content.awards.logos.0.name",
+          "label": "Award 1: name",
+          "type": "text",
+          "help": "Also the logo's description for screen readers."
+        },
+        {
+          "path": "content.awards.logos.0.logo",
+          "label": "Award 1: logo",
+          "type": "image"
+        },
+        {
+          "path": "content.awards.logos.1.name",
+          "label": "Award 2: name",
+          "type": "text",
+          "help": "Also the logo's description for screen readers."
+        },
+        {
+          "path": "content.awards.logos.1.logo",
+          "label": "Award 2: logo",
+          "type": "image"
+        },
+        {
+          "path": "content.awards.logos.2.name",
+          "label": "Award 3: name",
+          "type": "text",
+          "help": "Also the logo's description for screen readers."
+        },
+        {
+          "path": "content.awards.logos.2.logo",
+          "label": "Award 3: logo",
+          "type": "image"
+        },
+        {
+          "path": "content.homepageShowcases",
+          "label": "Showcases on the homepage",
+          "type": "number",
+          "help": "How many showcases the homepage shows, in their Order.",
+          "min": 0,
+          "max": 6
+        },
+        {
+          "path": "content.labels.showcaseYear",
+          "label": "After a showcase's year",
+          "type": "text",
+          "help": "e.g. “1967 Restoration”."
+        },
+        {
+          "path": "content.labels.showcaseCta",
+          "label": "Showcase button",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.seeService",
+          "label": "Service button",
+          "type": "text"
+        },
+        {
+          "path": "content.serviceStripImages.0",
+          "label": "Services strip photo 1",
+          "type": "image",
+          "help": "The services list's first row of photos, shared by every service."
+        },
+        {
+          "path": "content.serviceStripImages.1",
+          "label": "Services strip photo 2",
+          "type": "image"
+        },
+        {
+          "path": "content.serviceStripImages.2",
+          "label": "Services strip photo 3",
+          "type": "image"
+        },
+        {
+          "path": "content.serviceStripImages.3",
+          "label": "Services strip photo 4",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "key": "listings",
+      "title": "Portfolio, News & Case Studies",
+      "fields": [
+        {
+          "path": "content.portfolio.heading",
+          "label": "Portfolio heading",
+          "type": "text"
+        },
+        {
+          "path": "content.portfolio.intro",
+          "label": "Portfolio intro",
+          "type": "textarea",
+          "help": "Also the page's search description."
+        },
+        {
+          "path": "content.journal.heading",
+          "label": "News heading",
+          "type": "text"
+        },
+        {
+          "path": "content.journal.intro",
+          "label": "News intro",
+          "type": "textarea",
+          "help": "Also the page's search description."
+        },
+        {
+          "path": "content.caseStudies.heading",
+          "label": "Case studies heading",
+          "type": "text"
+        },
+        {
+          "path": "content.caseStudies.intro",
+          "label": "Case studies intro",
+          "type": "textarea",
+          "help": "Also the page's search description."
+        },
+        {
+          "path": "content.labels.allCategories",
+          "label": "News filter: all posts",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.filterByCategory",
+          "label": "News filter (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.emptyCategory",
+          "label": "News filter: nothing else in a category",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.readStory",
+          "label": "Read the story link",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.caseStudy",
+          "label": "Case study label",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.nextCaseStudy",
+          "label": "Next case study",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.moreStories",
+          "label": "More stories heading",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "articles",
+      "title": "Articles & services",
+      "fields": [
+        {
+          "path": "content.labels.minRead",
+          "label": "Reading time",
+          "type": "text",
+          "help": "{n} is replaced by the number of minutes."
+        },
+        {
+          "path": "content.labels.writtenBy",
+          "label": "Before the author's name",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.contents",
+          "label": "Table of contents",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.sections",
+          "label": "After the number of sections",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.car",
+          "label": "Case study fact: car",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.work",
+          "label": "Case study fact: the work",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.recognition",
+          "label": "Case study fact: recognition",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.listen",
+          "label": "Audio player label",
+          "type": "text",
+          "help": "Used when the audio has no caption of its own."
+        },
+        {
+          "path": "content.labels.video",
+          "label": "Video player (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.closePhoto",
+          "label": "Close photo (screen readers)",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.closingLine",
+          "label": "Service pages: closing line",
+          "type": "text",
+          "help": "Used when a service has no closing heading of its own."
+        }
+      ]
+    },
+    {
+      "key": "contact",
+      "title": "Contact & form",
+      "fields": [
+        {
+          "path": "content.contact.heading.0",
+          "label": "Heading, line 1",
+          "type": "text"
+        },
+        {
+          "path": "content.contact.heading.1",
+          "label": "Heading, line 2",
+          "type": "text"
+        },
+        {
+          "path": "content.contact.text",
+          "label": "Text",
+          "type": "textarea"
+        },
+        {
+          "path": "content.labels.getDirections",
+          "label": "Directions button",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.callShop",
+          "label": "Call button",
+          "type": "text"
+        },
+        {
+          "path": "content.labels.digitalGarage",
+          "label": "Social links heading",
+          "type": "text"
+        },
+        {
+          "path": "content.contact.formHeading",
+          "label": "Form heading",
+          "type": "text"
+        },
+        {
+          "path": "content.contact.formText",
+          "label": "Form text",
+          "type": "text"
+        },
+        {
+          "path": "content.form.namePlaceholder",
+          "label": "Name field",
+          "type": "text"
+        },
+        {
+          "path": "content.form.emailPlaceholder",
+          "label": "Email field",
+          "type": "text"
+        },
+        {
+          "path": "content.form.messagePlaceholder",
+          "label": "Message field",
+          "type": "text"
+        },
+        {
+          "path": "content.form.send",
+          "label": "Send button",
+          "type": "text"
+        },
+        {
+          "path": "content.form.sending",
+          "label": "Send button while sending",
+          "type": "text"
+        },
+        {
+          "path": "content.form.successHeading",
+          "label": "Sent: heading",
+          "type": "text"
+        },
+        {
+          "path": "content.form.successText",
+          "label": "Sent: text",
+          "type": "textarea"
+        },
+        {
+          "path": "content.form.sendAnother",
+          "label": "Sent: button",
+          "type": "text"
+        },
+        {
+          "path": "content.form.previewNote",
+          "label": "Concept preview: note under the form",
+          "type": "text"
+        },
+        {
+          "path": "content.form.previewMessage",
+          "label": "Concept preview: message",
+          "type": "textarea",
+          "help": "{phone} and {email} are replaced with the business details."
+        },
+        {
+          "path": "content.form.notConnected",
+          "label": "Form not connected: message",
+          "type": "textarea",
+          "help": "{phone} and {email} are replaced with the business details."
+        },
+        {
+          "path": "content.form.tooMany",
+          "label": "Too many messages",
+          "type": "textarea"
+        },
+        {
+          "path": "content.form.failed",
+          "label": "Message didn't send",
+          "type": "textarea"
+        },
+        {
+          "path": "content.form.offline",
+          "label": "Visitor is offline",
+          "type": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "notFound",
+      "title": "Page not found",
+      "fields": [
+        {
+          "path": "content.notFound.title",
+          "label": "Browser tab title",
+          "type": "text"
+        },
+        {
+          "path": "content.notFound.eyebrow",
+          "label": "Small heading",
+          "type": "text"
+        },
+        {
+          "path": "content.notFound.heading",
+          "label": "Heading",
+          "type": "text"
+        },
+        {
+          "path": "content.notFound.text",
+          "label": "Text",
+          "type": "textarea"
+        },
+        {
+          "path": "content.notFound.button",
+          "label": "Button",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

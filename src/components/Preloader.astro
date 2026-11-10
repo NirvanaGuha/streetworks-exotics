@@ -3,7 +3,7 @@
 // and fonts are ready (at least 0.7s, at most 2.5s). Without JavaScript it fades out on
 // its own via CSS. When it lifts it sets window.__firePreloaderDone and dispatches
 // "fire:preloader-done", which starts the hero entrance animation.
-import brand from "../data/brand.json";
+import { brand } from "../lib/site";
 ---
 
 <script is:inline>

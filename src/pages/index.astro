@@ -14,10 +14,11 @@ import ServiceSection from "../components/ServiceSection.astro";
 import ContactSection from "../components/ContactSection.astro";
 import Footer from "../components/Footer.astro";
 import { fetchAPI } from "../lib/wp";
-import { content, getLocalHomepageServices, getServiceStripImages } from "../lib/localContent";
+import { getLocalHomepageServices, getServiceStripImages } from "../lib/localContent";
+import { brand, content } from "../lib/site";
 import { asset } from "../lib/assets";
 import { getShowcases } from "../lib/showcases";
-import brand from "../data/brand.json";
+import { safeColor } from "../lib/sanitize";
 
 // 1. Fetch Homepage Data from WordPress
 // Showcases, testimonials and services are their own post types (see wordpress/fire-headless),
@@ -36,10 +37,10 @@ const data = await fetchAPI(`
         introText3
       }
     }
-    testimonials(first: 3, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
+    testimonials(first: 6, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
       nodes {
         title
-        featuredImage { node { sourceUrl } }
+        featuredImage { node { sourceUrl altText } }
         testimonialDetails { quote }
       }
     }
@@ -76,7 +77,7 @@ const testimonialList = (data?.testimonials?.nodes || []).map((t: any) => ({
 // The homepage strip of each service reuses the first gallery from that service's page.
 const wpServices = (data?.services?.nodes || []).map((s: any) => ({
   title: s.title,
-  tintColor: s.serviceDetails?.tintColor,
+  tintColor: safeColor(s.serviceDetails?.tintColor) || undefined,
   description: s.serviceDetails?.description?.trim(),
   link: `/services/${s.slug}`,
   backgroundImage: s.featuredImage?.node?.sourceUrl,

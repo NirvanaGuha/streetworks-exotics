@@ -1,6 +1,10 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+// Search & sharing overrides (WordPress: the page's "Search & sharing" box).
+const seo = (image: () => any) =>
+    z.object({ title: z.string().default(''), description: z.string().default(''), image: image().optional() }).optional();
+
 const services = defineCollection({
     loader: glob({ pattern: "**/*.json", base: "./src/content/services" }),
     schema: ({ image }) => z.object({
@@ -10,6 +14,7 @@ const services = defineCollection({
         description: z.string(),
         heroImage: image(),
         tintColor: z.string().optional(),
+        seo: seo(image),
         deepTextTitle: z.string(),
         deepTextParagraphs: z.array(z.string()),
         midText: z.string().optional(),
@@ -43,6 +48,7 @@ const article = ({ image }: { image: () => any }) => {
         byline: z.string().default(''),
         image: image().optional(),
         imageAlt: z.string().default(''),
+        seo: seo(image),
         blocks: z.array(z.discriminatedUnion('type', [
             z.object({ type: z.literal('paragraph'), html: z.string() }),
             z.object({ type: z.literal('heading'), level: z.number(), html: z.string() }),

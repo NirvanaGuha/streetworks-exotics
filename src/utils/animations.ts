@@ -19,19 +19,13 @@ export function createReviewsTimeline(container: HTMLElement) {
         },
     });
 
+    // One stop per review: hold, then slide to the next, however many WordPress has.
+    const slides = track.querySelectorAll(".review-panel").length;
     tl.to(fadeLayer, { autoAlpha: 1, duration: 0.5 });
-    tl.to({}, { duration: 1.0 });
-    tl.to(track, {
-        x: () => "-100vw",
-        duration: 2.0,
-        ease: "none",
-    });
-    tl.to({}, { duration: 1.0 });
-    tl.to(track, {
-        x: () => "-200vw",
-        duration: 2.0,
-        ease: "none",
-    });
+    for (let i = 1; i < slides; i++) {
+        tl.to({}, { duration: 1.0 });
+        tl.to(track, { x: () => `-${i * 100}vw`, duration: 2.0, ease: "none" });
+    }
 
     tl.to({}, { duration: 2.0 });
     tl.to(fadeLayer, { autoAlpha: 0, duration: 0.5 });

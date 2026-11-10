@@ -45,7 +45,28 @@
         "writtenBy": "Words by",
         "car": "Car",
         "work": "The work",
-        "recognition": "Recognition"
+        "recognition": "Recognition",
+        "services": "Services",
+        "contact": "Contact",
+        "getInTouch": "Get in touch",
+        "openMenu": "Open menu",
+        "close": "Close",
+        "home": "Home",
+        "rightsReserved": "All rights reserved.",
+        "scroll": "Scroll",
+        "playVideo": "Play video",
+        "closeVideo": "Close video",
+        "closePhoto": "Close photo",
+        "seeService": "See Service",
+        "getDirections": "Get Directions",
+        "callShop": "Call the Shop",
+        "digitalGarage": "Our Digital Garage",
+        "filterByCategory": "Filter by category",
+        "emptyCategory": "The latest post above is the only one in this category.",
+        "minRead": "{n} min read",
+        "listen": "Listen to this story",
+        "video": "Video",
+        "closingLine": "Ready to get in touch?"
     },
     "homepageShowcases": 2,
     "portfolio": {
@@ -143,5 +164,28 @@
         "text": "Have a question about our work? Wondering how we can restore your vehicle to its original glory? We’re happy to answer any questions you have.",
         "formHeading": "Can't make it in?",
         "formText": "Drop us a line and we'll reach out."
+    },
+    "form": {
+        "namePlaceholder": "Name",
+        "emailPlaceholder": "Email",
+        "messagePlaceholder": "Tell us about your project...",
+        "send": "Send Message",
+        "sending": "Sending...",
+        "successHeading": "Message Sent!",
+        "successText": "Thanks for reaching out. We've received your inquiry and one of our specialists will get back to you shortly.",
+        "sendAnother": "Send another message",
+        "previewNote": "Preview only: messages aren't sent yet",
+        "previewMessage": "This is a concept preview, so messages aren't sent yet. Please call {phone} or email {email}.",
+        "notConnected": "This form isn't connected yet. Please call {phone} or email {email}.",
+        "tooMany": "You've sent several messages in a short time. Please wait a few minutes, or call us.",
+        "failed": "Sorry, your message didn't go through. Please try again or call us.",
+        "offline": "Sorry, your message didn't go through. Please check your connection and try again."
+    },
+    "notFound": {
+        "title": "Page not found",
+        "eyebrow": "Error 404",
+        "heading": "Wrong Turn.",
+        "text": "The page you're looking for has been moved, retired, or never left the shop.",
+        "button": "Back to the showroom"
     }
 }

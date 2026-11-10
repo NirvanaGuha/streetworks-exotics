@@ -6,7 +6,9 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import content from '../data/content.json';
-import { asset } from './assets';
+import { asset, siteImage } from './assets';
+import { content as site } from './site';
+import { seoFromLocal } from './articles';
 
 export { content };
 
@@ -24,8 +26,9 @@ export function getLocalTestimonials() {
     return content.testimonials.map((t) => ({ name: t.name, quote: t.quote, photo: asset(t.photo) }));
 }
 
+/** The services list's shared first row of photos (Site Settings → Homepage). */
 export function getServiceStripImages() {
-    return content.serviceStripImages.map(asset);
+    return site.serviceStripImages.map(siteImage);
 }
 
 type LocalService = CollectionEntry<'services'>['data'];
@@ -78,7 +81,8 @@ export async function getLocalService(slug: string) {
         heroImage: data.heroImage,
         heroImageWidth: data.heroImage.width,
         heroImageHeight: data.heroImage.height,
-        tintColor: data.tintColor || '#ffffff',
+        tintColor: data.tintColor || 'var(--brand-text)',
+        seo: seoFromLocal(data),
         deepTextTitle: data.title,
         deepTextParagraphs: [] as string[],
         sections: serviceSections(data),

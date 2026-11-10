@@ -3,6 +3,7 @@
  * Loads a client's starter content into WordPress from the site's own files:
  *   src/data/content.json   hero, intro texts, showcases, testimonials
  *   src/data/brand.json     business details (address, phone, socials, video)
+ *   both of those           Site Settings: colours, fonts, labels, headings, logos (site-settings.json)
  *   src/content/services    services: title, order, featured image, details, page text and galleries
  *   src/assets/images       every image those files refer to
  *
@@ -148,6 +149,37 @@ foreach ($content['testimonials'] as $i => $testimonial) {
     ], $overwrite);
 }
 
+// Site Settings: every field in the plugin's site-settings.json, filled with the value the
+// site shows today, so editors see the current text, colours and images rather than blanks.
+// SVG images stay built-in: WordPress doesn't accept SVG uploads.
+$settings_id = fire_headless_settings_post_id();
+if ($settings_id) {
+    $site = ['brand' => $brand, 'content' => $content];
+    $values = [];
+    foreach (fire_headless_settings_schema()['sections'] as $section) {
+        foreach ($section['fields'] as $field) {
+            $value = $site;
+            foreach (explode('.', $field['path']) as $part) {
+                $value = is_array($value) && array_key_exists($part, $value) ? $value[$part] : null;
+            }
+            if ($value === null || $value === '') {
+                continue;
+            }
+            if ($field['type'] === 'image') {
+                if (preg_match('/\.svg$/i', (string) $value)) {
+                    continue;
+                }
+                $value = str_starts_with((string) $value, '/')
+                    ? fire_seed_image("$root/public", ltrim((string) $value, '/'))
+                    : $img((string) $value);
+            }
+            $values[fire_headless_settings_field_name($field['path'])] = $value;
+        }
+    }
+    fire_seed_fields($settings_id, $values, $overwrite);
+    WP_CLI::log('Site Settings: ' . count($values) . ' fields');
+}
+
 // Services: one per file in src/content/services, slug = file name.
 // The page content is built from the file's sections, in order.
 
@@ -232,7 +264,6 @@ foreach (glob("$root/src/content/services/*.json") as $file) {
         continue;
     }
     fire_seed_post('service', $data['title'], $order, $img(fire_seed_service_image_path($data['heroImage'])), [
-        'hero_tagline' => $data['heroTagline'] ?? '',
         'description'  => $data['heroTagline'] ?? '',
         'tint_color'   => $data['tintColor'] ?? '',
     ], true, ['post_name' => $slug, 'post_content' => fire_seed_service_content($data, $img)]);

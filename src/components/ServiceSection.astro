@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import { content } from '../lib/site';
 
 interface Props {
   title: string;
@@ -21,7 +22,7 @@ const {
   bookingUrl = "#", 
   galleryRow1, 
   galleryRow2,
-  tintColor = "#ffffff" 
+  tintColor = "var(--brand-text)" 
 } = Astro.props;
 ---
 
@@ -52,8 +53,8 @@ const {
         <p class="text-lg md:text-2xl text-white/70 font-light mt-4 leading-relaxed">{description}</p>
       </div>
       <div class="flex items-center gap-4 shrink-0 pointer-events-auto">
-        <a href={serviceUrl} data-astro-prefetch class="px-6 py-3 border border-white/30 rounded-full hover:bg-white hover:text-black transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">See Service</a>
-        <a href={bookingUrl} class="px-6 py-3 bg-white text-black rounded-full hover:bg-accent hover:text-accent-contrast transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">Get in touch</a>
+        <a href={serviceUrl} data-astro-prefetch class="px-6 py-3 border border-white/30 rounded-full hover:bg-white hover:text-black transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">{content.labels.seeService}</a>
+        <a href={bookingUrl} class="px-6 py-3 bg-white text-black rounded-full hover:bg-accent hover:text-accent-contrast transition-colors font-bold uppercase tracking-widest text-xs shadow-lg">{content.labels.getInTouch}</a>
       </div>
     </div>
 
@@ -64,7 +65,7 @@ const {
             <div class="h-32 md:h-48 lg:h-56 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
               <Image 
                 src={img as any} 
-                alt="Service Detail" 
+                alt="" 
                 width={800}
                 height={600}
                 inferSize={true}
@@ -80,7 +81,7 @@ const {
             <div class="h-32 md:h-48 lg:h-56 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
               <Image 
                 src={img as any} 
-                alt="Service Detail" 
+                alt="" 
                 width={800}
                 height={600}
                 inferSize={true}

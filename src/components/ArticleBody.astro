@@ -6,7 +6,8 @@ import { Image } from "astro:assets";
 import ZoomableImage from "./ZoomableImage.astro";
 import ArticleContents, { type ContentsEntry } from "./ArticleContents.astro";
 import { aspect, imageProps, type ArticleBlock, type ArticleImage } from "../lib/articles";
-import brand from "../data/brand.json";
+import { inlineHtml, textOnly } from "../lib/sanitize";
+import { brand, content } from "../lib/site";
 
 interface Props {
   blocks: ArticleBlock[];
@@ -21,7 +22,7 @@ let chapter = 0;
 
 // Chapter (h2) and section (h3) headings get ids, and with three or more the article opens
 // with a table of contents, after the lead and before the first heading.
-const plain = (html: string) => html.replace(/<[^>]+>/g, "").trim();
+const plain = textOnly;
 const headingIds = new Map<number, string>();
 const contents: ContentsEntry[] = [];
 blocks.forEach((block, i) => {
@@ -50,9 +51,9 @@ const galleryColumns = (images: ArticleImage[]) =>
     (() => { switch (block.type) {
       case "paragraph":
         return i === leadIndex ? (
-          <p class="article-reveal article-lead" set:html={block.html} />
+          <p class="article-reveal article-lead" set:html={inlineHtml(block.html)} />
         ) : (
-          <p class="article-reveal article-text" set:html={block.html} />
+          <p class="article-reveal article-text" set:html={inlineHtml(block.html)} />
         );
 
       case "heading": {
@@ -61,19 +62,19 @@ const galleryColumns = (images: ArticleImage[]) =>
           return (
             <h2 class="article-reveal article-h2" id={headingIds.get(i)} data-n={n}>
               <span class="article-chapter-number" aria-hidden="true">{n}</span>
-              <span set:html={block.html} />
+              <span set:html={inlineHtml(block.html)} />
             </h2>
           );
         }
-        if (block.level === 3) return <h3 class="article-reveal article-h3" id={headingIds.get(i)} set:html={block.html} />;
-        return <h4 class="article-reveal article-h4" set:html={block.html} />;
+        if (block.level === 3) return <h3 class="article-reveal article-h3" id={headingIds.get(i)} set:html={inlineHtml(block.html)} />;
+        return <h4 class="article-reveal article-h4" set:html={inlineHtml(block.html)} />;
       }
 
       case "list": {
         const List = block.ordered ? "ol" : "ul";
         return (
           <List class:list={["article-reveal article-list", block.ordered && "is-ordered"]}>
-            {block.items.map((item) => <li set:html={item} />)}
+            {block.items.map((item) => <li set:html={inlineHtml(item)} />)}
           </List>
         );
       }
@@ -81,8 +82,8 @@ const galleryColumns = (images: ArticleImage[]) =>
       case "quote":
         return (
           <figure class="article-reveal article-quote">
-            <blockquote set:html={block.html} />
-            {block.cite && <figcaption set:html={block.cite} />}
+            <blockquote set:html={inlineHtml(block.html)} />
+            {block.cite && <figcaption set:html={inlineHtml(block.cite)} />}
           </figure>
         );
 
@@ -103,7 +104,7 @@ const galleryColumns = (images: ArticleImage[]) =>
               widths={[640, 1080, 1600, 2200]}
               sizes="(min-width: 1280px) 1152px, 100vw"
             />
-            {image.caption && <figcaption class="article-caption" set:html={image.caption} />}
+            {image.caption && <figcaption class="article-caption" set:html={inlineHtml(image.caption)} />}
           </figure>
         );
       }
@@ -124,7 +125,7 @@ const galleryColumns = (images: ArticleImage[]) =>
                   widths={[400, 800, 1200]}
                   sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
                 />
-                {image.caption && <figcaption class="article-caption" set:html={image.caption} />}
+                {image.caption && <figcaption class="article-caption" set:html={inlineHtml(image.caption)} />}
               </figure>
             ))}
           </div>
@@ -138,7 +139,7 @@ const galleryColumns = (images: ArticleImage[]) =>
           : `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
         return (
           <div class="article-reveal article-embed article-player max-w-5xl mx-auto">
-            <button type="button" class="article-video group" data-player={player} aria-label="Play video">
+            <button type="button" class="article-video group" data-player={player} data-title={content.labels.video} aria-label={content.labels.playVideo}>
               {block.provider !== "vimeo" && (
                 <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover opacity-70 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-90" />
               )}
@@ -154,7 +155,7 @@ const galleryColumns = (images: ArticleImage[]) =>
       case "audio":
         return (
           <figure class="article-reveal article-audio">
-            <figcaption class="article-audio-label" set:html={block.caption || "Listen to this story"} />
+            <figcaption class="article-audio-label" set:html={inlineHtml(block.caption) || content.labels.listen} />
             <audio controls preload="none" src={block.url}></audio>
           </figure>
         );
@@ -162,8 +163,8 @@ const galleryColumns = (images: ArticleImage[]) =>
       case "video":
         return (
           <figure class="article-reveal article-figure max-w-5xl mx-auto">
-            <video controls playsinline preload="metadata" src={block.url} class="w-full rounded-lg bg-[#111] shadow-2xl"></video>
-            {block.caption && <figcaption class="article-caption" set:html={block.caption} />}
+            <video controls playsinline preload="metadata" src={block.url} class="w-full rounded-lg bg-raised shadow-2xl"></video>
+            {block.caption && <figcaption class="article-caption" set:html={inlineHtml(block.caption)} />}
           </figure>
         );
     } })(),
@@ -191,13 +192,13 @@ const galleryColumns = (images: ArticleImage[]) =>
     font-size: 1.075rem;
     line-height: 1.8;
     font-weight: 300;
-    color: rgb(255 255 255 / 0.72);
+    color: color-mix(in srgb, var(--brand-text) 72%, transparent);
     margin-top: 1.6rem;
   }
   .article-lead {
     font-size: 1.3rem;
     line-height: 1.6;
-    color: #fff;
+    color: var(--brand-text);
     font-weight: 400;
     letter-spacing: -0.01em;
   }
@@ -213,7 +214,7 @@ const galleryColumns = (images: ArticleImage[]) =>
   }
 
   .article-body :global(a) {
-    color: #fff;
+    color: var(--brand-text);
     text-decoration: underline;
     text-decoration-color: var(--article-accent);
     text-decoration-thickness: 1px;
@@ -225,7 +226,7 @@ const galleryColumns = (images: ArticleImage[]) =>
   }
   .article-body :global(strong),
   .article-body :global(b) {
-    color: #fff;
+    color: var(--brand-text);
     font-weight: 600;
   }
 
@@ -314,7 +315,7 @@ const galleryColumns = (images: ArticleImage[]) =>
     max-width: 56rem;
     margin: 5rem auto;
     padding-top: 2.5rem;
-    border-top: 1px solid rgb(255 255 255 / 0.12);
+    border-top: 1px solid color-mix(in srgb, var(--brand-text) 12%, transparent);
     text-align: center;
   }
   .article-quote blockquote {
@@ -322,7 +323,7 @@ const galleryColumns = (images: ArticleImage[]) =>
     font-style: italic;
     font-size: clamp(1.75rem, 3.6vw, 3rem);
     line-height: 1.2;
-    color: #fff;
+    color: var(--brand-text);
   }
   .article-quote blockquote::before {
     content: "“";
@@ -338,7 +339,7 @@ const galleryColumns = (images: ArticleImage[]) =>
     font-size: 0.75rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
-    color: rgb(255 255 255 / 0.5);
+    color: color-mix(in srgb, var(--brand-text) 50%, transparent);
   }
 
   .article-figure,
@@ -361,7 +362,7 @@ const galleryColumns = (images: ArticleImage[]) =>
     font-style: italic;
     font-size: 1.05rem;
     line-height: 1.4;
-    color: rgb(255 255 255 / 0.5);
+    color: color-mix(in srgb, var(--brand-text) 50%, transparent);
   }
   .article-gallery .article-caption {
     font-size: 0.95rem;
@@ -372,8 +373,8 @@ const galleryColumns = (images: ArticleImage[]) =>
     aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: 0.5rem;
-    background: #111;
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+    background: var(--brand-raised);
+    box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--brand-background) 50%, transparent);
   }
   .article-video {
     position: absolute;
@@ -418,9 +419,9 @@ const galleryColumns = (images: ArticleImage[]) =>
     margin-top: 2.5rem;
     margin-bottom: 1rem;
     padding: 1.25rem 1.25rem 1rem;
-    border: 1px solid rgb(255 255 255 / 0.12);
+    border: 1px solid color-mix(in srgb, var(--brand-text) 12%, transparent);
     border-radius: 0.5rem;
-    background: rgb(255 255 255 / 0.03);
+    background: color-mix(in srgb, var(--brand-text) 3%, transparent);
   }
   .article-audio-label {
     display: block;
@@ -445,7 +446,7 @@ const galleryColumns = (images: ArticleImage[]) =>
       button.onclick = () => {
         const iframe = document.createElement("iframe");
         iframe.src = button.dataset.player!;
-        iframe.title = "Video";
+        iframe.title = button.dataset.title || "";
         iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
         iframe.allowFullscreen = true;
         button.replaceWith(iframe);

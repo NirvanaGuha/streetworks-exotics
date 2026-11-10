@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
-/* Brand colours come from src/data/brand.json via CSS variables set in Layout.astro. */
+/* Brand colours and fonts come from Site Settings (lib/site.ts) via CSS variables set in
+   Layout.astro. "black" and "white" are the page background and text colours, so every
+   bg-black, text-white/60 and the like follows the settings. */
 @theme inline {
   --color-accent: var(--brand-accent);
   --color-accent-contrast: var(--brand-accent-contrast);
+  --color-black: var(--brand-background);
+  --color-white: var(--brand-text);
+  --color-surface: var(--brand-surface);
+  --color-raised: var(--brand-raised);
+  --color-muted: var(--brand-muted);
+  --color-danger: var(--brand-error);
   --font-sans: var(--brand-font-body);
   --font-serif: var(--brand-font-serif);
   --font-heading: var(--brand-font-heading);
@@ -13,13 +21,15 @@
   h1, h2, h3, .font-heading {
     font-family: var(--brand-font-heading);
     font-stretch: var(--brand-heading-stretch);
+    /* Single-weight display fonts (Bebas Neue, Anton) keep their own shapes instead of a faked bold. */
+    font-synthesis-weight: none;
   }
 }
 
 @layer utilities {
   /* Fills with colour from the top as it scrolls up (animated by createShowcaseAnimations). */
   .reveal-text {
-    background-image: linear-gradient(to bottom, var(--grad-from) 0%, var(--grad-to) 45%, #222 55%, #222 100%);
+    background-image: linear-gradient(to bottom, var(--grad-from) 0%, var(--grad-to) 45%, var(--brand-muted) 55%, var(--brand-muted) 100%);
     background-size: 100% 200%;
     background-position: 0% 100%;
     -webkit-background-clip: text;

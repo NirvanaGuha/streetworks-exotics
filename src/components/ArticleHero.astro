@@ -25,7 +25,7 @@ const titleSize =
       : `${phoneSize(title)} leading-[0.9] sm:text-6xl md:text-8xl lg:text-[7.25rem]`;
 ---
 
-<section class="article-hero relative w-full bg-[#050505] pt-36 md:pt-44">
+<section class="article-hero relative w-full bg-surface pt-36 md:pt-44">
   <div class="article-hero-copy max-w-7xl mx-auto px-6 md:px-12 pb-12 md:pb-16">
     <p class="font-mono text-xs md:text-sm tracking-[0.45em] uppercase text-accent mb-5 md:mb-7">{eyebrow}</p>
     <h1 class:list={["font-heading font-bold uppercase tracking-tighter text-white max-w-6xl [overflow-wrap:anywhere]", titleSize]}>
@@ -48,7 +48,7 @@ const titleSize =
 
   {image && (
     <div class="px-6 md:px-12">
-      <div class="article-hero-frame relative w-full max-w-[100rem] max-h-[85svh] mx-auto overflow-hidden rounded-xl bg-[#111] aspect-[4/3] md:aspect-[16/9]">
+      <div class="article-hero-frame relative w-full max-w-[100rem] max-h-[85svh] mx-auto overflow-hidden rounded-xl bg-raised aspect-[4/3] md:aspect-[16/9]">
         <Image
           {...imageProps(image)}
           alt={image.alt}

@@ -1,8 +1,7 @@
 ---
 import { fetchAPI } from "../lib/wp";
 import { getLocalServiceLinks } from "../lib/localContent";
-import brand from "../data/brand.json";
-import { content } from "../lib/localContent";
+import { brand, content } from "../lib/site";
 
 interface Props {
   /** Pages without their own contact section link to the homepage's. */
@@ -38,7 +37,7 @@ const pageLinks = [
 >
   <div
     id="nav-bg"
-    class="absolute inset-0 bg-[#050505]/70 backdrop-blur-md border-b border-white/10 opacity-0 transition-opacity duration-500 pointer-events-auto -z-10"
+    class="absolute inset-0 bg-surface/70 backdrop-blur-md border-b border-white/10 opacity-0 transition-opacity duration-500 pointer-events-auto -z-10"
   >
   </div>
 
@@ -54,7 +53,7 @@ const pageLinks = [
       id="services-open-btn"
       class="hidden md:block font-bold uppercase tracking-widest text-xs text-white/90 hover:text-accent transition-colors py-2"
     >
-      Services
+      {content.labels.services}
     </button>
 
     {pageLinks.map((link) => (
@@ -71,7 +70,7 @@ const pageLinks = [
   <!-- Phones: the Services and section links live in the full-screen menu -->
   <button
     id="menu-open-btn"
-    aria-label="Open menu"
+    aria-label={content.labels.openMenu}
     class="md:hidden w-11 h-11 flex items-center justify-center rounded-sm border border-white/20 bg-black/30 backdrop-blur-md text-white hover:text-accent transition-colors"
   >
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"></path></svg>
@@ -81,13 +80,13 @@ const pageLinks = [
     href={contactHref}
     class="px-4 md:px-6 py-3 whitespace-nowrap bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-accent hover:text-accent-contrast transition-colors duration-300 pointer-events-auto rounded-sm shadow-2xl z-50"
   >
-    <span class="md:hidden">Contact</span><span class="hidden md:inline">Get in touch</span>
+    <span class="md:hidden">{content.labels.contact}</span><span class="hidden md:inline">{content.labels.getInTouch}</span>
   </a>
   </div>
 
   <div
     id="services-modal"
-    class="fixed inset-0 w-screen h-[100dvh] bg-[#050505]/95 backdrop-blur-3xl z-[200] opacity-0 invisible pointer-events-auto flex flex-col justify-center items-center"
+    class="fixed inset-0 w-screen h-[100dvh] bg-surface/95 backdrop-blur-3xl z-[200] opacity-0 invisible pointer-events-auto flex flex-col justify-center items-center"
   >
     <button
       id="services-close-btn"
@@ -95,7 +94,7 @@ const pageLinks = [
     >
       <span
         class="font-bold uppercase tracking-widest text-xs group-hover:text-accent transition-colors"
-        >Close</span
+        >{content.labels.close}</span
       >
       <svg
         xmlns="http://www.w3.org/2000/svg"

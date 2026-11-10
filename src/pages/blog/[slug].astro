@@ -8,8 +8,7 @@ import ArticleCard from "../../components/ArticleCard.astro";
 import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { formatDate, getPosts, type Article } from "../../lib/articles";
-import { content } from "../../lib/localContent";
-import brand from "../../data/brand.json";
+import { brand, content, fill } from "../../lib/site";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -25,7 +24,7 @@ const others = posts.filter((other) => other.slug !== post.slug);
 const more = [...others.filter(shared), ...others.filter((other) => !shared(other))].slice(0, 3);
 ---
 
-<Layout title={`${post.title} | ${brand.client}`} description={post.excerpt || undefined} image={post.image?.src} type="article">
+<Layout title={`${post.seo.title || post.title} | ${brand.client}`} description={post.seo.description || post.excerpt || undefined} image={post.seo.image || post.image?.src} type="article">
   <NavBar />
 
   <main class="relative w-full bg-black text-white">
@@ -33,7 +32,7 @@ const more = [...others.filter(shared), ...others.filter((other) => !shared(othe
       image={post.image}
       eyebrow={post.categories[0]?.name || labels.journal}
       title={post.title}
-      meta={[formatDate(post.date), `${post.minutes} min read`, ...(post.byline ? [`${labels.writtenBy} ${post.byline}`] : [])]}
+      meta={[formatDate(post.date), fill(labels.minRead, { n: post.minutes }), ...(post.byline ? [`${labels.writtenBy} ${post.byline}`] : [])]}
     />
 
     <article class="pt-20 md:pt-28 pb-24 md:pb-36">

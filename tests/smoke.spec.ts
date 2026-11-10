@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -18,6 +19,20 @@ const BUILT = readdirSync(CLIENT_DIR, { recursive: true, encoding: 'utf8' })
 const PAGES = BUILT.filter((page) => !page.redirect).map((page) => page.route).sort();
 const REDIRECTS = BUILT.filter((page) => page.redirect).map((page) => page.route).sort();
 const ARTICLES = PAGES.filter((route) => /^\/(blog|case-studies)\/[^/]+\/$/.test(route));
+
+// Production's security headers (vercel.json), sent with every page the tests load, so a
+// resource the Content Security Policy would block in production fails here first.
+const VERCEL = JSON.parse(readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+const SECURITY_HEADERS: Record<string, string> = Object.fromEntries(
+    VERCEL.headers[0].headers.map((header: { key: string; value: string }) => [header.key.toLowerCase(), header.value]),
+);
+test.beforeEach(async ({ page, baseURL }) => {
+    await page.route(`${baseURL}/**`, async (route) => {
+        if (route.request().resourceType() !== 'document') return route.continue();
+        const response = await route.fetch();
+        await route.fulfill({ response, headers: { ...response.headers(), ...SECURITY_HEADERS } });
+    });
+});
 
 /** Fails the test on console errors, uncaught exceptions and same-origin requests that fail. */
 function watchForErrors(page: Page) {
@@ -268,6 +283,82 @@ test('the table of contents opens and jumps to its headings', async ({ page }) =
     await expect
         .poll(async () => page.locator(hash!).evaluate((el) => Math.round(el.getBoundingClientRect().top)), { timeout: 8_000 })
         .toBeLessThan(200);
+});
+
+test('the contact form keeps working after moving between pages', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('a[href="/blog"]').first().evaluate((a: HTMLAnchorElement) => a.click());
+    await page.waitForURL(/\/blog\/?$/);
+    const form = page.locator('#contact-form');
+    await form.locator('input[name=name]').fill('Test Person');
+    await form.locator('input[name=email]').fill('test@example.com');
+    await form.locator('textarea[name=message]').fill('A private message');
+    await page.locator('#submit-btn').evaluate((b: HTMLButtonElement) => b.click());
+    await expect(page.locator('#form-error')).toBeVisible();
+    // Handled by the script, never sent the browser's way, which would put it in the address.
+    expect(page.url()).not.toContain('message=');
+});
+
+test('every Site Settings field points at a real value', () => {
+    const schema = JSON.parse(readFileSync(path.join(ROOT, 'wordpress/fire-headless/site-settings.json'), 'utf8'));
+    const defaults = { brand, content: JSON.parse(readFileSync(path.join(ROOT, 'src/data/content.json'), 'utf8')) };
+    const fonts = readFileSync(path.join(ROOT, 'src/lib/fonts.ts'), 'utf8');
+    const names = new Set<string>();
+    for (const section of schema.sections) {
+        for (const field of section.fields) {
+            const value = field.path.split('.').reduce((node: any, key: string) => node?.[key], defaults);
+            expect(value, `${field.path} has a built-in value`).not.toBeUndefined();
+            const name = field.path.toLowerCase().replaceAll('.', '_');
+            expect(names.has(name), `${field.path} is listed once`).toBe(false);
+            names.add(name);
+            if (field.type === 'font') {
+                for (const choice of field.choices) expect(fonts, `font "${choice}" is in src/lib/fonts.ts`).toMatch(new RegExp(`['\\s]${choice}'?:`));
+                expect(field.choices, `${field.path}'s built-in font is a choice`).toContain(value);
+            }
+            if (field.type === 'select') expect(field.choices, `${field.path}'s built-in value is a choice`).toContain(value);
+        }
+    }
+});
+
+test('the security policy allows every inline script in the build', () => {
+    const csp = SECURITY_HEADERS['content-security-policy'];
+    const files = readdirSync(CLIENT_DIR, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.html'));
+    for (const file of files) {
+        const html = readFileSync(path.join(CLIENT_DIR, file), 'utf8');
+        for (const [, attrs, body] of html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/g)) {
+            if (/type="application\/(ld\+)?json"/.test(attrs)) continue;
+            const hash = `sha256-${createHash('sha256').update(body).digest('base64')}`;
+            expect(csp, `${file}: inline script ${body.trim().slice(0, 40)}… needs ${hash} in vercel.json`).toContain(`'${hash}'`);
+        }
+    }
+});
+
+test('video players load under the security policy', async ({ page }) => {
+    await page.addInitScript(() => {
+        sessionStorage.setItem('fire-preloaded', '1');
+        (window as any).cspViolations = [];
+        document.addEventListener('securitypolicyviolation', (e) => (window as any).cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`));
+    });
+    await page.goto('/');
+    await page.locator('#play-btn').evaluate((button: HTMLButtonElement) => button.click());
+    await expect(page.locator('#yt-player')).toHaveAttribute('src', /youtube\.com\/embed\//);
+    await page.waitForTimeout(1500);
+    expect(await page.evaluate(() => (window as any).cspViolations)).toEqual([]);
+
+    const withVideo = ARTICLES.find((route) => readFileSync(path.join(CLIENT_DIR, route, 'index.html'), 'utf8').includes('article-video'))!;
+    await page.goto(withVideo);
+    await page.locator('.article-video').first().evaluate((button: HTMLButtonElement) => button.click());
+    await expect(page.locator('.article-player iframe').first()).toBeAttached();
+    await page.waitForTimeout(1500);
+    expect(await page.evaluate(() => (window as any).cspViolations)).toEqual([]);
+
+    // The policy is really in force: a script injected into the page is refused.
+    await page.evaluate(() => {
+        const script = document.createElement('script');
+        script.textContent = 'window.injected = true';
+        document.body.append(script);
+    });
+    expect(await page.evaluate(() => (window as any).injected)).toBeUndefined();
 });
 
 test('old post addresses redirect to their new pages', async ({ page }) => {

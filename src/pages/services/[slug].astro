@@ -11,7 +11,9 @@ import Footer from "../../components/Footer.astro";
 import { fetchAPI } from "../../lib/wp";
 import { getLocalService, getLocalServiceSlugs } from "../../lib/localContent";
 import { isStatement, parseTextBlocks, takeCaption } from "../../lib/storyText";
-import brand from "../../data/brand.json";
+import { brand, content } from "../../lib/site";
+import { safeColor } from "../../lib/sanitize";
+import { SEO_FIELDS, seoFromWordPress } from "../../lib/articles";
 
 export async function getStaticPaths() {
     const data = await fetchAPI(`query GetServiceSlugs { services(first: 100, where: { orderby: { field: MENU_ORDER, order: ASC } }) { nodes { slug } } }`);
@@ -42,11 +44,12 @@ const data = await fetchAPI(`
         description
         tintColor
       }
+      ${SEO_FIELDS}
     }
-    testimonials(first: 3, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
+    testimonials(first: 6, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
       nodes {
         title
-        featuredImage { node { sourceUrl } }
+        featuredImage { node { sourceUrl altText } }
         testimonialDetails { quote }
       }
     }
@@ -68,7 +71,8 @@ const service = !entry ? await getLocalService(slug!) : {
     heroImage: entry.featuredImage?.node?.sourceUrl || "",
     heroImageWidth: entry.featuredImage?.node?.mediaDetails?.width || 1920,
     heroImageHeight: entry.featuredImage?.node?.mediaDetails?.height || 1080,
-    tintColor: entry.serviceDetails?.tintColor || "#ffffff",
+    tintColor: safeColor(entry.serviceDetails?.tintColor) || "var(--brand-text)",
+    seo: seoFromWordPress(entry),
     deepTextTitle: entry.title || "",
     deepTextParagraphs: [] as string[],
     sections: (entry.sections || []).map((section: any) =>
@@ -143,11 +147,11 @@ sections.forEach((section: any, i: number) => {
 const lastIndex = sections.length - 1;
 type TextItem = Extract<StoryItem, { kind: "statement" | "article" }>;
 const closingItem = sections.length > 1 && sections[lastIndex]?.type === "text" && !used.has(lastIndex) ? (story.pop() as TextItem) : null;
-const closing = closingItem ?? (toItem("Ready to get in touch?") as TextItem);
-const tint = service.tintColor || "#94a3b8";
+const closing = closingItem ?? (toItem(content.labels.closingLine) as TextItem);
+const tint = service.tintColor;
 ---
 
-<Layout title={`${service.title} | ${brand.client}`} description={service.heroTagline || undefined} image={service.heroImage || undefined}>
+<Layout title={`${service.seo.title || service.title} | ${brand.client}`} description={service.seo.description || service.heroTagline || undefined} image={service.seo.image || service.heroImage || undefined}>
     <Navbar />
 
     <main class="relative w-full bg-black text-white">
@@ -166,7 +170,7 @@ const tint = service.tintColor || "#94a3b8";
             article ends with an empty screen (spacer) unless it closes the page. */}
         {story.map((item) =>
             item.kind === "statement" ? (
-                <StoryText n={item.n} text={item.text} gradientFrom="#ffffff" gradientTo={tint} />
+                <StoryText n={item.n} text={item.text} gradientFrom="var(--brand-text)" gradientTo={tint} />
             ) : item.kind === "article" ? (
                 <ServiceArticle text={item.text} accentColor={brand.colors.accent} gradientTo={tint} firstNumber={item.firstNumber} spacer />
             ) : item.kind === "spacer" ? (
@@ -181,7 +185,7 @@ const tint = service.tintColor || "#94a3b8";
         <div class="h-[100dvh]" aria-hidden="true"></div>
 
         {closing.kind === "statement" ? (
-            <StoryText n={closing.n} text={closing.text} gradientFrom="#ffffff" gradientTo={tint} />
+            <StoryText n={closing.n} text={closing.text} gradientFrom="var(--brand-text)" gradientTo={tint} />
         ) : (
             <ServiceArticle text={closing.text} accentColor={brand.colors.accent} gradientTo={tint} firstNumber={closing.firstNumber} />
         )}

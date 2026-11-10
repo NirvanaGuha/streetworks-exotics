@@ -8,9 +8,8 @@ import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
 import { getCaseStudies, getPosts, imageProps } from "../../lib/articles";
-import { content } from "../../lib/localContent";
+import { brand, content } from "../../lib/site";
 import { phoneSize } from "../../lib/fit";
-import brand from "../../data/brand.json";
 
 const posts = await getPosts();
 const caseStudies = await getCaseStudies();
@@ -48,7 +47,7 @@ const filters = [...counts.values()].filter((category) => category.count > 1).so
     {rest.length > 0 && (
       <section class="max-w-7xl mx-auto px-6 md:px-12 pb-28 md:pb-40 border-t border-white/10 pt-12 md:pt-16">
         {filters.length > 1 && (
-          <div class="flex flex-wrap gap-2 md:gap-3 mb-12 md:mb-16" role="group" aria-label="Filter by category">
+          <div class="flex flex-wrap gap-2 md:gap-3 mb-12 md:mb-16" role="group" aria-label={labels.filterByCategory}>
             <button type="button" class="journal-filter is-active" data-filter="" aria-pressed="true">{labels.allCategories}</button>
             {filters.map((category) => (
               <button type="button" class="journal-filter" data-filter={category.slug} aria-pressed="false">{category.name}</button>
@@ -62,7 +61,7 @@ const filters = [...counts.values()].filter((category) => category.count > 1).so
             </div>
           ))}
         </div>
-        <p class="journal-empty hidden text-white/50 font-light">The latest post above is the only one in this category.</p>
+        <p class="journal-empty hidden text-white/50 font-light">{labels.emptyCategory}</p>
       </section>
     )}
 
@@ -79,7 +78,7 @@ const filters = [...counts.values()].filter((category) => category.count > 1).so
             </span>
           </div>
           {caseStudies[0].image && (
-            <div class="mt-10 lg:mt-0 lg:col-span-6 overflow-hidden rounded-xl bg-[#111] aspect-[4/3] lg:aspect-[16/11]">
+            <div class="mt-10 lg:mt-0 lg:col-span-6 overflow-hidden rounded-xl bg-raised aspect-[4/3] lg:aspect-[16/11]">
               <Image
                 {...imageProps(caseStudies[0].image)}
                 alt=""
@@ -102,18 +101,18 @@ const filters = [...counts.values()].filter((category) => category.count > 1).so
 <style>
   .journal-filter {
     padding: 0.6rem 1.1rem;
-    border: 1px solid rgb(255 255 255 / 0.15);
+    border: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
     border-radius: 9999px;
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgb(255 255 255 / 0.65);
+    color: color-mix(in srgb, var(--brand-text) 65%, transparent);
     transition: color 0.2s, background-color 0.2s, border-color 0.2s;
   }
   .journal-filter:hover {
-    color: #fff;
-    border-color: rgb(255 255 255 / 0.4);
+    color: var(--brand-text);
+    border-color: color-mix(in srgb, var(--brand-text) 40%, transparent);
   }
   .journal-filter.is-active {
     background: var(--brand-accent);

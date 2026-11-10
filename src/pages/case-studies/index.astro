@@ -6,9 +6,8 @@ import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
 import { getCaseStudies, imageProps } from "../../lib/articles";
-import { content } from "../../lib/localContent";
+import { brand, content } from "../../lib/site";
 import { columnSize, phoneSize } from "../../lib/fit";
-import brand from "../../data/brand.json";
 
 const caseStudies = await getCaseStudies();
 const { labels } = content;
@@ -29,7 +28,7 @@ const total = String(caseStudies.length).padStart(2, "0");
       {caseStudies.map((study, i) => (
         <li class="listing-reveal">
           <a href={study.href} class="group grid md:grid-cols-12 gap-8 md:gap-12 items-end">
-            <div class:list={["overflow-hidden rounded-xl bg-[#111] aspect-[4/3] md:aspect-[16/11] md:col-span-7", i % 2 === 1 && "md:order-2"]}>
+            <div class:list={["overflow-hidden rounded-xl bg-raised aspect-[4/3] md:aspect-[16/11] md:col-span-7", i % 2 === 1 && "md:order-2"]}>
               {study.image && (
                 <Image
                   {...imageProps(study.image)}

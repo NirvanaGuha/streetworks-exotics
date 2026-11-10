@@ -2,8 +2,7 @@
 import { fetchAPI } from "../lib/wp";
 import { demoCredit } from "../lib/demo";
 import { getBusiness } from "../lib/business";
-import brand from "../data/brand.json";
-import { content } from "../lib/localContent";
+import { brand, content } from "../lib/site";
 
 interface Props {
   /** Pages without their own contact section link to the homepage's. */
@@ -24,24 +23,24 @@ const data = await fetchAPI(`
 const legalPages = [data?.privacy, data?.terms].filter((p: any) => p?.status === "publish");
 ---
 
-<footer class="relative w-full bg-[#050505] border-t border-white/5 pt-12 pb-8 px-6 md:px-12 z-30">
+<footer class="relative w-full bg-surface border-t border-white/5 pt-12 pb-8 px-6 md:px-12 z-30">
   <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
     
     <div class="flex flex-col items-start gap-3">
       <span class="font-heading text-2xl font-bold tracking-tighter uppercase text-white">{brand.shortName}</span>
       <p class="text-white/60 text-xs font-mono uppercase tracking-[0.2em]">
-        &copy; {currentYear} {business.name}. All rights reserved.
+        &copy; {currentYear} {business.name}. {content.labels.rightsReserved}
       </p>
       {demoCredit && <p class="text-white/50 text-[11px] font-mono uppercase tracking-[0.2em]">{demoCredit}</p>}
     </div>
 
     <nav class="flex flex-wrap justify-start gap-6 md:gap-10 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
-      <a href="/" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Home</a>
-      <a href="/#services" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Services</a>
+      <a href="/" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.home}</a>
+      <a href="/#services" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.services}</a>
       <a href="/portfolio" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.portfolio}</a>
       <a href="/case-studies" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.caseStudies}</a>
       <a href="/blog" class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.journal}</a>
-      <a href={contactHref} class="hover:text-accent hover:-translate-y-1 transition-all duration-300">Contact</a>
+      <a href={contactHref} class="hover:text-accent hover:-translate-y-1 transition-all duration-300">{content.labels.contact}</a>
     </nav>
 
     {legalPages.length > 0 && (

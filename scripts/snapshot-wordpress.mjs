@@ -7,6 +7,7 @@
  *   src/content/posts/<slug>.json          blog posts: title, date, categories, byline, photo, blocks
  *   src/content/case-studies/<slug>.json   case studies: the same plus order and the car's details
  *   src/data/content.json                  hero headline/tagline and the three intro texts
+ *   src/data/site-settings.json            everything under Site Settings (colours, fonts, labels, headings, images)
  *
  * Images are matched to files already in src/assets/images by name; anything without an
  * exact match is downloaded from WordPress into src/assets/images/wordpress/ (post and case
@@ -26,6 +27,9 @@ const SERVICES = path.join(ROOT, 'src/content/services');
 const POSTS = path.join(ROOT, 'src/content/posts');
 const CASE_STUDIES = path.join(ROOT, 'src/content/case-studies');
 const CONTENT = path.join(ROOT, 'src/data/content.json');
+const SETTINGS = path.join(ROOT, 'src/data/site-settings.json');
+const SCHEMA = JSON.parse(await readFile(path.join(ROOT, 'wordpress/fire-headless/site-settings.json'), 'utf8'));
+const SEO = 'pageSeo { seoTitle seoDescription seoImage { node { sourceUrl } } }';
 const GRAPHQL = process.env.PUBLIC_WP_GRAPHQL_URL;
 
 if (!GRAPHQL) {
@@ -76,12 +80,20 @@ async function localImage(url, { folder = 'wordpress', maxSize } = {}) {
 }
 const servicePath = (rel) => `../../assets/images/${rel}`;
 
+/** A page's "Search & sharing" box, or nothing when it's empty. */
+async function seoEntry(node, image) {
+    const seo = node.pageSeo;
+    const url = seo?.seoImage?.node?.sourceUrl;
+    if (!seo?.seoTitle && !seo?.seoDescription && !url) return {};
+    return { seo: { title: seo.seoTitle || '', description: seo.seoDescription || '', ...(url && { image: await image(url) }) } };
+}
+
 await indexImages(ASSETS);
 
 const data = await query(`{
   page(id: "/", idType: URI) { homepageSettings { heroHeadline heroTagline introText1 introText2 introText3 } }
   services(first: 100, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
-    nodes { slug title menuOrder sections { type text images { url } } featuredImage { node { sourceUrl } } serviceDetails { description tintColor } }
+    nodes { slug title menuOrder sections { type text images { url } } featuredImage { node { sourceUrl } } serviceDetails { description tintColor } ${SEO} }
   }
 }`);
 
@@ -104,6 +116,7 @@ for (const service of data.services.nodes) {
         description: tagline,
         heroImage: heroUrl ? servicePath(await localImage(heroUrl)) : previous.heroImage,
         tintColor: service.serviceDetails?.tintColor || previous.tintColor,
+        ...(await seoEntry(service, async (url) => servicePath(await localImage(url)))),
         deepTextTitle: service.title,
         deepTextParagraphs: [],
         contentBlocks,
@@ -116,6 +129,7 @@ for (const service of data.services.nodes) {
 const ARTICLE_FIELDS = `slug title date excerpt menuOrder
     featuredImage { node { sourceUrl altText } }
     articleDetails { byline }
+    ${SEO}
     articleBlocks { type level html ordered items cite url provider caption images { url alt caption } }`;
 const articles = await query(`{
   posts(first: 100) { nodes { ${ARTICLE_FIELDS.replace('menuOrder', '')} categories { nodes { name slug } } } }
@@ -156,6 +170,7 @@ async function writeArticles(nodes, dir, extra) {
             byline: node.articleDetails?.byline || '',
             ...(featured && { image: await articleImage(featured.sourceUrl), imageAlt: featured.altText || '' }),
             ...extra(node),
+            ...(await seoEntry(node, articleImage)),
             blocks,
         };
         await writeFile(path.join(dir, `${node.slug}.json`), JSON.stringify(entry, null, 2) + '\n');
@@ -185,3 +200,19 @@ if (home) {
     await writeFile(CONTENT, JSON.stringify(content, null, 4) + '\n');
     console.log('homepage hero and intro texts updated');
 }
+
+// Site Settings, by GraphQL name, as src/lib/site.ts reads them; images copied in.
+const graphqlName = (p) => p.split('.').map((part, i) => (i ? part[0].toUpperCase() + part.slice(1) : part)).join('');
+const fields = SCHEMA.sections.flatMap((section) => section.fields);
+const settingsQuery = fields.map((f) => (f.type === 'image' ? `${graphqlName(f.path)} { node { sourceUrl } }` : graphqlName(f.path))).join(' ');
+const saved = (await query(`{ siteSettings(first: 1) { nodes { siteFields { ${settingsQuery} } } } }`)).siteSettings?.nodes?.[0]?.siteFields || {};
+const settings = {};
+for (const field of fields) {
+    const name = graphqlName(field.path);
+    let value = saved[name];
+    if (Array.isArray(value)) value = value[0];
+    if (value === null || value === undefined || value === '') continue;
+    settings[name] = field.type === 'image' ? (value.node?.sourceUrl ? await localImage(value.node.sourceUrl, { folder: 'settings' }) : undefined) : value;
+}
+await writeFile(SETTINGS, JSON.stringify(settings, null, 2) + '\n');
+console.log(`site settings: ${Object.keys(settings).length} fields`);

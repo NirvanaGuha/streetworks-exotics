@@ -40,7 +40,7 @@ const groups = (blocks: TextBlock[]) =>
 
 <section
   class:list={["service-article relative z-10 w-full bg-black px-6 md:px-12", spacer && "pb-[100dvh]"]}
-  style={`--article-accent: ${accentColor}; --grad-from: #ffffff; --grad-to: ${gradientTo};`}
+  style={`--article-accent: ${accentColor}; --grad-from: var(--brand-text); --grad-to: ${gradientTo};`}
 >
   <div class="max-w-7xl mx-auto">
     {numbered.map((chapter, c) => {
@@ -132,7 +132,7 @@ const groups = (blocks: TextBlock[]) =>
   .article-features {
     display: flex;
     flex-direction: column;
-    border-top: 1px solid rgb(255 255 255 / 0.1);
+    border-top: 1px solid color-mix(in srgb, var(--brand-text) 10%, transparent);
     margin-top: 0.5rem;
   }
   .article-features li {
@@ -141,8 +141,8 @@ const groups = (blocks: TextBlock[]) =>
     column-gap: 1rem;
     row-gap: 0.4rem;
     padding: 1.5rem 0;
-    border-bottom: 1px solid rgb(255 255 255 / 0.1);
-    color: rgb(255 255 255 / 0.65);
+    border-bottom: 1px solid color-mix(in srgb, var(--brand-text) 10%, transparent);
+    color: color-mix(in srgb, var(--brand-text) 65%, transparent);
     line-height: 1.65;
   }
   .article-features li::before {
@@ -165,7 +165,7 @@ const groups = (blocks: TextBlock[]) =>
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: 1.05rem;
-    color: #fff;
+    color: var(--brand-text);
   }
   @media (min-width: 768px) {
     .article-features li {

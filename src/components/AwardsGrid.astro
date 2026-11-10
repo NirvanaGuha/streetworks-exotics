@@ -1,10 +1,11 @@
 ---
-import { content } from "../lib/localContent";
+import { content } from "../lib/site";
 import { asset } from "../lib/assets";
+import type { SiteImage } from "../lib/site";
 
 const { awards } = content;
-// Logos are paths under src/assets/images (or full URLs)
-const logoSrc = (logo: string) => (/^https?:\/\//.test(logo) ? logo : asset(logo).src);
+// Logos are paths under src/assets/images, or images chosen in Site Settings.
+const logoSrc = (logo: SiteImage) => (typeof logo === "string" ? asset(logo).src : logo.src);
 ---
 
 <div id="awards-section" class="absolute inset-0 z-40 flex flex-col justify-end px-6 md:px-12 invisible pointer-events-none pb-[8vh] md:pb-[12vh]">

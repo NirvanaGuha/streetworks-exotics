@@ -27,6 +27,8 @@ export type Article = {
     byline: string;
     categories: { name: string; slug: string }[];
     image?: ArticleImage;
+    // Search & sharing overrides; empty strings fall back to the title, excerpt and image.
+    seo: { title: string; description: string; image?: string | ImageMetadata };
     blocks: ArticleBlock[];
     minutes: number;
     // Case studies only.
@@ -39,6 +41,16 @@ export type Article = {
 
 const BLOCK_FIELDS = `articleBlocks { type level html ordered items cite url provider caption images { url width height alt caption } }`;
 const IMAGE_FIELDS = `featuredImage { node { sourceUrl altText mediaDetails { width height } } }`;
+export const SEO_FIELDS = `pageSeo { seoTitle seoDescription seoImage { node { sourceUrl } } }`;
+
+/** The "Search & sharing" box of a WordPress page, post, case study or service. */
+export const seoFromWordPress = (node: any): Article['seo'] => ({
+    title: node?.pageSeo?.seoTitle || '',
+    description: node?.pageSeo?.seoDescription || '',
+    image: node?.pageSeo?.seoImage?.node?.sourceUrl || undefined,
+});
+/** The same from a local content file. */
+export const seoFromLocal = (data: any): Article['seo'] => ({ title: data?.seo?.title || '', description: data?.seo?.description || '', image: data?.seo?.image });
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', hellip: '…', mdash: '—', ndash: '–', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”' };
 const decode = (html: string) =>
@@ -96,6 +108,7 @@ function fromWordPress(node: any, kind: Article['kind']): Article {
         excerpt: text(node.excerpt || '').replace(/\s+/g, ' ').replace(/\s*\[(…|&hellip;|\.\.\.)\]\s*$/, '…').trim(),
         byline: node.articleDetails?.byline || '',
         categories: node.categories?.nodes || [],
+        seo: seoFromWordPress(node),
         image: featured
             ? { src: featured.sourceUrl, width: featured.mediaDetails?.width, height: featured.mediaDetails?.height, alt: featured.altText || '', caption: '' }
             : undefined,
@@ -128,6 +141,7 @@ async function load() {
             categories { nodes { name slug } }
             articleDetails { byline }
             ${IMAGE_FIELDS}
+            ${SEO_FIELDS}
             ${BLOCK_FIELDS}
           }
         }
@@ -137,6 +151,7 @@ async function load() {
             articleDetails { byline }
             caseStudyDetails { vehicle year scope recognition }
             ${IMAGE_FIELDS}
+            ${SEO_FIELDS}
             ${BLOCK_FIELDS}
           }
         }
@@ -156,6 +171,7 @@ async function load() {
                 byline: data.byline,
                 categories: data.categories || [],
                 image: data.image ? { src: data.image, alt: data.imageAlt, caption: '' } : undefined,
+                seo: seoFromLocal(data),
                 blocks: data.blocks,
                 vehicle: data.vehicle || '',
                 year: data.year || '',
@@ -184,8 +200,10 @@ export const getPosts = async (): Promise<Article[]> => (await articles()).posts
 /** Case studies in their "Order", then newest first. */
 export const getCaseStudies = async (): Promise<Article[]> => (await articles()).caseStudies;
 
+// WordPress dates are the site's local time with no zone, so the calendar date is taken as
+// written; parsing the whole timestamp would shift it on build machines in other zones.
 export const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    new Date(`${date.slice(0, 10)}T00:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 
 /** The image's source and size, as Astro's <Image> wants them. */
 export const imageProps = (image: ArticleImage) =>

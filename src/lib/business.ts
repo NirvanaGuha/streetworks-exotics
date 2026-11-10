@@ -4,6 +4,7 @@
  */
 import brand from '../data/brand.json';
 import { fetchAPI } from './wp';
+import { safeUrl } from './sanitize';
 
 const SOCIAL_NETWORKS = ['instagram', 'facebook', 'youtube', 'tiktok'] as const;
 type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
@@ -44,7 +45,7 @@ async function load() {
 
     const socials = SOCIAL_NETWORKS.map((network: SocialNetwork) => ({
         network,
-        url: (wp[`${network}Url`] as string) || fallback.socials[network] || '',
+        url: safeUrl((wp[`${network}Url`] as string) || fallback.socials[network]),
     })).filter((s) => s.url);
 
     return {
@@ -53,7 +54,7 @@ async function load() {
         phone,
         phoneHref: `tel:${phone.replace(/[^\d+]/g, '')}`,
         email: (wp.email as string) || fallback.email,
-        mapsUrl: (wp.mapsUrl as string) || fallback.mapsUrl,
+        mapsUrl: safeUrl((wp.mapsUrl as string) || fallback.mapsUrl),
         videoId: youTubeId((wp.videoUrl as string) || fallback.videoUrl),
         socials,
     };

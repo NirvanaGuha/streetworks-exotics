@@ -11,6 +11,8 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/articles.php';
+require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/site-settings.php';
 
 /**
  * Post types. Showcases and Testimonials are ordered with "Order" (menu_order)
@@ -153,8 +155,8 @@ add_action('acf/include_fields', function () {
         'title'    => 'Service Details',
         'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'service']]],
         'fields'   => [
-            ['key' => 'field_6a001011544a1', 'name' => 'hero_tagline', 'label' => 'Hero Tagline', 'type' => 'text'],
-            ['key' => 'field_6a00103c544a2', 'name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'rows' => 3, 'instructions' => 'Short line shown under the title on the homepage and the service hero.'],
+            // (An older "Hero Tagline" field was never shown on the site; its saved values stay in the database, unused.)
+            ['key' => 'field_6a00103c544a2', 'name' => 'description', 'label' => 'Tagline', 'type' => 'textarea', 'rows' => 3, 'instructions' => 'Short line under the title on the homepage and the service page. Also the search description, unless one is set under Search & sharing.'],
             ['key' => 'field_6a001056544a3', 'name' => 'tint_color', 'label' => 'Tint Color', 'type' => 'color_picker'],
         ],
     ] + $graphql('serviceDetails'));
@@ -199,6 +201,25 @@ add_action('acf/include_fields', function () {
         ],
     ] + $graphql('articleDetails'));
 
+    // How a page looks in search results and link previews. Empty fields use the page's
+    // own title, excerpt (or opening text) and featured image.
+    acf_add_local_field_group([
+        'key'      => 'group_page_seo',
+        'title'    => 'Search & sharing',
+        'position' => 'side',
+        'location' => [
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'post']],
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'case_study']],
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'service']],
+            [['param' => 'post_type', 'operator' => '==', 'value' => 'page']],
+        ],
+        'fields'   => [
+            ['key' => 'field_seo_title', 'name' => 'seo_title', 'label' => 'Title', 'type' => 'text', 'instructions' => 'Search and browser-tab title. Empty: the page title.'],
+            ['key' => 'field_seo_description', 'name' => 'seo_description', 'label' => 'Description', 'type' => 'textarea', 'rows' => 3, 'new_lines' => '', 'instructions' => 'One or two sentences for search results and link previews. Empty: the excerpt or opening text.'],
+            $image('field_seo_image', 'seo_image', 'Link preview image', 'Empty: the featured image. 1200 × 630 works best.'),
+        ],
+    ] + $graphql('pageSeo'));
+
     acf_add_local_field_group([
         'key'      => 'group_testimonial_details',
         'title'    => 'Testimonial Details',
@@ -216,6 +237,13 @@ add_action('acf/include_fields', function () {
  * FIRE_FORM_SECRET in wp-config.php (and WP_FORM_SECRET in the site's .env).
  * Each enquiry is saved under Enquiries and emailed to the site admin address,
  * or to the FIRE_ENQUIRY_RECIPIENT constant if it is defined.
+ *
+ * Rate limits: 5 enquiries per visitor per 10 minutes and 50 per hour in total; past
+ * either the endpoint answers 429. Visitors are told apart by a salted hash of the IP
+ * the Astro server forwards, kept only for the length of the window. Requests that arrive
+ * without one share a single visitor's allowance, so a missing header can't lift the limit.
+ * Two enquiries landing in the same instant can both pass a limit's last slot (transients
+ * have no atomic increment); at these numbers that's one extra message at most.
  */
 add_action('rest_api_init', function () {
     register_rest_route('fire/v1', '/enquiries', [
@@ -225,10 +253,10 @@ add_action('rest_api_init', function () {
             return $secret !== '' && hash_equals($secret, (string) $request->get_header('x-fire-form-secret'));
         },
         'args' => [
-            'name'    => ['type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_text_field'],
-            'email'   => ['type' => 'string', 'required' => true, 'format' => 'email', 'sanitize_callback' => 'sanitize_email'],
-            'message' => ['type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_textarea_field'],
-            'page'    => ['type' => 'string', 'required' => false, 'sanitize_callback' => 'esc_url_raw'],
+            'name'    => ['type' => 'string', 'required' => true, 'maxLength' => 100, 'validate_callback' => 'rest_validate_request_arg', 'sanitize_callback' => 'sanitize_text_field'],
+            'email'   => ['type' => 'string', 'required' => true, 'maxLength' => 254, 'validate_callback' => 'rest_validate_request_arg', 'format' => 'email', 'sanitize_callback' => 'sanitize_email'],
+            'message' => ['type' => 'string', 'required' => true, 'maxLength' => 5000, 'validate_callback' => 'rest_validate_request_arg', 'sanitize_callback' => 'sanitize_textarea_field'],
+            'page'    => ['type' => 'string', 'required' => false, 'maxLength' => 500, 'validate_callback' => 'rest_validate_request_arg', 'sanitize_callback' => 'esc_url_raw'],
         ],
         'callback' => 'fire_headless_create_enquiry',
     ]);
@@ -241,6 +269,9 @@ function fire_headless_create_enquiry(WP_REST_Request $request)
     $message = $request['message'];
     if ($name === '' || !is_email($email) || $message === '') {
         return new WP_Error('fire_invalid_enquiry', 'Name, a valid email and a message are required.', ['status' => 400]);
+    }
+    if (!fire_headless_enquiry_allowed((string) $request->get_header('x-fire-client-ip'))) {
+        return new WP_Error('fire_rate_limited', 'Too many enquiries. Please try again later.', ['status' => 429]);
     }
 
     $id = wp_insert_post([
@@ -261,11 +292,37 @@ function fire_headless_create_enquiry(WP_REST_Request $request)
     $to = defined('FIRE_ENQUIRY_RECIPIENT') ? FIRE_ENQUIRY_RECIPIENT : get_option('admin_email');
     $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
     $body = "Name: $name\nEmail: $email\n" . ($request['page'] ? "Sent from: {$request['page']}\n" : '') . "\n$message\n";
-    $mailed = wp_mail($to, sprintf('[%s] New enquiry from %s', $site, $name), $body, ['Reply-To: ' . $name . ' <' . $email . '>']);
+    // The name goes into a header, so only characters that can't start another address or header.
+    $reply_name = trim(preg_replace('/[^\p{L}\p{N} .\'-]/u', '', $name));
+    $reply_to = $reply_name !== '' ? sprintf('"%s" <%s>', $reply_name, $email) : $email;
+    $mailed = wp_mail($to, sprintf('[%s] New enquiry from %s', $site, $reply_name ?: $email), $body, ['Reply-To: ' . $reply_to]);
     update_post_meta($id, 'enquiry_emailed', $mailed ? 'yes' : 'no');
 
     // The enquiry is saved either way, so a mail failure doesn't lose the lead.
     return new WP_REST_Response(['success' => true, 'emailed' => $mailed], 201);
+}
+
+/**
+ * Counts an enquiry against the rate limits and says whether it may go through.
+ * Uses transients, so the limits hold across requests without a table of their own.
+ */
+function fire_headless_enquiry_allowed(string $ip): bool
+{
+    $total_key = 'fire_enquiries_total';
+    $total = (int) get_transient($total_key);
+    if ($total >= 50) {
+        return false;
+    }
+
+    $visitor_key = 'fire_enquiries_' . substr(hash_hmac('sha256', $ip !== '' ? $ip : 'unknown', wp_salt('nonce')), 0, 32);
+    $count = (int) get_transient($visitor_key);
+    if ($count >= 5) {
+        return false;
+    }
+    set_transient($visitor_key, $count + 1, 10 * MINUTE_IN_SECONDS);
+
+    set_transient($total_key, $total + 1, HOUR_IN_SECONDS);
+    return true;
 }
 
 add_filter('manage_enquiry_posts_columns', function ($columns) {
