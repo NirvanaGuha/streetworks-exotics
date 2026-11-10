@@ -10,6 +10,7 @@ import { Image } from "astro:assets";
 import { formatDate, getCaseStudies, imageProps, type Article } from "../../lib/articles";
 import { brand, content, fill } from "../../lib/site";
 import { columnSize } from "../../lib/fit";
+import { articleNode, breadcrumbs } from "../../lib/schema";
 
 export async function getStaticPaths() {
   const caseStudies = await getCaseStudies();
@@ -28,9 +29,17 @@ const facts = [
   { label: labels.recognition, value: study.recognition },
   { label: labels.writtenBy, value: study.byline || brand.shortName },
 ].filter((fact) => fact.value);
+const description = study.seo.description || study.excerpt || undefined;
 ---
 
-<Layout title={`${study.seo.title || study.title} | ${brand.client}`} description={study.seo.description || study.excerpt || undefined} image={study.seo.image || study.image?.src} type="article">
+<Layout
+  title={`${study.seo.title || study.title} | ${brand.client}`}
+  description={description}
+  image={study.seo.image || study.image?.src}
+  type="article"
+  published={study.date}
+  schema={(page) => [articleNode(study, page, description || brand.description), breadcrumbs(page, [{ name: brand.shortName, path: "/" }, { name: labels.caseStudies, path: "/case-studies" }, { name: study.vehicle || study.title }])]}
+>
   <NavBar />
 
   <main class="relative w-full bg-black text-white">

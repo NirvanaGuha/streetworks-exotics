@@ -89,3 +89,23 @@ export function takeCaption(text: string, introChars = 220): { title?: string; i
     }
     return { title, intro, rest: serialize(blocks) };
 }
+
+/**
+ * A search-result description from a page's text: the first full paragraph (headings and
+ * one-line statements skipped), cut at a sentence, or failing that a word, near 160
+ * characters, about what search engines show.
+ */
+export function describe(texts: string[], max = 160): string {
+    const paragraph = texts
+        .flatMap((text) => parseTextBlocks(text))
+        .find((block) => block.kind === "paragraph" && block.text.length >= 80);
+    if (!paragraph) return "";
+    const plain = paragraph.text.replace(/\s+/g, " ").trim();
+    if (plain.length <= max) return plain;
+    let out = "";
+    for (const sentence of plain.match(/[^.!?]+[.!?]+["”’)]*\s*/g) ?? []) {
+        if ((out + sentence).trim().length > max) break;
+        out += sentence;
+    }
+    return out.trim() || `${plain.slice(0, max - 1).replace(/\s+\S*$/, "")}…`;
+}

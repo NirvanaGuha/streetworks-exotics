@@ -10,10 +10,11 @@ import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { fetchAPI } from "../../lib/wp";
 import { getLocalService, getLocalServiceSlugs } from "../../lib/localContent";
-import { isStatement, parseTextBlocks, takeCaption } from "../../lib/storyText";
+import { describe, isStatement, parseTextBlocks, takeCaption } from "../../lib/storyText";
 import { brand, content } from "../../lib/site";
 import { safeColor } from "../../lib/sanitize";
 import { SEO_FIELDS, seoFromWordPress } from "../../lib/articles";
+import { breadcrumbs, serviceNode } from "../../lib/schema";
 
 export async function getStaticPaths() {
     const data = await fetchAPI(`query GetServiceSlugs { services(first: 100, where: { orderby: { field: MENU_ORDER, order: ASC } }) { nodes { slug } } }`);
@@ -149,9 +150,16 @@ type TextItem = Extract<StoryItem, { kind: "statement" | "article" }>;
 const closingItem = sections.length > 1 && sections[lastIndex]?.type === "text" && !used.has(lastIndex) ? (story.pop() as TextItem) : null;
 const closing = closingItem ?? (toItem(content.labels.closingLine) as TextItem);
 const tint = service.tintColor;
+// The Search & sharing description, or the opening paragraph (the tagline is a headline, too short to describe the page).
+const description = service.seo.description || describe(sections.filter((section: any) => section.type === "text").map((section: any) => section.text)) || service.heroTagline || undefined;
 ---
 
-<Layout title={`${service.seo.title || service.title} | ${brand.client}`} description={service.seo.description || service.heroTagline || undefined} image={service.seo.image || service.heroImage || undefined}>
+<Layout
+  title={`${service.seo.title || service.title} | ${brand.client}`}
+  description={description}
+  image={service.seo.image || service.heroImage || undefined}
+  schema={(page) => [serviceNode(service.title, description || brand.description, page), breadcrumbs(page, [{ name: brand.shortName, path: "/" }, { name: service.title }])]}
+>
     <Navbar />
 
     <main class="relative w-full bg-black text-white">

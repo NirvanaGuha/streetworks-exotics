@@ -50,6 +50,8 @@ async function load() {
 
     return {
         name: (wp.businessName as string) || fallback.name,
+        // schema.org type for search engines: AutoRepair, AutoBodyShop, LocalBusiness and so on.
+        type: (fallback as { schemaType?: string }).schemaType || 'LocalBusiness',
         address,
         phone,
         phoneHref: `tel:${phone.replace(/[^\d+]/g, '')}`,

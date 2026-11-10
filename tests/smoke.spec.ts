@@ -6,19 +6,21 @@ import path from 'node:path';
 const ROOT = path.resolve(import.meta.dirname, '..');
 const brand = JSON.parse(readFileSync(path.join(ROOT, 'src/data/brand.json'), 'utf8'));
 
-// Every page in the build: "index.html" -> "/", "services/coachwork/index.html" -> "/services/coachwork/".
-// Redirects (old post addresses) are listed apart.
+// Every page in the build: "index.html" -> "/", "services/coachwork/index.html" -> "/services/coachwork"
+// (the site has no trailing slashes). Pages that only forward elsewhere are left out.
 const CLIENT_DIR = path.join(ROOT, 'dist/client');
 if (!existsSync(CLIENT_DIR)) throw new Error('No build found. Run `npm run build` before the smoke tests.');
 const BUILT = readdirSync(CLIENT_DIR, { recursive: true, encoding: 'utf8' })
     .filter((file) => file.endsWith('index.html'))
     .map((file) => ({
-        route: '/' + file.split(path.sep).join('/').replace(/index\.html$/, ''),
+        route: '/' + file.split(path.sep).join('/').replace(/\/?index\.html$/, ''),
         redirect: /http-equiv="refresh"/.test(readFileSync(path.join(CLIENT_DIR, file), 'utf8').slice(0, 500)),
     }));
 const PAGES = BUILT.filter((page) => !page.redirect).map((page) => page.route).sort();
-const REDIRECTS = BUILT.filter((page) => page.redirect).map((page) => page.route).sort();
-const ARTICLES = PAGES.filter((route) => /^\/(blog|case-studies)\/[^/]+\/$/.test(route));
+const OLD_ADDRESSES: Record<string, string> = JSON.parse(readFileSync(path.join(ROOT, 'src/data/redirects.json'), 'utf8')).redirects;
+// Files the site serves besides its pages.
+const FILES = ['/rss.xml', '/sitemap.xml', '/robots.txt', '/llms.txt'];
+const ARTICLES = PAGES.filter((route) => /^\/(blog|case-studies)\/[^/]+$/.test(route));
 
 // Production's security headers (vercel.json), sent with every page the tests load, so a
 // resource the Content Security Policy would block in production fails here first.
@@ -101,10 +103,13 @@ test('unknown URLs get the 404 page', async ({ page }) => {
 
 test('robots.txt matches demo mode', async ({ page, request }) => {
     await page.goto('/');
-    const demo = (await page.locator('meta[name="robots"]').count()) > 0;
+    const demo = /noindex/.test((await page.locator('meta[name="robots"]').getAttribute('content')) ?? '');
     const body = await (await request.get('/robots.txt')).text();
     if (demo) expect(body).toMatch(/User-agent: \*\nDisallow: \//);
-    else expect(body).not.toMatch(/Disallow: \/\n/);
+    else {
+        expect(body).not.toMatch(/Disallow: \/\n/);
+        expect(body).toMatch(/^Sitemap: https?:\/\/\S+\/sitemap\.xml$/m);
+    }
 });
 
 test('pages carry link-preview tags', async ({ page, request }) => {
@@ -146,7 +151,7 @@ test('contact form responds', async ({ page }) => {
 test('preloader lifts on the first visit and is skipped after', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#preloader')).toBeHidden({ timeout: 6_000 });
-    await page.goto('/portfolio/');
+    await page.goto('/portfolio');
     await page.goto('/');
     await expect(page.locator('#preloader')).toBeHidden({ timeout: 1_000 });
 });
@@ -213,7 +218,7 @@ test('service statements fit the screen', async ({ page }) => {
 });
 
 test('the footer Services link lands on the first service', async ({ page }) => {
-    await page.goto('/portfolio/');
+    await page.goto('/portfolio');
     await page.locator('footer a[href="/#services"]').click();
     await expect(page).toHaveURL(/\/#services$/);
     await expect
@@ -371,15 +376,61 @@ test('video players load under the security policy', async ({ page }) => {
     expect(await page.evaluate(() => (window as any).injected)).toBeUndefined();
 });
 
-test('old post addresses redirect to their new pages', async ({ page }) => {
-    expect(REDIRECTS.length).toBeGreaterThan(0);
-    await page.goto(REDIRECTS[0]);
-    await expect(page).toHaveURL(new RegExp(`/(blog|case-studies)/${REDIRECTS[0].replaceAll('/', '')}/?$`));
-    await expect(page.locator('h1')).toBeVisible();
+test('every old site address redirects permanently to a page that exists', async ({ request }) => {
+    const entries = Object.entries(OLD_ADDRESSES);
+    expect(entries.length).toBeGreaterThan(0);
+    for (const [from, to] of entries) {
+        expect(PAGES, `${from} is a redirect, not a page`).not.toContain(from);
+        const response = await request.get(from, { maxRedirects: 0 });
+        expect(response.status(), from).toBe(301);
+        expect(new URL(response.headers().location, 'http://x').pathname + (to.includes('#') ? to.slice(to.indexOf('#')) : ''), from).toBe(to);
+        const target = to.replace(/#.*$/, '');
+        expect([...PAGES, ...FILES], `${from} -> ${to} exists`).toContain(target);
+    }
+});
+
+test('each page has one address: the slashed form redirects', async ({ request }) => {
+    const response = await request.get('/blog/', { maxRedirects: 0 });
+    expect(response.status()).toBe(301);
+    expect(new URL(response.headers().location, 'http://x').pathname).toBe('/blog');
+});
+
+test('every page has a title, description, canonical link and structured data', async ({ request }) => {
+    const titles = new Map<string, string>();
+    for (const route of PAGES.filter((r) => r !== '/404.html')) {
+        const html = await (await request.get(route)).text();
+        const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+        const description = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '';
+        const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1] ?? '';
+        expect(title, `${route} title`).not.toBe('');
+        expect(titles.get(title), `${route} shares its title with ${titles.get(title)}`).toBeUndefined();
+        titles.set(title, route);
+        expect(description.length, `${route} description "${description}"`).toBeGreaterThanOrEqual(50);
+        expect(new URL(canonical).pathname, `${route} canonical`).toBe(route);
+        const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+        expect(blocks.length, `${route} structured data`).toBe(1);
+        const types = blocks[0]['@graph'].map((node: any) => node['@type']);
+        expect(types, route).toContain('WebSite');
+        if (/^\/(blog|case-studies)\/./.test(route)) expect(types, route).toContain('BlogPosting');
+        if (route.startsWith('/services/')) expect(types, route).toContain('Service');
+    }
+});
+
+test('the sitemap, feed and llms.txt list exactly the pages that exist', async ({ request }) => {
+    const sitemap = await (await request.get('/sitemap.xml')).text();
+    const listed = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname).sort();
+    expect(listed).toEqual(PAGES.filter((route) => route !== '/404.html').sort());
+    const feed = await (await request.get('/rss.xml')).text();
+    const items = [...feed.matchAll(/<link>([^<]+)<\/link>/g)].slice(1).map((m) => new URL(m[1]).pathname);
+    expect(items.sort()).toEqual(ARTICLES.slice().sort());
+    const llms = await (await request.get('/llms.txt')).text();
+    for (const [, href] of llms.matchAll(/\]\((https?:\/\/[^)]+)\)/g)) {
+        expect([...PAGES, ...FILES], href).toContain(new URL(href).pathname);
+    }
 });
 
 test('blog category buttons filter the posts', async ({ page }) => {
-    await page.goto('/blog/');
+    await page.goto('/blog');
     const buttons = page.locator('.journal-filter[data-filter]:not([data-filter=""])');
     test.skip((await buttons.count()) === 0, 'no categories with more than one post');
     const button = buttons.first();
@@ -393,7 +444,7 @@ test('blog category buttons filter the posts', async ({ page }) => {
 });
 
 test('showcases link to pages that exist', async ({ page, request }) => {
-    await page.goto('/portfolio/');
+    await page.goto('/portfolio');
     const links = await page.locator('a.portfolio-card').evaluateAll((cards) => cards.map((card) => card.getAttribute('href')!));
     for (const href of links.filter((href) => href.startsWith('/'))) {
         expect((await request.get(href)).status(), href).toBe(200);

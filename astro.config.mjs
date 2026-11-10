@@ -4,6 +4,7 @@ import tailwindv4 from '@tailwindcss/vite';
 import node from '@astrojs/node';
 import vercel from '@astrojs/vercel';
 import { loadEnv } from 'vite';
+import oldAddresses from './src/data/redirects.json' with { type: 'json' };
 
 // WordPress images are optimized at build time, so their host must be allowed.
 const { PUBLIC_WP_GRAPHQL_URL, PUBLIC_SITE_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
@@ -35,6 +36,14 @@ export default defineConfig({
     // Deployed address, used for canonical URLs and link-preview images.
     site: siteUrl || undefined,
     output: 'static',
+    // One address per page: /blog, never /blog/ (Vercel redirects the slashed form), so search
+    // engines don't see two copies, and canonical links match the links on the site.
+    trailingSlash: 'never',
+    // The old site's addresses (src/data/redirects.json, from scripts/redirect-map.mjs). On
+    // Vercel each is a permanent 301; a build without it writes a page that forwards instead.
+    redirects: Object.fromEntries(
+      Object.entries(oldAddresses.redirects).map(([from, to]) => [from, { status: 301, destination: to }]),
+    ),
     // Astro 7 strips whitespace between inline elements by default (JSX rules); keep the
     // HTML-aware spacing the templates were written for, e.g. "{year} {label}".
     compressHTML: true,

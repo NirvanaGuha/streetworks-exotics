@@ -9,6 +9,7 @@ import ContactSection from "../../components/ContactSection.astro";
 import Footer from "../../components/Footer.astro";
 import { formatDate, getPosts, type Article } from "../../lib/articles";
 import { brand, content, fill } from "../../lib/site";
+import { articleNode, breadcrumbs } from "../../lib/schema";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -22,9 +23,17 @@ const { labels } = content;
 const shared = (other: Article) => other.categories.some((category) => post.categories.some((own) => own.slug === category.slug));
 const others = posts.filter((other) => other.slug !== post.slug);
 const more = [...others.filter(shared), ...others.filter((other) => !shared(other))].slice(0, 3);
+const description = post.seo.description || post.excerpt || undefined;
 ---
 
-<Layout title={`${post.seo.title || post.title} | ${brand.client}`} description={post.seo.description || post.excerpt || undefined} image={post.seo.image || post.image?.src} type="article">
+<Layout
+  title={`${post.seo.title || post.title} | ${brand.client}`}
+  description={description}
+  image={post.seo.image || post.image?.src}
+  type="article"
+  published={post.date}
+  schema={(page) => [articleNode(post, page, description || brand.description), breadcrumbs(page, [{ name: brand.shortName, path: "/" }, { name: content.journal.heading, path: "/blog" }, { name: post.title }])]}
+>
   <NavBar />
 
   <main class="relative w-full bg-black text-white">

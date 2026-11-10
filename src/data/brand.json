@@ -2,7 +2,7 @@
     "client": "StreetWorks Exotics",
     "shortName": "StreetWorks",
     "wordmark": ["STREETWORKS", "EXOTICS"],
-    "tagline": "Resurrecting Legends.",
+    "tagline": "Exceptional Automobile Restorations",
     "description": "Award-winning classic and exotic car restoration in Pewaukee, Wisconsin: coachwork, mechanical, paint, interiors and concours preparation.",
     "favicon": "/favicon.svg",
     "shareImage": "homepage/Restored-1967-Iso-Grifo-4.jpg",
@@ -33,6 +33,7 @@
     ],
     "business": {
         "name": "StreetWorks Exotics",
+        "schemaType": "AutoRepair",
         "address": ["600 Hickory St", "Pewaukee, WI 53072", "United States"],
         "phone": "+1 262-547-0052",
         "email": "streetworkshotrods@gmail.com",

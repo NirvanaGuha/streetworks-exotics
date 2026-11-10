@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "snapshot": "node --env-file=.env scripts/snapshot-wordpress.mjs",
+    "redirects": "node scripts/redirect-map.mjs",
     "test:smoke": "playwright test"
   },
   "dependencies": {

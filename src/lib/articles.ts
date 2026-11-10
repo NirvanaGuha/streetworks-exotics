@@ -23,6 +23,8 @@ export type Article = {
     href: string;
     title: string;
     date: string;
+    // Last edited in WordPress, when known.
+    modified?: string;
     excerpt: string;
     byline: string;
     categories: { name: string; slug: string }[];
@@ -105,6 +107,7 @@ function fromWordPress(node: any, kind: Article['kind']): Article {
         slug: node.slug,
         title: node.title,
         date: node.date,
+        modified: node.modified,
         excerpt: text(node.excerpt || '').replace(/\s+/g, ' ').replace(/\s*\[(…|&hellip;|\.\.\.)\]\s*$/, '…').trim(),
         byline: node.articleDetails?.byline || '',
         categories: node.categories?.nodes || [],
@@ -137,7 +140,7 @@ async function load() {
       query GetArticles {
         posts(first: 100, where: { orderby: { field: DATE, order: DESC } }) {
           nodes {
-            slug title date excerpt
+            slug title date modified excerpt
             categories { nodes { name slug } }
             articleDetails { byline }
             ${IMAGE_FIELDS}
@@ -147,7 +150,7 @@ async function load() {
         }
         caseStudies(first: 100, where: { orderby: [{ field: MENU_ORDER, order: ASC }, { field: DATE, order: DESC }] }) {
           nodes {
-            slug title date excerpt
+            slug title date modified excerpt
             articleDetails { byline }
             caseStudyDetails { vehicle year scope recognition }
             ${IMAGE_FIELDS}

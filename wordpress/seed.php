@@ -183,6 +183,12 @@ if ($settings_id) {
 // Services: one per file in src/content/services, slug = file name.
 // The page content is built from the file's sections, in order.
 
+/** A content file's Search & sharing title and description, for the plugin's SEO fields. */
+function fire_seed_seo_fields(array $data): array
+{
+    return ['seo_title' => $data['seo']['title'] ?? '', 'seo_description' => $data['seo']['description'] ?? ''];
+}
+
 /** Image paths in the service files are relative to the file ("../../assets/images/x.jpg"). */
 function fire_seed_service_image_path(string $path): string
 {
@@ -266,7 +272,7 @@ foreach (glob("$root/src/content/services/*.json") as $file) {
     fire_seed_post('service', $data['title'], $order, $img(fire_seed_service_image_path($data['heroImage'])), [
         'description'  => $data['heroTagline'] ?? '',
         'tint_color'   => $data['tintColor'] ?? '',
-    ], true, ['post_name' => $slug, 'post_content' => fire_seed_service_content($data, $img)]);
+    ] + fire_seed_seo_fields($data), true, ['post_name' => $slug, 'post_content' => fire_seed_service_content($data, $img)]);
 }
 
 // Posts and case studies: one per file in src/content/posts and src/content/case-studies,
@@ -293,7 +299,7 @@ foreach ($article_types as $type => $dir) {
             WP_CLI::log("Kept existing $type: $slug");
             continue;
         }
-        $fields = ['byline' => $data['byline'] ?? ''];
+        $fields = ['byline' => $data['byline'] ?? ''] + fire_seed_seo_fields($data);
         if ($type === 'case_study') {
             foreach (['vehicle', 'year', 'scope', 'recognition'] as $field) $fields[$field] = $data[$field] ?? '';
         }

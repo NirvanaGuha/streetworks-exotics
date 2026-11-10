@@ -103,6 +103,25 @@ function fire_import_text(string $html): string
     return trim(html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 }
 
+/**
+ * The search title and description an SEO plugin (Yoast, Rank Math, All in One SEO) gave the
+ * post, read from its page, so its search listing carries over. The title is only kept when
+ * it differs from the post's own (less the site name the plugin adds).
+ */
+function fire_import_seo(string $link, string $title, string $site_name): array
+{
+    $response = wp_remote_get($link, ['timeout' => 30]);
+    $html = is_wp_error($response) ? '' : wp_remote_retrieve_body($response);
+    $decode = fn(string $text) => trim(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $page_title = preg_match('#<title[^>]*>(.*?)</title>#is', $html, $m) ? $decode($m[1]) : '';
+    $page_title = $site_name !== '' ? trim(preg_replace('/\s*[|\-–—]\s*' . preg_quote($site_name, '/') . '.*$/iu', '', $page_title)) : $page_title;
+    // The description tag, attributes in either order, its content up to the quote that opened it.
+    $tag = preg_match('#<meta\b[^>]*\bname=(["\'])description\1[^>]*>#i', $html, $m) ? $m[0] : '';
+    $description = preg_match('#\bcontent=(["\'])(.*?)\1#s', $tag, $m) ? $decode($m[2]) : '';
+    $same = fn(string $a, string $b) => strtolower(preg_replace('/[^a-z0-9]/i', '', $a)) === strtolower(preg_replace('/[^a-z0-9]/i', '', $b));
+    return ['seo_title' => $page_title !== '' && !$same($page_title, $title) ? $page_title : '', 'seo_description' => $description];
+}
+
 /** The opening of the first real paragraph, cut at a sentence, for listings. */
 function fire_import_excerpt(array $blocks): string
 {
@@ -263,6 +282,10 @@ foreach ($posts as $post) {
         foreach (['vehicle', 'year', 'scope', 'recognition'] as $field) {
             update_field($field, (string) ($case_studies[$slug][$field] ?? ''), $id);
         }
+    }
+
+    foreach (fire_import_seo($post['link'], $title, html_entity_decode($site['name'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8')) as $field => $value) {
+        update_field($field, $value, $id);
     }
 
     // The shop is the default byline, so only people are named.

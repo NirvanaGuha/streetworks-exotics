@@ -51,7 +51,7 @@ Plugins (all free): **WPGraphQL**, **Advanced Custom Fields**, **WPGraphQL for A
 | How a page looks in search results and link previews | The **Search & sharing** box beside every post, case study, service and page: title, description, preview image. Empty fields use the page's own title, excerpt or tagline, and featured image. |
 | Contact form submissions | **Enquiries** (read-only) |
 
-Order showcases, testimonials, services and case studies with the **Order** field in the sidebar. Posts and case studies that lived at `/<slug>` on the old site redirect to their new addresses.
+Order showcases, testimonials, services and case studies with the **Order** field in the sidebar. Every address of the old site redirects to its new one (see *Search and AI search*).
 
 **How Site Settings works.** `wordpress/fire-headless/site-settings.json` lists every setting: its label, field type and the value it replaces in `src/data/brand.json` or `src/data/content.json` (its `path`). The plugin builds the Site Settings screen from that list and `src/lib/site.ts` fetches the same fields and lays them over the built-in values, so adding a setting is one entry in the list plus using the value in a component. Every value is checked before use: colours must be hex, fonts must be on the list, numbers in range. A bad value keeps the built-in one rather than reaching the page.
 
@@ -109,13 +109,24 @@ Everything client-specific lives in data files and images; the components don't 
 5. **`public/favicon.svg`** and **`favicon.ico`**.
 6. **WordPress**: install the plugins, set `FIRE_FORM_SECRET` (and `FIRE_DEPLOY_HOOK_URL` once the site is on Vercel), then run `wp eval-file wordpress/seed.php "$PWD"`. It creates the front page, homepage settings, business details, Site Settings, showcases, testimonials, services (with their text and gallery blocks), posts and case studies, and uploads every image they use. Tested on a brand-new WordPress.
 7. **`.env`**: the client's GraphQL URL and form secret, and `PUBLIC_DEMO_MODE=true` until launch.
-8. Build, then search the output for the previous client's name and phone number. Nothing should turn up.
+8. **Redirects**: `npm run redirects`, then point the addresses it lists (About, Careers, a shop) at the closest new page in `src/data/redirects.json`.
+9. Build, then search the output for the previous client's name and phone number. Nothing should turn up.
 
 ## Behaviour notes
 
 - **Reduced motion:** with the OS setting on, smooth scrolling, parallax, the logo zoom and the colour sweep are off; scroll-driven fades and reveals stay.
 - **Preloader:** shown once per browser session on the homepage, until the hero image and fonts are ready (0.7–2.5s). It fades on its own after 3.5s if JavaScript fails.
 - **Link previews:** every page has Open Graph/Twitter tags with a 1200×630 image cut from its hero.
+
+## Search and AI search
+
+**Moving from the old site.** `src/data/redirects.json` lists every address the client's old WordPress site had (from its sitemaps, plus the category, tag, author, paged-archive, feed and sitemap addresses WordPress serves) and where it now goes. Each becomes a permanent 301 redirect on Vercel (and in the Node server), so links and rankings carry over. Build it with `npm run redirects` (it reads the old address from `wordpress/imports/*.json`, or pass it): posts, case studies and services match by slug, archives go to `/blog`, the feed to `/rss.xml`, sitemaps to `/sitemap.xml`, and anything else is listed for a hand-picked destination. Re-running keeps hand-made entries. A WordPress page at a redirected address isn't built until its entry is removed (the build says so).
+
+**On every page:** one address (no trailing slash; the slashed form redirects) with a matching canonical link; a title and description (the *Search & sharing* box, or the article's excerpt or the service's opening paragraph); `max-image-preview:large` and full-length snippets allowed for search and AI answers once live; and structured data (`src/lib/schema.ts`): the business (type from `brand.json`'s `business.schemaType`, address, phone, email, map, social profiles) and website everywhere, plus `BlogPosting` for posts and case studies (a case study is also about its car), `Service` for services, and breadcrumbs.
+
+**Site-wide files:** `/sitemap.xml` (every page, with its last edit date from WordPress), `/robots.txt` (live: everything allowed, search and AI crawlers alike, and the sitemap address), `/rss.xml` (posts and case studies) and `/llms.txt` (a plain summary of the business with every service, case study and post, for AI assistants). All are built from the same page list (`src/lib/directory.ts`), so they never list a page that doesn't exist.
+
+**Carried over from the old site:** the post importer and `npm run snapshot` keep each post's search title and description from its SEO plugin; the homepage title is "Business name | Homepage title tagline" from Site Settings.
 
 ## Security
 
@@ -142,6 +153,8 @@ Everything client-specific lives in data files and images; the components don't 
 - Enquiries are never exposed in REST or GraphQL.
 
 **At launch**
+- Set `PUBLIC_SITE_URL` to the site's real address, the same form the old site used (here `https://streetworksexotics.com`, no `www`), and add both forms of the domain in Vercel with the other one redirecting.
+- In Google Search Console, submit `/sitemap.xml` and use URL Inspection on a few old addresses to confirm they redirect.
 - Use strong admin passwords and two-factor sign-in.
 - Add a login-attempt limiter, such as Limit Login Attempts Reloaded.
 - Set `define('DISALLOW_FILE_EDIT', true);` in `wp-config.php`.
@@ -156,18 +169,19 @@ Everything client-specific lives in data files and images; the components don't 
 ## Checks
 
 - **Client leak check** runs after every build (`postbuild`): it fails if the output contains details of any other client listed in `scripts/client-fingerprints.json`. Add each new client there.
-- **Smoke tests** (`npm run test:smoke`, after a build) open every built page in desktop Chrome and an iPhone-sized WebKit (Safari's engine): status, console errors, broken images, sideways overflow, clipped headings, every service section revealing, statements fitting the screen, every post and case study block revealing, article photos fitting the screen, old post addresses redirecting, the blog's category filter, showcase links, the footer Services link, the contact form (including after moving between pages), 404, robots.txt, link-preview tags, the preloader and reduced motion, every Site Settings field pointing at a real value, and the security headers (see Security). First run: `npx playwright install chromium webkit`.
+- **Smoke tests** (`npm run test:smoke`, after a build) open every built page in desktop Chrome and an iPhone-sized WebKit (Safari's engine): status, console errors, broken images, sideways overflow, clipped headings, every service section revealing, statements fitting the screen, every post and case study block revealing, article photos fitting the screen, every old site address redirecting permanently to a page that exists, one address per page, every page's title, description, canonical link and structured data, the sitemap, feed and llms.txt matching the pages, the blog's category filter, showcase links, the footer Services link, the contact form (including after moving between pages), 404, robots.txt, link-preview tags, the preloader and reduced motion, every Site Settings field pointing at a real value, and the security headers (see Security). First run: `npx playwright install chromium webkit`.
 - **CI** (`.github/workflows/ci.yml`) runs the build, leak check and smoke tests on every push to `main` and on pull requests.
 
 Requires Node 22.22 or newer (Astro 7).
 
 ## Project map
 
-- `src/pages/index.astro` — homepage story; `src/pages/portfolio.astro` — all showcases; `src/pages/services/[slug].astro` — service pages; `src/pages/blog/` and `src/pages/case-studies/` — listings and articles (`components/Article*.astro`); `src/pages/[page].astro` — plain WordPress pages and redirects from old post addresses; `src/pages/404.astro`
+- `src/pages/index.astro` — homepage story; `src/pages/portfolio.astro` — all showcases; `src/pages/services/[slug].astro` — service pages; `src/pages/blog/` and `src/pages/case-studies/` — listings and articles (`components/Article*.astro`); `src/pages/[page].astro` — plain WordPress pages (`src/lib/pages.ts`); `src/pages/sitemap.xml.ts`, `rss.xml.ts`, `llms.txt.ts` and `robots.txt.ts` — the site-wide files (`src/lib/directory.ts`); `src/pages/404.astro`
 - `src/data/brand.json` — identity, colours, fonts, business details; `src/data/content.json` — starter/fallback content and every label; `src/data/site-settings.json` — the snapshot of WordPress's Site Settings for builds without WordPress
 - `src/lib/site.ts` — Site Settings over the built-in values (`brand`, `content`); `src/lib/fonts.ts` — the font list; `src/lib/sanitize.ts` — HTML, link and colour cleaning
 - `src/lib/articles.ts` — posts and case studies (WordPress or local), in one shape
 - `src/lib/wp.ts` — GraphQL client (service content arrives as structured `sections` from the plugin, built with WordPress's own block parser); `src/lib/localContent.ts` — local fallbacks; `src/lib/business.ts` — business details (WordPress over brand.json); `src/lib/assets.ts` — image paths to Astro images; `src/lib/demo.ts` — demo mode
+- `src/lib/schema.ts` — structured data; `src/data/redirects.json` — old site addresses (`scripts/redirect-map.mjs`)
 - `src/actions/index.ts` — contact form action
 - `vercel.json` — security headers
 - `src/utils/animations.ts` — shared GSAP timelines
